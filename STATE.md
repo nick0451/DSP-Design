@@ -23,13 +23,19 @@ except Q2 (channel policy) and Q4 (board name/PN/rev), neither of which blocks d
 The §8 [VERIFY] checklist is the gate: **13 of 16 open, every one a datasheet read.**
 G0-L **open** — blocked on Blocks D and E, unchanged.
 
-**Next action:** operator dispositions the four new findings — **F20 first** (it is a defect in a
-[HARD] sequence), then F19, F18, F17. Meanwhile work the remaining §8 items that the local archive
-can answer: V-04 (AKM MCLK ratios), V-06 (OPA1656), V-09 (AKM control-port strapping), V-12
-(antenna keepouts).
+**Next action:** **F23** — extract the exact AKM slave-address bytes and lay them against each
+other. It is the one open item that could force an architecture change (a part off I2C onto
+3-wire, contradicting §5), and it is cheap to settle from datasheets already held. Then the
+residue: V-04 ADC side, V-06 output swing, V-12 dimensions via `pdftoppm`, and F24's LDO input
+rails.
 
 **Datasheets:** 14 held and verified (`DATASHEETS.md`). ADAU1466 Rev. C and LT3045 Rev. D supplied
 by the operator 2026-08-15; analog.com remains unreachable from here for anything further.
+
+**Layout-blocked list gained an entry:** the ADAU1466's **5.3 mm exposed-pad via array** is now a
+Block E stackup input (F17). Logged here so it is not rediscovered at fab-quote time. Its paste
+aperture wants **windowed openings rather than one flood** and is called out in the DL-14
+verification pass.
 
 **Baseline safety copy:** none — nothing to copy yet. The first board file that lands here gets a
 copy with its SHA256 recorded in this section **before** any edit.
@@ -70,6 +76,12 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-12 | **INA1650 is dual-channel**; INA1651 is the single-channel sibling | `INA1650_TI.pdf` p.1 (official TI), 2026-08-15. Closes V-11 and re-grounds T1-D27 on the manufacturer document |
 | T1-13 | 12 manufacturer datasheets held locally in `datasheets/`, each verified by page count and first-page content after download; register in `DATASHEETS.md` | Retrieval + `pdfinfo`/`pdftotext` verification, 2026-08-15 |
 | T1-14 | poppler 25.07.0 installed (winget, user scope), on user PATH; provides `pdftotext`, `pdfinfo`, `pdftoppm` | `winget install`, binaries exercised on the archive, 2026-08-15 |
+| T1-26 | **AK4458 MCLK ratio at 48 kHz: 512fs or 768fs** (30-54 kHz band). Our 24.576 MHz XO is exactly **512fs at 48 kHz** — compatible. "In PCM mode, master clock is divided automatically by fs rate auto detection" | `AK4458_AKM.pdf`. Closes V-04 for the DAC side |
+| T1-27 | **All four AKM parts select I2C vs 3-wire serial by pin strap.** AK4458: I2C mode requires `I2C` pin = H **and `PS` pin = L** (PS = H gives *parallel* mode). AK5574: `I2C` pin = H selects I2C (L selects 3-wire). AK4118A: `IIC` pin = H selects I2C | The three AKM datasheets. **Closes V-09** |
+| T1-28 | **AKM I2C addressing is only 2 bits wide.** AK5574 and AK4458 each carry a 2-bit chip address (C1 = CAD1, C0 = CAD0). **AK4118A has C1 fixed at 0**, leaving only CAD0 — two addresses | The three AKM datasheets. Drives F23 |
+| T1-29 | **OPA1656 quiescent current = 3.9 mA per channel**, 100 mA output drive | `OPA1656_TI.pdf`. Confirms the ~96 mA figure in the T1-D30 rail budget (24 × 3.9 = 93.6 mA) |
+| T1-30 | **LMK1C110x supply is 3.3 V / 2.5 V / 1.8 V — it is not a 5 V part.** Additive jitter 7.5 fs typ specified at VDD = 3.3 V | `LMK1C1104_TI.pdf`. Drives F22 |
+| T1-31 | **Both modules mandate an antenna keepout.** BM83: "Figure 7-4. Recommended Keep-out Area for PCB Antenna" — "No copper, No component" and no ground plane under the antenna on the host PCB. ESP32-S3-WROOM-1 has an antenna keepout zone; **the -1U variant does not, because it uses an external antenna** | `BM83_Microchip.pdf`, `ESP32-S3-WROOM-1_Espressif.pdf`. **V-12 partially closed** — existence and mandate confirmed; exact dimensions live in figures and need a `pdftoppm` render |
 | T1-16 | **ADAU1462/ADAU1466 ship in ONE package: 72-lead LFCSP, `CP-72-6`, 10 x 10 mm, 5.3 mm exposed pad.** The ordering guide lists six orderable models and every one is LFCSP. **There is no LQFP and no WLCSP.** Temp range -40 C to +105 C | `adau1462-1466.pdf` Rev. C p.202 ordering guide + p.1 features. **Closes V-01 (package), confirms F17** |
 | T1-17 | **4 serial input ports, 4 serial output ports.** Up to **8 stereo ASRCs**, ratio 1:8 to 7.75:1, 139 dB dynamic range, THD+N -120 dB, I/O sample rate 6-192 kHz | Rev. C p.1 features + spec tables. Closes V-01 (ports/ASRC); `REQUIREMENTS.md` §2/§4 confirmed correct |
 | T1-18 | **Serial ports are independently master/slave, per port.** `SERIAL_BYTE_x_0` at 0xF200 / 0xF204 / 0xF208 / 0xF20C (SDATA_IN0…IN3), Bit 9 `LRCLK_MODE`, Bit 8 `BCLK_MODE`. Pin descriptions state per port that "Serial Input Port *n* is a master or slave" | Rev. C register map + pin table. **Closes V-13 — the F1 disposition is confirmed against the document** |
@@ -271,6 +283,14 @@ candidate is a slipped digit or a double-count, not a subtle modelling differenc
 board-mount vs. flying-lead RCA is still an early decision (Q34). **A conclusion that survives its
 own broken evidence is not thereby vindicated;** it was re-derived, and the re-derivation is what
 it now rests on.
+
+**"An unconnected pin is an undefined pin"** — 2026-08-15, from F21
+*Correction:* `SELFBOOT` floating is not undefined — a 250 kΩ internal pull-up makes it a
+**chosen** state, and the state it chooses is *boot over SPI from an EEPROM that is DNP on v1*.
+An unpopulated strap would have silently selected a boot path to a part that is not on the board.
+*The tell:* **floating is a state someone chose. Find out who and why before trusting it.** Every
+strap, mode and configuration pin gets its idle level read out of the pin table and stated in the
+schematic — an unfitted resistor is a decision, not an absence.
 
 **"A PowerShell round-trip through a text file is lossless"** — assistant, 2026-08-15
 *Correction:* Windows PowerShell 5.1 `Get-Content -Raw` reads a UTF-8 file **without a BOM using
@@ -481,11 +501,11 @@ Discrepancies, gaps and risks found in `REQUIREMENTS.md` v0.1. Per `CLAUDE.md` �
 **Severity:** ⛔ blocks capture · ⚠ affects capture · ▫ affects layout or later · ✅ **closed by
 operator disposition** (folded into `REQUIREMENTS.md` v0.2 — rows kept, never deleted).
 
-**13 of 21 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16, F17.
-**Eight open — and four are new from the V-01 datasheet pass:**
-**F18** (+1V2_CORE method), **F19** (+3V3_D must be a buck), **F20** (§7.2 step 3 defect),
-**F21** (SELFBOOT strap), plus F4 (impedance, layout), F12, F13, F15.
-F17 closed as *confirmed* and still needs an operator decision on the assembly plan.
+**18 of 24 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16, F17, F18,
+F19, F20, F21, F22 — the last five dispositioned into `REQUIREMENTS.md` v0.5.
+**Six open: F4** (impedance, layout), **F12**, **F13** (capture), **F15**, and two new from the
+second datasheet sweep — **F23** (AKM I2C address space may be too narrow) and **F24** (LT3045
+input rails unspecified; +5V_A cannot come from +5V_D).
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
@@ -504,6 +524,9 @@ F17 closed as *confirmed* and still needs an operator decision on the assembly p
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F23** | ⛔ | **NEW. The AKM parts may not all fit on one I2C bus — which would defeat §5's "strap consistently to I2C".** T1-28: AK5574 and AK4458 have a **2-bit** chip address; AK4118A has C1 fixed at 0, so **one selectable bit**. The bus must carry AK5574 + **two** AK4458 + AK4118A + ADS1015 + TMP102. If the AKM families share a base slave address — and a ragged first-pass extraction showed the same `00100` prefix near all three — the two DACs plus the ADC plus the SPDIF receiver may not be uniquely addressable. | **Extract the exact slave-address bytes for all three AKM parts and lay them out against each other before capture.** If they collide, the escape is to put one part on 3-wire serial instead (all three support it), which *contradicts* §5's [VERIFY] instruction to strap consistently to I2C — so it is an operator decision, not a workaround |
+| **F24** | ⚠ | **NEW. The LT3045 input rails are unspecified, and +5V_A cannot come from +5V_D.** §7.1 has always said "+5V_A / +3V3_A — LT3045-class ultra-low-noise LDOs" without naming what feeds them. An LDO needs headroom; **+5V_D at 5.0 V cannot produce a clean +5V_A**. It needs a higher intermediate rail, or derivation from ±13V5_A at a cost of (13.5 − 5) × I dissipated in the LDO. | Resolve before capture. Flagged in v0.5 §7.1 note 4 rather than silently inventing a rail |
+| **F22** | ✅ | **CLOSED in v0.5 — the MCLK fanout was on the wrong rail, twice over.** T1-30: the LMK1C110x is a 1.8/2.5/3.3 V part, so §7.1's placement of "fanout" on **+5V_D** was wrong on its face. And it is the most jitter-critical device in the [HARD] §3 clock tree, with its 7.5 fs additive-jitter figure specified on a clean supply — so it belongs on **+3V3_A**, not the +3V3_D switcher. Moved to +3V3_A | — |
 | **F20** | ⛔ | **NEW. §7.2 step 3 cannot work as written — the control port is dead while the PLL locks.** The [HARD] turn-on sequence says "ESP32 releases DSP reset, slave-boots program over SPI, verifies readback". But T1-23: while the PLL is locking, the SPI slave port is **inactive and every write fails** — up to **10.666 ms**, typically ~3.5 ms. Firmware that releases reset and immediately begins the slave boot has every write silently discarded. **Same shape as F1** — a [HARD] sequence omitting a hardware precondition, failing in a way that looks like a wiring fault. | Insert a step between current 3 and 4: after releasing reset, **configure the PLL (0xF000-0xF003), then poll `PLL_LOCK` 0xF004 Bit 0 until set, before any program write.** Needs operator sign-off as a [HARD] amendment |
 | **F19** | ⛔ | **NEW. The DSP core draws far more than §7.1 anticipates, and it lands on +3V3_D.** T1-20: **495 mA maximum, 220 mA typical** at 1.2 V. Because DVDD derives from IOVDD, that current is drawn **from the 3.3 V rail**, and the 3.3->1.2 V drop dissipates **~1 W at maximum program** wherever the pass element sits. §7.1 offers "+3V3_D - buck **or LDO** from 5 V": with ~500 mA for the DSP plus the ESP32-S3 (several hundred mA peak on WiFi TX) plus BM83 plus IOVDD's own 53 mA, +3V3_D is a **1 A-class rail**, and an LDO from 5 V would burn ~2 W. | **+3V3_D must be a buck, not an LDO** — the "or LDO" option should be struck. Also feeds a thermal requirement §9 does not currently carry |
 | **F18** | ⚠ | **NEW. §7.1's "+1V2_CORE - LDO from 3V3" is one of two valid methods, and the datasheet's own is the other.** T1-21: the on-chip regulator is a **controller driving an external PNP pass transistor** (`VDRIVE`, pin 3), rated to 800 mA. Real tradeoff: **the PNP path** moves ~1 W into a discrete you can give copper to rather than into an LDO package, but T1-22 imposes supply ordering (DVDD after AVDD/IOVDD/PVDD). **The external-LDO path** has *"no special sequence required"* but puts ~1 W in the LDO. | Operator's call — it trades thermal placement freedom against sequencing complexity, and both interact with the [HARD] §7.2. Not decided unilaterally |
@@ -524,16 +547,16 @@ citation** — part number, document revision, and section.
 | V-01 | ADAU1466 package, ports, ASRCs + V-07/V-08/V-13 + firmware contract, in one pass | §2 | **CLOSED 2026-08-15 → T1-16…T1-25.** Single pass as planned (DL-22). Confirmed F17 and produced F18/F19/F20/F21 |
 | V-02 | AK4118A: confirm it has no internal SRC, and its output-port master/slave capability | §3 / F1 | **Closed** → T1-10, operator confirmation. Re-check on the datasheet when it is open for pinout anyway — F1's whole disposition rests on it |
 | V-03 | BM83 I2S master/slave capability in the chosen firmware config | §3 | Open |
-| V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | Open |
+| V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | **DAC side closed → T1-26** (512fs or 768fs at 48 kHz; our 24.576 MHz XO is exactly 512fs). **ADC side still open** — AK5574 ratio table needs a second look, and the F15 MCLK/LRCK phase-coherence question is unanswered for both |
 | V-05 | AK4458 differential full-scale output voltage | §6.2 / F12 | **CLOSED → T1-11.** 2.8 Vpp differential at (VREFH−VREFL)=5 V. `AK4458_AKM.pdf`, see `DATASHEETS.md` |
-| V-06 | OPA1656 output swing and quiescent current at ±13.5 V — the ~4 mA/ch figure underpinning the 200 mA rail budget | §6.2 / F7 | Open |
+| V-06 | OPA1656 output swing and quiescent current at ±13.5 V | §6.2 / F7 | **Iq closed → T1-29:** 3.9 mA/channel, confirming the 96 mA figure behind T1-D30. **Output swing still open** — it sits in a spec table that needs a targeted read, and it is what confirms the 4.5 Vrms [HARD] headroom claim in T2-06 |
 | V-07 | ADAU1466 slave-port maximum SPI SCLK (target ≥10 MHz) | §5 | **CLOSED → T1-19.** 20 MHz read and write — 2x margin on the target |
 | V-08 | ADAU1466 core voltage and current | §7.1 | **CLOSED → T1-20.** 1.2 V ±5%; 220 mA typical, **495 mA max**. Drove F18 and F19 |
-| V-09 | AKM control-port mode strapping — each part, strapped consistently to I2C | §5 | Open |
+| V-09 | AKM control-port mode strapping — each part, strapped consistently to I2C | §5 | **CLOSED → T1-27.** I2C/IIC pin = H on all three; **AK4458 additionally needs `PS` = L**, since PS = H selects *parallel* mode. But see **F23** — whether they can all *coexist* on one bus is a separate question the strapping answer exposed |
 | V-10 | AKM part lifecycle and lead time; decide AKM vs TI (PCM1865 / PCM1690) | §2 / §11 | Open |
 | V-11 | INA1650 channel count per package | §2 / F2 | **CLOSED → T1-12.** Dual-channel, confirmed against the TI datasheet, no longer resting on operator confirmation alone |
 | V-13 | ADAU1466 per-port serial master/slave configurability | §3 v0.2 / F1 | **CLOSED → T1-18.** Per-port `SERIAL_BYTE_x_0` registers with `LRCLK_MODE` / `BCLK_MODE` bits, plus per-port pin-table wording. **The F1 disposition is confirmed against the document**, and the operator's T2 was correct. The fallback (dedicated ASRC pair) is not needed |
 | V-14 | **Series photoMOS** (TLP3475-class): Ron, off-state Coff, voltage rating vs ±6.4 V peak plus rail-collapse excursion, LED drive current | §6.4 v0.4 | Open — **restated at v0.4.** No longer a constrained optimisation: Ron 1–2 Ω against ≥10 kΩ is inaudible and off-isolation is the easy half of the pair |
 | V-15 | **Shunt depletion FET pair**: Ron (100–500 Ω is ample), off-state Coff **and its nonlinearity**, Vgs(off) against the −13V5-derived bias | §6.4 v0.4 | Open — **restated at v0.4.** Small-die part; Coff is now the only tight number and it is tight against T1-D42, not against mute depth |
 | V-16 | Disorderly-path transient, modelled as the **full stack**: DAC brown-out residual × mute attenuation × amp gain × amp remote-mute latency | §7.4 v0.4 | Open — bench, first board. **Bounded, not indefinite:** remote-out is fail-safe and drops first, so the window is the amp's own mute latency (tens to ~200 ms), and the source is a resetting DAC well under −20 dBFS, not programme material. Use a pessimistic latency — it belongs to someone else's amplifier |
-| V-12 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepout dimensions and board-edge requirements | §8 | Open |
+| V-12 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepout dimensions and board-edge requirements | §8 | **Partially closed → T1-31.** Both mandates confirmed: BM83 needs no copper, no component **and no ground plane** under the antenna; WROOM-1 has a keepout zone. **Dimensions live in figures** and need a `pdftoppm` render — fold into the DL-14 footprint pass, where the operator already eyeballs the BM83 keepout. **Escape hatch noted:** the **-1U** variant has no keepout because it takes an external antenna — the answer if T1-D20's antenna-separation requirement fights the outline |

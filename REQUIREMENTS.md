@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.4 — architecture baseline for schematic capture
+**Doc status:** v0.5 — architecture baseline for schematic capture
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -49,7 +49,21 @@ datasheets before capture.
 | Operator | V-16 transient analysis gains a second layer: remote-out is itself fail-safe, so the requirement is bounded by the amp's remote-mute latency, not by indefinite suppression | §7.4 |
 | Operator | Board named **ODSP-12**, PN `ODSP12-MB-A` | header |
 
-Unchanged and still open at v0.4: F4 (impedance targets), F12, F13, F15.
+**v0.5 — 2026-08-15.** Operator dispositions of the V-01 datasheet pass (F17–F21), plus F22
+found in the same sweep. **§7 power section re-emitted as a unit** at operator request rather
+than patched three times.
+
+| Finding | Change | Section |
+|---|---|---|
+| F17 | ADAU1466 package corrected to **72-lead LFCSP `CP-72-6`**; the LQFP/WLCSP hand-rework parenthetical deleted — it was never an available option | §2 |
+| F20 | **New step 3a in the [HARD] turn-on sequence**: configure PLL, poll `PLL_LOCK` with a 15 ms timeout, *then* boot. Timeout is a distinct fault code, not a retry | §7.2 |
+| F19 | "+3V3_D — buck **or LDO**" → **buck only**, from VBATT_PROT, **2 A continuous design point** | §7.1 |
+| F18 | +1V2_CORE becomes a **dedicated buck** (TPS62823-class); on-chip controller and `VDRIVE` unused, no PNP footprint at all | §7.1 note 3 |
+| F22 | MCLK fanout buffer is a 3.3 V part, not 5 V — moved off +5V_D **to +3V3_A**, the clean rail, because it is the most jitter-critical device in the tree | §7.1 note 5 |
+| — | +5V_A LDO input rail flagged as unresolved: it cannot come from +5V_D, which has no headroom | §7.1 note 4 |
+
+Unchanged and still open at v0.5: F4 (impedance targets), F12, F13, F15, F21 (SELFBOOT strap —
+accepted, lands at capture), F23, F24.
 
 ---
 
@@ -85,7 +99,7 @@ Single-board automotive DSP processor:
 
 | Function | Part | Package notes | Rationale |
 |---|---|---|---|
-| DSP | ADI ADAU1466 (WLCSP/LQFP — prefer 72-LQFP for hand-rework) | 3.3 V IOVDD, 1.2 V core | 8 stereo hardware ASRCs, 4+4 TDM serial ports, slave-boot over SPI |
+| DSP | ADI ADAU1466 — **72-lead LFCSP `CP-72-6`, 10 × 10 mm, 5.3 mm exposed pad** *(v0.5, F17 — this is the only package offered; the LQFP/WLCSP hand-rework preference was not available and is deleted)* | 3.3 V IOVDD, 1.2 V core | 8 stereo hardware ASRCs, 4+4 TDM serial ports, slave-boot over SPI |
 | MCU | ESP32-S3-WROOM-1 (N8R2 or better) | Module, certified | BLE 5 + WiFi control plane, USB-OTG, SPI master to DSP |
 | BT audio | Microchip BM83SM1 module | Certified module | A2DP sink, aptX/aptX-HD/AAC, I2S out, transparent UART data channel |
 | ADC | AKM AK5574 | 4ch, 121 dB, TDM | Single-chip 4ch differential input |
@@ -285,14 +299,47 @@ the RCA ground field through an RC network. Standard practice; flag deviations.
 
 ### 7.1 Rails
 
-| Rail | Source | Loads |
-|---|---|---|
-| VBATT_PROT | reverse-FET + TVS (SMBJ24A) + LC filter | everything below |
-| +5V_D | LM61460-Q1 buck | BM83, USB, fanout |
-| +3V3_D | buck or LDO from 5V | ESP32-S3, DSP IOVDD, digital sides |
-| +1V2_CORE | LDO from 3V3 | ADAU1466 core **[VERIFY]** core voltage/current from datasheet |
-| ±13V5_A | SEPIC/flyback or dual-boost | op-amp stages. *(v0.2, F7)* **200 mA continuous, 250 mA peak, per rail.** Budget: 24 op-amp channels × ~4 mA ≈ 96 mA; 2× INA1650 ≈ 10 mA; signal delivery 12 ch × 4.5 Vrms into 10 kΩ ≈ 6 mA, call it 10 with margin |
-| +5V_A / +3V3_A | LT3045-class ultra-low-noise LDOs | ADC/DAC analog supplies |
+*Re-emitted as a unit at v0.5 (F18, F19, F22 and the V-01 datasheet pass). Supersedes the v0.1
+table entirely — do not merge it with the original.*
+
+| Rail | Source | Loads | Budget |
+|---|---|---|---|
+| **VBATT_PROT** | reverse-FET + TVS (SMBJ24A) + LC filter | everything below | ISO 7637-2 **[HARD]** |
+| **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | BM83, USB | modest — see note 1 |
+| **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
+| **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
+| **±13V5_A** | SEPIC/flyback or dual-boost | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
+| **+5V_A / +3V3_A** | LT3045-class ultra-low-noise LDOs | ADC/DAC analog supplies **and the MCLK fanout buffer** *(v0.5, F22)* | see note 4 — **input rail unresolved** |
+
+**Note 1 — two bucks from the battery, not a cascade.** +3V3_D is taken directly from VBATT_PROT
+rather than from +5V_D. This avoids compounding conversion loss at the largest step, stops an
+ESP32-S3 WiFi TX burst from sagging the BM83/USB domain, and keeps both parts battery-facing and
+therefore AEC-Q100 per §7.0. Using the **same LM61460-Q1 twice** gives one qualification, one
+layout block drawn twice, and one datasheet.
+
+**Note 2 — the 2 A floor on +3V3_D is a decree, not a calculation.** The DSP core alone pulls up
+to 495 mA (through the +1V2_CORE buck), the ESP32-S3 bursts several hundred mA on WiFi TX, and the
+DSP's own IOVDD is 53 mA, plus BM83 and the converter digital sides. **Peaks coincide by Murphy,
+not by schedule.** Size for 2 A continuous.
+
+**Note 3 — why +1V2_CORE is a buck and not the on-chip regulator.** The ADAU1466 provides a
+regulator *controller* driving an external PNP (`VDRIVE`, pin 3). That path dissipates ~1 W at
+maximum program and drags in a supply-ordering constraint — DVDD must follow AVDD/IOVDD/PVDD —
+that entangles with the [HARD] §7.2 sequence. A dedicated buck dissolves both. **This is a 1.2 V
+digital core; it has no seat at the §3 noise table.** The on-chip controller and `VDRIVE` go
+unused and **no PNP footprint is fitted, not even DNP.** Spread-spectrum is permitted on this
+stage per §7.5 — it is a power stage, not the audio clock tree.
+
+**Note 4 — the LDO input rails are not yet specified, and one of them cannot work as implied.**
+An LT3045 needs headroom; **+5V_A cannot be derived from +5V_D**, which has none. It must come
+from a higher intermediate or from ±13V5_A, and the latter costs (13.5 − 5) × I in the LDO.
+Resolve before capture — see `STATE.md` F24.
+
+**Note 5 — the MCLK fanout buffer moves to a clean rail.** The LMK1C110x is a 1.8/2.5/3.3 V part
+and was never a 5 V load, so the v0.1 placement on +5V_D was wrong on its face (F22). More
+importantly it is the most jitter-critical device in the clock tree (§3 **[HARD]**), and its
+7.5 fs additive jitter figure is specified on a clean supply. **Put it on +3V3_A, not the +3V3_D
+switcher.**
 
 - All battery-facing regulators AEC-Q100.
 - Load-dump: design to survive ISO 7637-2 pulses at the input **[HARD]**.
@@ -301,8 +348,18 @@ the RCA ground field through an RC network. Standard practice; flag deviations.
 
 1. Remote-in asserted (or signal-sense) → protected rails enable
 2. Digital rails up → ESP32 boots
-3. ESP32 releases DSP reset, slave-boots program over SPI, verifies readback
-4. ESP32 configures ADC/DACs over I2C, DACs held in soft-mute
+3. ESP32 releases DSP reset
+3a. *(v0.5, F20)* **ESP32 configures the DSP PLL** — 0xF000 `PLL_CTRL0`, 0xF001 `PLL_CTRL1`,
+    0xF002 `PLL_CLK_SRC`, 0xF003 `PLL_ENABLE` — **then polls `PLL_LOCK` (0xF004, Bit 0) until set,
+    with a 15 ms timeout**, before any program write.
+    **Why this step exists:** while the PLL is locking, the DSP's SPI and I2C slave control ports
+    are *inactive and every write fails*. Worst case is 10.666 ms at 48 kHz, typically ~3.5 ms.
+    Firmware that releases reset and begins the slave boot immediately has its writes silently
+    discarded — and it presents as an SPI wiring fault.
+    **Timeout is a distinct fault code, not a retry loop.** A PLL that will not lock means the XO
+    or its supply is broken, and no amount of retried writes repairs that.
+4. ESP32 slave-boots the program over SPI, verifies readback
+5. ESP32 configures ADC/DACs over I2C, DACs held in soft-mute
 5. Analog rails confirmed in-window (rail monitor) → output mute released, DAC soft-unmute ramp
 6. Remote-out asserted after configurable delay (default 500 ms post-unmute)
 
