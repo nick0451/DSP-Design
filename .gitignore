@@ -1,0 +1,31 @@
+# KiCad backups and autosaves
+*-backups/
+_autosave-*
+*.kicad_prl
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.bak
+fp-info-cache
+
+# KiCad lock files
+~*.lck
+*.lck
+
+# Generated output — regenerated from the design files, never edited by hand.
+# Delivered fab packages are committed deliberately under tags/, not tracked here.
+/out/
+/gerbers/
+/reports/
+
+# Safety copies taken before batch edits (CLAUDE.md §7). Path + SHA256 go in
+# STATE.md §0; the blobs themselves stay out of history.
+/baseline/
+
+# Scratch
+*.tmp
+*~
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

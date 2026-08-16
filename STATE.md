@@ -1,0 +1,441 @@
+# STATE.md — Car Audio DSP ⬜ *(board name / PN UNSET)*
+
+Working scope, tiered fact base, open unknowns, findings, and the anti-drift ledger.
+Governed by `CLAUDE.md` §5. **Read at session start. Update as work happens.**
+
+Tiers: **T1** source of truth (verified) · **T2** highly probable (actionable, tagged) ·
+**T3** likely (branchable, check quickly) · **T4** speculation (never drives work).
+
+Last updated: 2026-08-15
+
+---
+
+## 0. Where we are
+
+**Phase:** Post-intake-v0.2, pre-capture. Electrical architecture specified and eight findings
+dispositioned; tooling verified; mechanical and fabrication unspecified.
+
+**Board state:** No design files exist. Nothing captured, nothing placed, nothing routed, no
+ERC/DRC has ever been run.
+
+**Gate status:** G0-S **open, and now blocked only on datasheets** — Blocks A–C and F closed
+except Q2 (channel policy) and Q4 (board name/PN/rev), neither of which blocks drawing.
+The §8 [VERIFY] checklist is the gate: **13 of 16 open, every one a datasheet read.**
+G0-L **open** — blocked on Blocks D and E, unchanged.
+
+**Next action:** work the §8 checklist, **V-01 first** — it carries ADAU1466 pinout, package and
+the port-configurability question V-13 rides on, and it gates the first schematic sheet. Then
+V-07/V-08 (SPI clock, core rail), then V-04/V-05 for the converter sheets.
+
+**Baseline safety copy:** none — nothing to copy yet. The first board file that lands here gets a
+copy with its SHA256 recorded in this section **before** any edit.
+
+**Standing risks:**
+
+| Risk | Status |
+|---|---|
+| ~~Directory not under version control~~ | **Closed** — git initialised 2026-08-15, T1-D38 / DL-15 |
+| No baseline copy exists yet | Open — vacuous until files arrive, then immediate. Note git now covers *history*, which is not the same thing as a pre-batch-edit restore point |
+| `REQUIREMENTS.md` is v0.3 and still a baseline | Open — cite by section **and** version; a v0.4 supersedes and does not merge silently |
+| KiCad 10 postdates the assistant's training | Open, permanent — CLI and `pcbnew` API are T2 from memory, T1 only from `--help`/`dir()`. See ledger |
+| 4 findings open (§7): F4, F12, F13, F15 | Open |
+| **Mute topology is decided in principle but not in parts** | Open — DL-17 rests on V-14/V-15/V-16. If no part meets both mute depth and off-capacitance, energised-to-unmute relays return and +5V_D grows ~0.5 A |
+
+---
+
+## 1. T1 — Source of truth
+
+Each entry names **how it was verified**. Nothing enters on reasoning alone.
+
+| ID | Fact | Verified by |
+|---|---|---|
+| T1-01 | Project directory contained no files before this document set | directory listing, 2026-08-15 |
+| T1-02 | The directory is not a git repository | environment report + `git rev-parse`, 2026-08-15 |
+| T1-03 | Constitution derives from the template at `C:\Users\nick\.claude\templates\pcb-project\` | both template files read in full, 2026-08-15 |
+| T1-04 | `REQUIREMENTS.md` reproduces the operator's v0.1 text with formatting normalised only; v0.2 changes are each traceable to an operator disposition in its revision history | transcribed and re-read, 2026-08-15 |
+| T1-05 | KiCad **10.0.5** installed at `C:\Program Files\KiCad\10.0\` | `kicad-cli --version`, 2026-08-15 |
+| T1-06 | `kicad-cli.exe` is at `...\10.0\bin\` and is **not on PATH** | `Get-Command kicad-cli` → not found; direct invocation at full path succeeded |
+| T1-07 | Bundled Python 3.11.5 at `...\10.0\bin\python.exe`; `pcbnew` 10.0.5 imports | `python.exe -c "import pcbnew; pcbnew.GetBuildVersion()"` |
+| T1-08 | `pcb drc` and `sch erc` both support `--severity-exclusions`, `--exit-code-violations`, `--format json`; `pcb drc` also `--schematic-parity` | `kicad-cli pcb drc --help`, `sch erc --help` |
+| T1-09 | Stock libraries present: 224 symbol, 155 footprint, 105 3D-model | directory count under `share\kicad\` |
+| T1-10 | **AK4118A has no internal SRC** — PLL clock recovery only; rate conversion was never on that die | Operator confirmation, 2026-08-15. Closes V-02 and is the basis of the F1 disposition |
+
+**No datasheet has been read on this project yet.** Every part parameter below is therefore T2 or
+lower. See `CLAUDE.md` §5: *a part number is not a datasheet.* T1-10 is the one exception and it
+rests on operator confirmation rather than the document — worth the 60-second re-check when the
+AK4118A datasheet is open anyway for pin assignment, since the whole F1 disposition stands on it.
+
+### T1 by decree — requirements
+
+Binding because `REQUIREMENTS.md` is the authority, not because the underlying state has been
+independently confirmed. Section references are to `REQUIREMENTS.md` **v0.1**.
+
+| ID | Requirement | Src | Tag |
+|---|---|---|---|
+| T1-D01 | Single-board automotive DSP: 4 diff analog in, 12 buffered SE out, coax SPDIF in, BT A2DP sink, BLE+WiFi control, 12 V automotive power | §1 | |
+| T1-D02 | fs = 48 kHz system-wide, 32-bit slots | §4 | HARD |
+| T1-D03 | Single 24.576 MHz low-jitter XO is the master clock; ADAU1466 PLL to 48 kHz core | §3 | HARD |
+| T1-D04 | ADC/DAC MCLK distributed via low-additive-jitter fanout buffer, **not** daisy-chained | §3 | HARD |
+| T1-D05 | No spread-spectrum anywhere in the audio clock tree | §3 | HARD |
+| T1-D06 | BM83 and SPDIF paths both traverse an on-chip ASRC — "no exceptions" | §3 | HARD |
+| T1-D07 | TDM/port map exactly per the §4 table; spare IN3/OUT3 to 0.1" headers with interleaved grounds | §4 | HARD |
+| T1-D08 | DAC split is 6+6 across two AK4458; slots 7–8 reserved on each | §4 | HARD |
+| T1-D09 | ESP32-S3 is sole owner of all device state; SPI slave-boot + safeload to DSP, ≥10 MHz target | §5 | |
+| T1-D10 | GPIO19/20 reserved for USB D± — not assignable elsewhere; USB-C device role, ESD-protected | §5 | |
+| T1-D11 | Input ranges: line ≤2 Vrms, speaker ≤30 Vrms FS; MCU-controlled relay or analog switch; **never jumpers**; Zin ≥ 20 kΩ line | §6.1 | |
+| T1-D12 | Signal-sense per input (or summed node), ~10 mVrms threshold, resistor-settable | §6.1 | |
+| T1-D13 | ≥ 4.5 Vrms before clip into 10 kΩ on all 12 outputs; Zout ≤ 100 Ω | §6.2 | HARD |
+| T1-D14 | Shunt mute at each RCA on a single MCU-driven mute rail; relay preferred, FET acceptable only if THD contribution < DAC floor | §6.2 | |
+| T1-D15 | Single ground plane; analog/digital partitioned **by placement, not splits**; chassis star-connect at RCA ground field via RC network; deviations flagged | §6.3 | |
+| T1-D16 | Rail set and names exactly per §7.1; all battery-facing regulators AEC-Q100 | §7.1 | |
+| T1-D17 | ±13V5_A noise budget < 50 µVrms, 20 Hz–20 kHz, at the op-amp rails after LDO/filtering | §11 | |
+| T1-D18 | ISO 7637-2 survival at the input | §7.1 | HARD |
+| T1-D19 | Turn-on sequence §7.2 and turn-off sequence §7.3, in order; no audible pop is acceptance | §7.2/7.3 | HARD |
+| T1-D20 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepouts enforced; the two 2.4 GHz antennas separated as far as geometry allows, not stacked | §8 | HARD |
+| T1-D21 | Net naming per §10; analog channel numbers match §4 TDM slots with no remapping | §10 | HARD |
+| T1-D22 | WM8804, TJA1051T-Q1, 25AA1024 are DNP on v1 | §2 | |
+| T1-D23 | AKM→TI substitution (PCM1865/PCM1690) is pre-approved but changes TDM formats and must be flagged if exercised | §2 | |
+| T1-D24 | Board envelope ≤ 200 × 140 mm assumed until told otherwise | §11 | |
+| T1-D25 | Post-fab acceptance criteria per §12 (8 items) | §12 | |
+| T1-D26 | **AK4118A is clock master on SDATA_IN2**; DSP port is clock consumer of that link only; ASRC does the rate conversion; recovered clock terminates at the ASRC boundary | §3 v0.2 | HARD |
+| T1-D27 | **2×** INA1650, not 4 — 4 diff inputs = 4 channels at 2 ch/pkg | §2 v0.2 | |
+| T1-D28 | **Not an AEC-Q board.** Operating range −20 °C…+70 °C; industrial grade acceptable throughout the signal path; AEC-Q100 only where parts face the battery/harness directly — input protection, bucks, CAN PHY, remote-out driver | §7.0 v0.2 | |
+| T1-D29 | **OPA1656**, decided. OPA1612 alternate dropped; filter values computed against OPA1656 only | §2/§6.2 v0.2 | |
+| T1-D30 | ±13V5_A: **200 mA continuous, 250 mA peak, per rail** | §7.1 v0.2 | |
+| T1-D31 | Input attenuator: divider **ahead of** the switch element; resistors **0.1 % matched or better** as a BOM requirement | §6.1 v0.2 | |
+| T1-D32 | AOUT1–6 = AK4458 #1 slots 1–6; AOUT7–12 = AK4458 #2 slots 1–6. Net names follow the **system** channel number, never the per-device slot | §10 v0.2 | HARD |
+| T1-D33 | EDA tool is **KiCad** | Operator instruction, 2026-08-15 | |
+| T1-D34 | **Mute is the zero-energy state.** De-energised = muted by construction. §7.2/§7.3 cover the orderly path; §7.4 is the only thing that survives crank sag, blown fuse or pulled connector | §7.4 v0.3 | HARD |
+| T1-D35 | Latching relays **prohibited**. Non-latching relays permitted only energised-to-unmute, and if chosen the +5V_D budget grows ~0.5 A and the LM61460-Q1 is re-checked. Semiconductor shunt is the default and a relay must justify itself | §6.4 v0.3 | |
+| T1-D36 | Rail monitoring via **ADS1015-class 4-ch I2C ADC on I2C0** — VBATT, +13V5, −13V5, 3V3_A. Not the ESP32-S3 ADC. §9 dividers unchanged; −13V5 referenced to a positive rail | §5/§9 v0.3 | |
+| T1-D37 | **FCC Part 15 Class B design practices; no chamber test for v1; CISPR 25 out of scope.** Spread-spectrum **stays enabled on the bucks** — §3's prohibition is on the audio clock tree only | §7.5 v0.3 | |
+| T1-D38 | Version control is **git**, library **in-repo** not a submodule | Operator, 2026-08-15 | |
+| T1-D39 | Footprint sourcing: vendor-published verbatim → IPC-generated → hand-built as last resort. Verification is an adversarial rasterise-over-datasheet pass logged per part; operator personally checks ADAU1466, AK5574, AK4458, AK4118A, BM83SM1 | Operator, 2026-08-15 | |
+
+---
+
+## 2. T2 — Highly probable (actionable, still tagged)
+
+Derived by calculation or strong inference from T1-D. Actionable; still tagged; downstream work
+inherits the tag.
+
+| ID | Claim | What promotes it |
+|---|---|---|
+| T2-01 | BCLK rates at 48 kHz / 32-bit slots: **TDM8 = 12.288 MHz**, **TDM4 = 6.144 MHz**, **I2S stereo = 3.072 MHz**. MCLK = 24.576 MHz = **512 fs**. | Arithmetic from T1-D02/D03 — solid; confirm each peer accepts these ratios (§8 V-04) |
+| T2-02 | No parallel memory bus exists anywhere on this board — ADAU1466 uses internal RAM, ESP32-S3-WROOM-1 has flash/PSRAM inside the module. **The usual dominant layer-count driver is absent.** | BOM read; confirm no external DSP program memory beyond the DNP EEPROM |
+| T2-03 | Finest pitch is the ADAU1466 72-LQFP at **0.5 mm**, and there is **no BGA**, if the LQFP option is taken. WLCSP would change this materially. | Datasheet package drawing (§8 V-01) |
+| T2-04 | Controlled impedance is required on exactly two things: **SPDIF coax at 75 Ω** and **USB D± at 90 Ω differential**. All TDM/I2S at ≤12.288 MHz is slow enough not to need it; both antennas are module-integrated so there is **no 50 Ω RF trace to route**. | Operator decree — currently a proposal, see F4 |
+| T2-05 | Reaching 4.5 Vrms SE from an AK4458 differential output requires roughly **13 dB of gain** in the diff-to-SE stage (if FS is ~2.8 Vpp diff ≈ 1.0 Vrms). This sets the output-stage noise budget and the resistor values, and it multiplies DAC-referred noise by ~4.5×. | AK4458 FS output voltage from datasheet (§8 V-05) |
+| T2-06 | ±13.5 V rails give OPA1656 roughly ±12 V of usable swing into 10 kΩ, i.e. ~8.5 Vrms capability against a 4.5 Vrms requirement — **comfortable headroom**, ~5.5 dB. | OPA1656 output swing spec (§8 V-06) |
+| T2-07 | ESP32-S3 pin budget drops to **~21 GPIO** after T1-D36 moves rail sensing to I2C: SPI 4, UART 2, I2C 2, signal-sense 4 (comparator outputs, digital), remote-in 1, mute 1, remote-out 1, BM83 MFB+reset 2, DSP reset 1, LED 1, USB 2. Was 22–24 with three ADC channels on the SoC. | The explicit pin map, which §5 requires before capture — not yet done |
+| T2-12 | **Mute depth from a semiconductor shunt is `Ron/(Ron+Rseries)`.** Rseries is capped near 100 Ω by the §6.2 Zout limit, so 40 dB needs Ron ≈ 1 Ω and 20 dB needs Ron ≈ 11 Ω. Relay contacts clear 60 dB trivially. `Ron × Coff` is roughly constant within a device family, so mute depth is bought with off-capacitance and the two requirements pull against each other. | V-14 + V-15 together, against the measured transient of the disorderly path. **This is the pair that picks the part** |
+| T2-13 | Off-state distortion from the shunt's nonlinear capacitance is negligible at 1 kHz and rises ~20 dB/decade. The §12 THD criterion is specified at 1 kHz, which is the **easy** case; 20 kHz is where the shunt actually has to be defended. | Tolerance/THD analysis once V-15 gives a Coff figure |
+| T2-14 | A **single** MOSFET shunting a bipolar audio signal conducts through its body diode on one half-cycle. Discretes must be **back-to-back, source-to-source**. | Standard device physics — high confidence, but it goes in the schematic as a reviewed detail, not an assumption |
+| ~~T2-08~~ | CMRR ≥ 60 dB is set by attenuator resistor matching, implying 0.1 % or better | **Promoted → T1-D31.** Decreed as a BOM requirement 2026-08-15. A tolerance analysis before the BOM freezes is still worth doing — 0.1 % is the estimate that generated the decree, not a measured margin |
+| T2-11 | **RCA-class jack count is 17 populated, 18 positions**: 4 line in + 12 out + 1 SPDIF coax in, plus 1 DNP SPDIF out. Differential inputs are tip-vs-shield on a single jack, so 4 inputs = 4 jacks, not 8. | Confirmed against `REQUIREMENTS.md` §8 by the operator, 2026-08-15, after the assistant stated 28 in error. See ledger |
+| T2-09 | The ADAU1466's PLL locks to the same 24.576 MHz XO that feeds the converters' MCLK, so LRCLK and MCLK are frequency-coherent by construction. Phase/jitter relationship is not thereby guaranteed. | AKM MCLK/LRCK synchronisation requirement in TDM slave mode (§8 V-04) |
+| T2-10 | Schematic capture can proceed on the §4/§5/§6/§7 architecture **without** any Block D/E answer. Only footprint assignment and layout depend on mechanical and fab data. | — structural, acted on in `CLAUDE.md` §2 (G0-S / G0-L split) |
+
+---
+
+## 3. T3 — Likely / moderate confidence
+
+Branchable, but check the root before the branch gets expensive.
+
+| ID | Theory | Check |
+|---|---|---|
+| ~~T3-01~~ | ~~The EDA tool is KiCad~~ | **Closed, and it was right — which is the trap.** Operator decreed KiCad (T1-D33) and the install verified at T1-05…T1-09. A correct guess held at T3 cost nothing; the same guess acted on would have been indistinguishable from luck. Note it did not predict **version 10**, which is the part that actually matters (see ledger) |
+| T3-02 | This board wants **6 layers** (sig / GND / pwr / pwr / GND / sig or similar), not 4: mixed-signal with a mandated single unsplit ground plane, seven rails, ±13.5 V analog distribution, two 2.4 GHz modules, and switching regulators — even without a memory bus. | Q22. **Not acted on.** Layer count is a fab and cost decision, and T2-02 cuts the other way. |
+| ~~T3-03~~ | ~~"4× INA1650" is a channel count in a package column~~ | **Confirmed by operator → T1-D27.** 2× INA1650 |
+
+---
+
+## 4. Open unknowns — remaining intake
+
+Rows are **BLOCKING** unless marked. Closed rows are struck and promoted to §1.
+
+### Block A — Engagement and role
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| ~~Q1~~ | ~~What is being delivered?~~ | | **Closed** → schematic capture then layout, greenfield. `CLAUDE.md` §1 |
+| Q2 | Is the client channel **open** or **closed book**, and how fast is a turnaround? | §11 delegates five decisions, but every *other* gated item still needs a policy. Inverts `CLAUDE.md` §4 | BLOCKING |
+| ~~Q3~~ | ~~Version control?~~ | | **Closed** → git, initialised 2026-08-15, library in-repo. T1-D38 / DL-15 |
+| Q4 | Board name/PN, hardware revision string, target date | Names the deliverable; revision prevents stale-file confusion. Doc gives "v1 board" but no PN | BLOCKING |
+| Q5 | Is the process visible to the client as well as the result? | Changes how much reasoning is written for an outside reader | Non-blocking |
+
+### Block B — Tooling · *gates: G0-S, and therefore capture*
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| ~~Q6~~ | ~~EDA tool, version, install path~~ | | **Closed** → KiCad 10.0.5, T1-D33 / T1-05 |
+| ~~Q7~~ | ~~CLI on PATH?~~ | | **Closed** → no. Full path always, T1-06 |
+| ~~Q8~~ | ~~Bundled Python path~~ | | **Closed** → T1-07 |
+| ~~Q10~~ | ~~Units: mm or mil?~~ | | **Closed** → mm, decided and logged DL-09 |
+| Q9 | Autorouter in play? Which, and what runtime? | Changes routing strategy and which ledger entries apply | BLOCKING (layout) |
+| ~~Q30~~ | ~~Footprint library verification~~ | | **Closed** → T1-D39, DL-14 |
+
+### Block C — Electrical
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| ~~Q12–Q18~~ | | | **Closed** by `REQUIREMENTS.md` §1–§10 → T1-D01…D25 |
+| ~~Q29~~ | ~~INA1650 quantity~~ | | **Closed** → 2×, T1-D27 |
+| ~~Q33~~ | ~~OPA1656 or OPA1612~~ | | **Closed** → OPA1656, T1-D29 |
+| ~~Q31~~ | ~~±13V5_A current budget~~ | | **Closed** → 200 mA cont / 250 mA peak, T1-D30. *Mute-rail budget still open below* |
+| ~~Q32~~ | ~~Rail monitor: distinct device or ESP32 ADC?~~ | | **Closed** → ADS1015-class on I2C0, T1-D36 |
+| ~~Q38~~ | ~~Mute rail budget~~ | | **Closed in principle** → T1-D34/D35 make it a GPIO-class load with no §7.1 entry beyond a line item, *conditional on* the semiconductor shunt surviving V-14/V-15. If a relay is justified instead, +5V_D grows ~0.5 A and the LM61460-Q1 is re-checked |
+
+### Block D — Mechanical · *gates: G0-L, and therefore all layout*
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| Q19 | Board outline and dimensions, or the DXF/STEP that defines them | ≤200×140 mm is an *envelope*, not an outline. Hardest constraint; changing it after placement invalidates the layout | BLOCKING (layout) |
+| Q20 | Mounting holes, keepouts, enclosure interference | Placement anchors, not adjustments | BLOCKING (layout) |
+| Q21 | Component height limits, top and bottom | Silently violated otherwise, discovered at assembly | BLOCKING (layout) |
+| Q34 | Connector part numbers — RCA jacks (16 of them), automotive power connector, speaker-level strip terminal | 28 RCA-class jacks dominate the board edges and the area budget. Footprints are needed before any placement | BLOCKING (layout) |
+
+### Block E — Stackup and fabrication · *gates: G0-L, G2, G3, G4*
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| Q22 | Layer count and intended stackup | G3. T3-02 is a guess and is not acted on | BLOCKING (layout) |
+| Q23 | Fab house and capability limits: min trace/space, min drill, annular ring, allowed via types | These *are* the design rules | BLOCKING (layout) |
+| Q24 | Copper weight and surface finish | Affects trace width for the ±13V5 and battery rails, and fine-pitch assembly | BLOCKING (layout) |
+| Q25 | Source of the shipped design rules and DRC severities | G2 requires a baseline that exists before work starts | BLOCKING (layout) |
+| Q35 | Confirm or replace the proposed impedance targets: 75 Ω SPDIF coax, 90 Ω USB differential | F4. Feeds directly into the stackup | BLOCKING (layout) |
+
+### Block F — Assembly, thermal, EMC
+
+| ID | Question | Why it matters | Status |
+|---|---|---|---|
+| Q26 | Single- or double-sided assembly | Drives silkscreen, courtyards, fiducials, and whether the 12 mute relays can go on the bottom | BLOCKING (layout) |
+| Q27 | Thermal: airflow, hot parts, expected dissipation | Automotive enclosure, ±13.5 V switcher, 24 op-amps and possibly 12 relay coils in a sealed box | BLOCKING (layout) |
+| ~~Q36~~ | ~~Operating temperature range and AEC-Q grade~~ | | **Closed** → −20…+70 °C, not an AEC-Q board, T1-D28 |
+| ~~Q37~~ | ~~Emissions target~~ | | **Closed** → FCC Part 15 Class B practices, no chamber for v1, CISPR 25 out of scope. T1-D37 |
+
+---
+
+## 5. Anti-drift ledger
+
+**Permanent.** Entries are never deleted once corrected — the point is that a corrected belief
+cannot quietly return.
+
+Format: the wrong belief → the correction → **the tell** that catches it.
+
+### Caught on this project
+
+**"28 RCA-class jacks will dominate your board edges"** — assistant, 2026-08-15
+*Correction:* **17 populated, 18 positions.** 4 line in + 12 out = 16 RCA, +1 SPDIF coax in,
++1 DNP SPDIF out. The error was pure arithmetic: `STATE.md` Q34 already read "RCA jacks (16 of
+them)" — a subtotal containing the outputs — and the 12 outputs were then added to it a second
+time in chat.
+*The tell:* **the same count existing in two places with two values, where the larger one was
+never written as its addends.** A total is an assertion; a sum is checkable. Any count that
+steers a decision gets written as `4 + 12 + 1 + 1`, in the document, not as `28` in prose.
+*Second tell, and the more useful one:* the operator's first hypothesis was interesting — that
+differential inputs were being counted as jack pairs — and the truth was boring. `CLAUDE.md` §5
+says to check ordinary human error before building an exotic theory when *operator* data looks
+anomalous. **The rule is symmetric.** When the assistant's number is challenged, the first
+candidate is a slipped digit or a double-count, not a subtle modelling difference.
+*Standing:* the underlying point survived at 18 — connectors still dominate the board edge, and
+board-mount vs. flying-lead RCA is still an early decision (Q34). **A conclusion that survives its
+own broken evidence is not thereby vindicated;** it was re-derived, and the re-derivation is what
+it now rests on.
+
+**"Mute is a state the MCU commands"** — implicit in v0.1 §7.2/§7.3, corrected 2026-08-15
+*Correction:* the sequenced mute is the **orderly** path. Rails also collapse by crank sag, blown
+fuse, harness fault and pulled connector, and none of those involve the MCU. **Mute must therefore
+be the zero-energy state** (T1-D34), which decided the topology outright — it ruled out latching
+relays entirely and every enhancement-mode device by construction, before THD was even considered.
+*The tell:* **a requirement written as a sequence.** A sequence describes what happens when things
+work. Ask what holds the requirement when the sequence never runs — and treat any answer of the
+form "the controller sets it" as a gap, because the controller is powered by the thing that just
+failed.
+
+**"The EDA tool's CLI and Python API work the way I remember"**
+*Correction:* the install is **KiCad 10.0.5**, which postdates this assistant's training. `pcbnew`
+has broken API compatibility across major versions before, and CLI flags have moved. Everything
+recalled about KiCad tooling is **T2 from memory and T1 only from `--help` or `dir()`.**
+*The tell:* a version number higher than any release you can recall notes for. That is not a
+detail — it is the whole basis of your confidence about the interface evaporating, silently.
+
+### Pre-seeded from this project's own source document
+
+**A [HARD] flag makes a requirement binding, so it must be right**
+*Correction:* [HARD] is a statement about **authority**, not about correctness. `REQUIREMENTS.md`
+§3 carries two [HARD] bullets that cannot both be built (F1). Binding and correct are independent
+properties, and where they diverge the answer is a logged finding and a question — never a silent
+choice between them.
+*The tell:* two requirements that are each individually sensible but name the same interface from
+opposite ends. Read every clock, bus, and power statement **from both peers' point of view**
+before accepting it.
+
+**The board envelope is the board outline**
+*Correction:* "≤ 200 × 140 mm" (§11) is a **maximum**, offered as an assumption in the section
+titled *Open Items*. It fixes no edge, no origin, no mounting hole and no connector position.
+Placement against it would be placement against nothing.
+*The tell:* a dimension that arrives with "assume" or "unless told otherwise" attached. That is
+an unknown wearing a number.
+
+### Carried forward from previous boards — read before starting
+
+These recurred across a full board build and are not project-specific.
+
+**Netclass track width is a minimum**
+*Correction:* netclass widths are **defaults for newly drawn track**, not minima. The floor is the
+board minimum. A 1.0 mm trace and 0.8 mm via cannot attach to a 0.25 mm pad on a 0.5 mm-pitch
+package. Traces neck at the pad and widen in open copper.
+*The tell:* a connection between two **adjacent pads of the same package** failing to route. That
+is never topology; it is always width or clearance.
+*Live risk here:* T2-03 puts a 0.5 mm-pitch LQFP on this board alongside a ±13.5 V rail that wants
+wide copper.
+
+**Via-in-pad is an electrical rule**
+*Correction:* it is a **manufacturing** rule — solder wicks down the barrel during reflow — so it
+applies **regardless of net**. Clearance checks correctly skip same-net copper, which lets a GND
+via land happily on a GND pad. Nets are irrelevant to that check; test every pad.
+
+**Pre-placing helper copper makes the router's job easier**
+*Correction:* it makes it **impossible**. Plane stitching, fanout vias and escape stubs become
+**fixed wiring** the router cannot move or rip up, and they sit exactly in the escape corridors.
+Two independent routers plateaued at the identical completion percentage because of it.
+*Correct order:* **route first, stitch the residue afterwards**, where the free space is known. The
+same stitching code that caused 145 violations before routing caused zero after it.
+
+**Critical nets can be routed last**
+*Correction:* impedance-controlled pairs, crystal nets and RF feeds must be routed **first, on
+empty copper**. Anything routed earlier takes the corridor they need, and carving it back out just
+displaces the next net into it.
+*Live risk here:* MCLK_XO and the four MCLK fanout branches, plus the SPDIF 75 Ω path, are the
+first-routed nets on this board.
+
+**Placement may fill the space in front of fine-pitch pads**
+*Correction:* reserve an escape corridor in the **placement** stage. Without it the packer parks
+decoupling caps where the differential pairs must escape, and the failure only surfaces during
+routing.
+
+**An obstacle model built from pads sees the whole board**
+*Correction:* it must also read existing **tracks and vias**, or each pass is blind to the copper
+the previous pass laid down. Symptom: violations between objects the tool itself created, always
+at pass boundaries, never within a pass.
+
+**Grid quantization is a rounding detail**
+*Correction:* rounding to nearest lets an obstacle be modelled **smaller than it is**. Round
+**outward** — floor the low edge, ceil the high edge, inflate discs by the cell diagonal — and use
+`ceil` for dilation radii.
+*The tell:* clearance violations whose actual value is just under the rule (0.1485 against 0.150).
+Systematic near-misses are a model error, not luck.
+
+**Geometry checks can ignore layers**
+*Correction:* a bottom-layer trace obstructs nothing on the top layer. A layer-blind check will
+confidently name an innocent object as the blocker.
+
+**A bare `except: pass` around an API call is harmless**
+*Correction:* if the call raises on *every* invocation, the fallback is not a fallback — it is the
+only path. A silent fallback that fires 100 % of the time is indistinguishable from a working call.
+If an except branch substitutes defaults, it must **count and report** how often it fires.
+
+**Bool-returning API calls succeed**
+*Correction:* several EDA scripting calls report failure as a **return value**, not an exception.
+An import that silently returns `False` looks exactly like one that did nothing. **Check the
+return value of every one.**
+
+**A footprint needs only a reference, value, position and pads**
+*Correction:* without a library id it exports to Specctra as `(component "")` and the returned
+session can never be matched back — the import fails silently. Always set a proper FPID on
+programmatically created footprints.
+
+**More autorouter passes means a better result**
+*Correction:* a good autorouter self-terminates on its own convergence criterion. Forcing 3× the
+passes produced a *worse* result. When it stops improving, the limit is placement and topology,
+not effort.
+
+**"The search found nothing" is a fact about the board**
+*Correction:* it is a fact about **the search**. A coarse lattice sampled six points under an
+exposed pad, hit routed traces at every one, and reported no room for thermal vias — a fine scan
+found fifteen.
+
+---
+
+## 6. Decision log
+
+| ID | Date | Decision | Evidence tier | Reopens if |
+|---|---|---|---|---|
+| DL-01 | 2026-08-15 | Install the constitution before board details, with unknowns marked ⬜ UNSET rather than defaulted | Operator instruction | Operator asks for provisional defaults instead |
+| DL-02 | 2026-08-15 | G0 (intake) gates G1–G7 | Reasoning from `CLAUDE.md` §5 | — |
+| DL-03 | 2026-08-15 | Do not infer the EDA tool from the template's KiCad references; hold at T3-01 pending Q6 | `CLAUDE.md` §0 | Operator states the tool |
+| DL-04 | 2026-08-15 | **G0 split into G0-S (schematic intake) and G0-L (layout intake).** Capture proceeds on the electrical architecture; layout waits for mechanical and fab | T2-10 | A mechanical or fab constraint arrives that changes part selection, not just placement |
+| DL-05 | 2026-08-15 | `REQUIREMENTS.md` v0.1 committed to the repo verbatim as the §3 requirements authority; findings logged in §7 rather than corrected in place | `CLAUDE.md` §3 | — |
+| DL-06 | 2026-08-15 | The five §11 delegated decisions run **closed book** — decide, justify against stated intent, log, surface in G7. Everything else holds pending Q2 | `REQUIREMENTS.md` §11 | Q2 answers "channel open" |
+| DL-07 | 2026-08-15 | Impedance targets **proposed** as 75 Ω SPDIF / 90 Ω USB diff and recorded as T2-04, **not** entered as a constraint, pending Q35 | `CLAUDE.md` §0 | Operator decrees targets |
+| DL-08 | 2026-08-15 | No datasheet parameter enters the schematic from memory; §8 checklist governs | `CLAUDE.md` §8 rule 9 | — |
+| DL-09 | 2026-08-15 | **Units are mm.** Chosen, not assumed: KiCad is nm-internal and mm-native, every datasheet in this BOM is mm, and the only imperial dimension in the requirements is the 0.1" header pitch = exactly 2.54 mm, which lives inside a footprint | T1-05 + `REQUIREMENTS.md` §4/§11 | Operator prefers imperial, or a mechanical drawing arrives in inches |
+| DL-10 | 2026-08-15 | **G2 proven by `--severity-exclusions` returning empty**, not by a baseline file diff — the CLI exposes it directly on both DRC and ERC | T1-08 | A KiCad update changes the flag's semantics |
+| DL-11 | 2026-08-15 | Project-local KiCad symbol/footprint library is the default structure; stock libs used where they cover the part | T1-09 | Operator mandates a vendor library service |
+| DL-12 | 2026-08-15 | `REQUIREMENTS.md` advanced to **v0.2** under operator disposition of F1/F2/F5/F7/F8/F9/F10/F14, with a revision history rather than silent edits | `CLAUDE.md` §4 | — |
+| DL-13 | 2026-08-15 | KiCad 10 CLI/API treated as T2-from-memory, T1-only-from-`--help`; verified before scripting | Ledger, this session | — |
+| DL-14 | 2026-08-15 | **Footprint policy:** vendor verbatim → IPC-generated → hand-built last. Adversarial rasterise-over-datasheet verification logged per part; operator personally checks the 5-part respin set | Operator proposal, adopted | A vendor pattern is found to disagree with its own datasheet — then the datasheet wins and the finding is logged |
+| DL-15 | 2026-08-15 | **git initialised**; library in-repo, not a submodule; generated output untracked but delivered fab packages committed against a tag | Operator, T1-D38 | A second board shares the library — then reconsider the submodule |
+| DL-16 | 2026-08-15 | `REQUIREMENTS.md` → **v0.3** under operator disposition of F6, F11, F16 and Q38 | `CLAUDE.md` §4 | — |
+| DL-17 | 2026-08-15 | **Semiconductor shunt mute is the default**, relay must justify itself — decided by the §7.4 zero-energy requirement, **not** by THD. Depletion-mode/JFET topology; part deferred to V-14/V-15 | T1-D34/D35 | V-14/V-15 show no part meets both mute depth and off-capacitance — then energised-to-unmute relays return, with the +5V_D budget consequence |
+| DL-18 | 2026-08-15 | Rail monitoring on an ADS1015-class I2C ADC rather than the SoC ADC — also returns ~3 GPIO to the F13 budget | T1-D36 | — |
+
+---
+
+## 7. Findings register
+
+Discrepancies, gaps and risks found in `REQUIREMENTS.md` v0.1. Per `CLAUDE.md` §3 these are
+**logged, not silently reconciled**. Disposition is the operator's.
+
+**Severity:** ⛔ blocks capture · ⚠ affects capture · ▫ affects layout or later · ✅ **closed by
+operator disposition** (folded into `REQUIREMENTS.md` v0.2 — rows kept, never deleted).
+
+**12 of 16 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16.
+**Four remain open: F4 (impedance targets, layout), F12, F13 (capture), F15.**
+
+| ID | Sev | Finding | Proposed disposition |
+|---|---|---|---|
+| **F1** | ✅ | **CLOSED — operator accepted, v0.2 §3 amended, AK4118A removed from the slaved-port list; V-02 closed by T1-10.** → T1-D26. *Original finding:* **clock architecture contradiction, [HARD] vs [HARD].** §3 bullet 2 lists "AK4118A output port" among the ports for which the ADAU1466 generates BCLK/LRCLK — i.e. the AK4118A as I2S slave. §3 bullet 3 requires its recovered clock to stay out of the system tree, with the ASRC downstream. **These cannot both be built.** A SPDIF receiver reconstructs audio at the *source's* rate; the AK4118A has no internal SRC. Clocked as a slave to our 48 kHz while receiving 44.1 kHz, it slips samples — and the downstream ASRC sees a perfectly synchronous input and corrects nothing, because the corruption already happened upstream of it. Directly threatens §12's "SPDIF lock across 32/44.1/48/96 kHz". | **AK4118A is clock master on that link**; ADAU1466 SDATA_IN2 is a clock *consumer of that port only*; ASRC does 44.1→48. This is exactly the shape §3 already prescribes as the BM83 fallback, and it **preserves bullet 3's intent** — the recovered clock terminates at the ASRC boundary and never reaches the system tree. Needs operator sign-off as a [HARD] change. T2, pending V-02/V-03. |
+| **F2** | ✅ | **CLOSED — 2× INA1650, v0.2 §2 corrected** → T1-D27. *Original:* **INA1650 quantity.** §2 says "4× INA1650" with "2ch/pkg". Four differential inputs at two channels per package is **2** packages, not 4. | Q29. Most likely a channel count in a package-count column (T3-03). Affects BOM, cost, area. |
+| **F3** | ✅ | **CLOSED — mm, DL-09.** *Original:* **Mixed units.** mm for the board envelope (§11), 0.1" for test headers (§4). | Q10. Pick one file unit, convert at the footprint. `CLAUDE.md` §7. |
+| **F4** | ⚠ | **No controlled-impedance targets stated**, though the board carries coax SPDIF and USB. | T2-04 / Q35: 75 Ω SPDIF, 90 Ω USB diff. Both antennas are module-integrated, so no 50 Ω trace work. |
+| **F5** | ✅ | **CLOSED — −20…+70 °C, not an AEC-Q board; AEC-Q100 follows exposure not product category. New v0.2 §7.0** → T1-D28. *Original:* **no operating temperature range or AEC-Q grade.** §7.1 requires AEC-Q100 on battery-facing regulators but never says Grade 1 (−40…+125 °C), Grade 2 (−40…+105 °C), or commercial elsewhere. Parts cannot be selected without it — and the AKM converters and OPA1656 are not automotive-qualified parts. | Q36. Note the tension with §2's TI substitutes: PCM1690 is called out as AEC-Q100 while the AKM primaries are not. |
+| **F6** | ✅ | **CLOSED — FCC Part 15 Class B practices, no chamber for v1, CISPR 25 out of scope; new v0.3 §7.5** → T1-D37. Note the useful clarification it forced: **spread-spectrum stays on for the bucks**, because §3's prohibition covers the audio clock tree only and those are different nets. *Original:* **no emissions requirement.** Automotive product, two 2.4 GHz radios, several switching regulators, and no CISPR 25 class or equivalent stated. Filtering, shielding and stitching decisions are made at layout and are a respin to retrofit. | Q37. |
+| **F7** | ✅ | **CLOSED — ±13V5_A at 200 mA cont / 250 mA peak per rail** → T1-D30. Mute rail still unbudgeted → Q38. *Original:* **no per-rail current budget.** §7.1 names loads but no currents. The ±13V5_A topology choice is delegated to us (§11) and cannot be sized without it. | Q31. First-pass estimate: 24 OPA1656 channels at ~4 mA quiescent ≈ 95 mA, plus signal current, which is small into 10 kΩ. |
+| **F8** | ✅ | **CLOSED — divider ahead of the switch element, v0.2 §6.1** → T1-D31. *Original:* **speaker-level range switch sees ~42 V peak.** §6.1 permits "relay or analog switch" for a 30 Vrms full-scale range. Common analog switches will not survive ±42 V. | Constrain the topology: the divider must sit **ahead** of the switch so the switch only ever sees attenuated signal — or use a relay. Either way it is a capture-time decision, not a layout one. |
+| **F9** | ✅ | **CLOSED — 0.1 % matched attenuator resistors on the BOM as a requirement, v0.2 §6.1** → T1-D31. *Original:* **CMRR ≥ 60 dB is a resistor-matching requirement, not an amplifier one.** In speaker mode the attenuator's own leg-to-leg mismatch sets it; the INA1650 has far more rejection than the ladder in front of it. | T2-08: implies ~0.1 % or better matching. Budget matched networks or 0.05 % parts. Do the tolerance analysis before the BOM is frozen. |
+| **F10** | ✅ | **CLOSED — v0.2 §10 states it explicitly: AOUT7–12 = AK4458 #2 slots 1–6; net names follow the system channel number** → T1-D32. *Original:* **channel-to-slot naming ambiguous for AOUT7–12.** §10 says channel numbers match the §4 slot map with no remapping [HARD], but AOUT7 lands on **AK4458 #2 slot 1**. "Match" is therefore true of the logical output index and false of the per-device slot index. | State it explicitly once, in the schematic and the G7 note: AOUTn ↔ (device ⌈n/6⌉, slot ((n−1) mod 6)+1). Cheap to fix now; expensive if a netlist is built on the other reading. |
+| **F11** | ✅ | **CLOSED, and it turned out to decide the topology.** Working the current budget surfaced the §7.4 zero-energy requirement, which ruled out latching relays outright and reversed the burden of proof onto the relay option → T1-D34/D35, DL-17, new v0.3 §6.4. *Original:* **twelve mute relays is a real load and a real area cost.** §6.2 prefers relays for zero distortion. At ~25–40 mA per coil that is roughly **0.3–0.5 A** on the mute rail, plus 12 footprints. | Feeds Q31 and Q26. Consider latching relays (drive current only during transition) — but note they hold state through a rail collapse, which interacts with §7.3. |
+| **F12** | ⚠ | **Output-stage gain is unstated but forced.** T2-05: ~13 dB is needed to reach 4.5 Vrms from the DAC's differential full scale, which multiplies DAC-referred noise by ~4.5× against the §12 noise floor of −105 dBV. | Not a conflict — a budget to check explicitly before committing the filter topology. |
+| **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
+| **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
+| **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F16** | ✅ | **CLOSED — ADS1015-class I2C ADC on I2C0; §9 dividers unchanged, only the converter moves; −13V5 divider referenced to a positive rail** → T1-D36. Side benefit: ~3 GPIO returned to the F13 budget. *Original:* **"rail monitor" described two ways.** §5 lists it as an I2C peer; §9 describes rail voltage dividers into the ESP32 ADC. §7.2 step 5 gates output unmute on it, so which one it is matters. Separately: **the −13.5 V rail cannot be measured by a plain divider to ground** — it needs a divider referenced to a positive rail to bring the tap into the ADC's range. | Q32. |
+
+---
+
+## 8. [VERIFY] checklist
+
+`REQUIREMENTS.md` requires these confirmed against current datasheets **before capture**
+(`CLAUDE.md` §3). Each is T2 at best until closed, and closing one is a T1 promotion **with a
+citation** — part number, document revision, and section.
+
+| ID | Item | Src | Status |
+|---|---|---|---|
+| V-01 | ADAU1466 package options; confirm 72-LQFP exists and its pitch; serial port count (4 in / 4 out); ASRC count | §2 | Open |
+| V-02 | AK4118A: confirm it has no internal SRC, and its output-port master/slave capability | §3 / F1 | **Closed** → T1-10, operator confirmation. Re-check on the datasheet when it is open for pinout anyway — F1's whole disposition rests on it |
+| V-03 | BM83 I2S master/slave capability in the chosen firmware config | §3 | Open |
+| V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | Open |
+| V-05 | AK4458 differential full-scale output voltage | §6.2 / F12 | Open |
+| V-06 | OPA1656 output swing and quiescent current at ±13.5 V — the ~4 mA/ch figure underpinning the 200 mA rail budget | §6.2 / F7 | Open |
+| V-07 | ADAU1466 slave-port maximum SPI SCLK (target ≥10 MHz) | §5 | Open |
+| V-08 | ADAU1466 core voltage and current | §7.1 | Open |
+| V-09 | AKM control-port mode strapping — each part, strapped consistently to I2C | §5 | Open |
+| V-10 | AKM part lifecycle and lead time; decide AKM vs TI (PCM1865 / PCM1690) | §2 / §11 | Open |
+| V-11 | INA1650 channel count per package | §2 / F2 | **Closed** → 2 ch/pkg, confirmed by operator with F2 |
+| V-13 | ADAU1466 serial-port master/slave configurability **per port** — SDATA_IN2 must be a clock consumer while IN0/IN1 and all outputs stay master | §3 v0.2 / F1 | Open — **high-confidence T2**, operator: each of the 8 ports has its own master/slave and clock-source settings, and one input port consuming an external clock while everything else masters is the canonical SigmaDSP ASRC-input topology. **Closes with the register map in hand, at V-01, not before.** Fallback if wrong: AK4118A into a dedicated ASRC pair with the DSP re-clocking on its side — available without moving the architecture again |
+| V-14 | **Mute shunt `Ron`** for the candidate depletion-mode MOSFET / JFET / Form-B photoMOS | §6.4 v0.3 | Open — **new at v0.3.** With Rseries ≈ 100 Ω: 40 dB of mute needs Ron ≈ 1 Ω, 20 dB needs ≈ 11 Ω |
+| V-15 | **Mute shunt off-state capacitance and its nonlinearity** for the same candidate | §6.4 v0.3 | Open — **new at v0.3.** Trades directly against V-14; worst case is 20 kHz, not the 1 kHz the §12 THD spec names |
+| V-16 | Transient magnitude the **disorderly** shutdown path actually produces at the outputs, against the §12 <10 mV criterion | §7.4 v0.3 | Open — bench measurement on the first board. Sets how much mute depth V-14 has to buy; until then the Ron target is unanchored at the top end |
+| V-12 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepout dimensions and board-edge requirements | §8 | Open |
