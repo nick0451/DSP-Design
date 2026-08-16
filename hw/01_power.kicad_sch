@@ -6,10 +6,2791 @@
 	(paper "A3")
 	(title_block
 		(title "ODSP-12 :: Power and Sequencing")
-		(date "2026-08-15")
+		(date "2026-08-16")
 		(rev "A")
 		(comment 1 "ODSP12-MB-A")
+		(comment 2 "Ten rails. Sequencing as nets. Testpoint names match silk and BRINGUP.md.")
 	)
-	(lib_symbols)
+	(lib_symbols
+	(symbol "ODSP12:LM61460-Q1"
+		(pin_names (offset 0.254))
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "LM61460AQRJRRQ1"
+			(at 0 -2.54 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "ODSP12:TI_VQFN-HR-14_RJR"
+			(at 0 -5.08 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "Datasheet" "TI SNVSB70F"
+			(at 0 -7.62 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "Description" "3-36 V, 6 A synchronous buck, low EMI, AEC-Q100"
+			(at 0 -10.16 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "MFR" "Texas Instruments"
+			(at 0 -12.7 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "MPN" "LM61460AQRJRRQ1"
+			(at 0 -15.24 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(symbol "LM61460-Q1_1_0"
+			(rectangle (start -31.75 10.16) (end 31.75 -10.16)
+				(stroke (width 0.254) (type default))
+				(fill (type background))
+			)
+		)
+		(symbol "LM61460-Q1_1_1"
+			(pin power_in line (at -36.83 7.62 0) (length 5.08)
+				(name "VIN1" (effects (font (size 1.27 1.27))))
+				(number "8" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at -36.83 5.08 0) (length 5.08)
+				(name "VIN2" (effects (font (size 1.27 1.27))))
+				(number "12" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at -36.83 2.54 0) (length 5.08)
+				(name "PGND1" (effects (font (size 1.27 1.27))))
+				(number "9" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at -36.83 0.0 0) (length 5.08)
+				(name "PGND2" (effects (font (size 1.27 1.27))))
+				(number "11" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at -36.83 -2.539999999999999 0) (length 5.08)
+				(name "AGND" (effects (font (size 1.27 1.27))))
+				(number "3" (effects (font (size 1.27 1.27))))
+			)
+			(pin output line (at -36.83 -5.08 0) (length 5.08)
+				(name "SW" (effects (font (size 1.27 1.27))))
+				(number "10" (effects (font (size 1.27 1.27))))
+			)
+			(pin passive line (at -36.83 -7.620000000000001 0) (length 5.08)
+				(name "CBOOT" (effects (font (size 1.27 1.27))))
+				(number "14" (effects (font (size 1.27 1.27))))
+			)
+			(pin passive line (at 36.83 7.62 180) (length 5.08)
+				(name "RBOOT" (effects (font (size 1.27 1.27))))
+				(number "13" (effects (font (size 1.27 1.27))))
+			)
+			(pin input line (at 36.83 5.08 180) (length 5.08)
+				(name "EN/SYNC" (effects (font (size 1.27 1.27))))
+				(number "7" (effects (font (size 1.27 1.27))))
+			)
+			(pin input line (at 36.83 2.54 180) (length 5.08)
+				(name "FB" (effects (font (size 1.27 1.27))))
+				(number "4" (effects (font (size 1.27 1.27))))
+			)
+			(pin passive line (at 36.83 0.0 180) (length 5.08)
+				(name "RT" (effects (font (size 1.27 1.27))))
+				(number "6" (effects (font (size 1.27 1.27))))
+			)
+			(pin open_collector line (at 36.83 -2.539999999999999 180) (length 5.08)
+				(name "PGOOD" (effects (font (size 1.27 1.27))))
+				(number "5" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_out line (at 36.83 -5.08 180) (length 5.08)
+				(name "VCC" (effects (font (size 1.27 1.27))))
+				(number "2" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at 36.83 -7.620000000000001 180) (length 5.08)
+				(name "BIAS" (effects (font (size 1.27 1.27))))
+				(number "1" (effects (font (size 1.27 1.27))))
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "ODSP12:LMK1C1104"
+		(pin_names (offset 0.254))
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "LMK1C1104PWR"
+			(at 0 -2.54 0)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "Package_SO:TSSOP-8_3x3mm_P0.65mm"
+			(at 0 -5.08 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "Datasheet" "TI SNAS791D"
+			(at 0 -7.62 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "Description" "4-output LVCMOS clock buffer, 7.5 fs additive jitter"
+			(at 0 -10.16 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "MFR" "Texas Instruments"
+			(at 0 -12.7 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(property "MPN" "LMK1C1104PWR"
+			(at 0 -15.24 0)
+			(effects (font (size 1.27 1.27))
+				(hide yes))
+		)
+		(symbol "LMK1C1104_1_0"
+			(rectangle (start -31.75 6.35) (end 31.75 -6.35)
+				(stroke (width 0.254) (type default))
+				(fill (type background))
+			)
+		)
+		(symbol "LMK1C1104_1_1"
+			(pin input line (at -36.83 3.8099999999999996 0) (length 5.08)
+				(name "CLKIN" (effects (font (size 1.27 1.27))))
+				(number "1" (effects (font (size 1.27 1.27))))
+			)
+			(pin input line (at -36.83 1.2699999999999996 0) (length 5.08)
+				(name "1G" (effects (font (size 1.27 1.27))))
+				(number "2" (effects (font (size 1.27 1.27))))
+			)
+			(pin output line (at -36.83 -1.2700000000000005 0) (length 5.08)
+				(name "Y0" (effects (font (size 1.27 1.27))))
+				(number "3" (effects (font (size 1.27 1.27))))
+			)
+			(pin output line (at -36.83 -3.8100000000000005 0) (length 5.08)
+				(name "Y1" (effects (font (size 1.27 1.27))))
+				(number "8" (effects (font (size 1.27 1.27))))
+			)
+			(pin output line (at 36.83 3.8099999999999996 180) (length 5.08)
+				(name "Y2" (effects (font (size 1.27 1.27))))
+				(number "5" (effects (font (size 1.27 1.27))))
+			)
+			(pin output line (at 36.83 1.2699999999999996 180) (length 5.08)
+				(name "Y3" (effects (font (size 1.27 1.27))))
+				(number "7" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at 36.83 -1.2700000000000005 180) (length 5.08)
+				(name "VDD" (effects (font (size 1.27 1.27))))
+				(number "6" (effects (font (size 1.27 1.27))))
+			)
+			(pin power_in line (at 36.83 -3.8100000000000005 180) (length 5.08)
+				(name "GND" (effects (font (size 1.27 1.27))))
+				(number "4" (effects (font (size 1.27 1.27))))
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Regulator_Switching:TPS62823DLC"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at -7.62 11.43 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TPS62823DLC"
+			(at -1.27 11.43 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SON:Texas_VSON-HR-8_1.5x2mm_P0.5mm"
+			(at 3.81 -8.89 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tps62823.pdf"
+			(at 0 13.97 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "3A Step-Down Converter with DCS-Control, adjustable output, 2.4-5.5V input voltage, QFN-8"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "step-down dc-dc buck regulator"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "Texas*VSON*HR*1.5x2mm*P0.5mm*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TPS62823DLC_0_1"
+			(rectangle
+				(start -7.62 10.16)
+				(end 7.62 -7.62)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "TPS62823DLC_1_1"
+			(pin input line
+				(at -10.16 5.08 0)
+				(length 2.54)
+				(name "EN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 10.16 2.54 180)
+				(length 2.54)
+				(name "FB"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 2.54 -10.16 90)
+				(length 2.54)
+				(name "AGND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin no_connect line
+				(at 7.62 5.08 180)
+				(length 2.54)
+				(hide yes)
+				(name "NC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -2.54 -10.16 90)
+				(length 2.54)
+				(name "PGND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 10.16 7.62 180)
+				(length 2.54)
+				(name "SW"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -10.16 7.62 0)
+				(length 2.54)
+				(name "VIN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin open_collector line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "PG"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Regulator_Linear:LT3045xDD"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at -6.35 6.35 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LT3045xDD"
+			(at 1.27 6.35 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_DFN_QFN:DFN-10-1EP_3x3mm_P0.5mm_EP1.65x2.38mm"
+			(at 0 8.255 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.analog.com/media/en/technical-documentation/data-sheets/3045fa.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "500mA, Adjustable, Ultralow Noise, Ultrahigh PSRR Linear Regulator, DFN-10"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "linear voltage regulator low-noise"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "DFN*1EP*3x3mm*P0.5mm*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "LT3045xDD_0_1"
+			(rectangle
+				(start -7.62 5.08)
+				(end 7.62 -7.62)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "LT3045xDD_1_1"
+			(pin power_in line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(name "IN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(hide yes)
+				(name "IN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 0 0)
+				(length 2.54)
+				(name "EN/UV"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin open_collector line
+				(at 10.16 -5.08 180)
+				(length 2.54)
+				(name "PG"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "ILIM"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 10.16 -2.54 180)
+				(length 2.54)
+				(name "PGFB"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -10.16 -5.08 0)
+				(length 2.54)
+				(name "SET"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -10.16 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 10.16 0 180)
+				(length 2.54)
+				(name "OUTS"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 10.16 2.54 180)
+				(length 2.54)
+				(name "OUT"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -10.16 90)
+				(length 2.54)
+				(hide yes)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Analog_ADC:ADS1015IDGS"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 2.54 13.97 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "ADS1015IDGS"
+			(at 7.62 11.43 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:TSSOP-10_3x3mm_P0.5mm"
+			(at 0 -12.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/ads1015.pdf"
+			(at -1.27 -22.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Ultra-Small, Low-Power, I2C-Compatible, 3.3-kSPS, 12-Bit ADCs With Internal Reference, Oscillator, and Programmable Comparator, VSSOP-10"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "12 bit 4 channel I2C ADC"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "TSSOP*3x3mm*P0.5mm*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "ADS1015IDGS_0_1"
+			(rectangle
+				(start -7.62 10.16)
+				(end 7.62 -7.62)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "ADS1015IDGS_1_1"
+			(pin input line
+				(at 10.16 -5.08 180)
+				(length 2.54)
+				(name "ADDR"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 10.16 5.08 180)
+				(length 2.54)
+				(name "ALERT/RDY"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -10.16 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(name "AIN0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 0 0)
+				(length 2.54)
+				(name "AIN1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "AIN2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -5.08 0)
+				(length 2.54)
+				(name "AIN3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 12.7 270)
+				(length 2.54)
+				(name "VDD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 -2.54 180)
+				(length 2.54)
+				(name "SDA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 10.16 0 180)
+				(length 2.54)
+				(name "SCL"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Sensor_Temperature:TMP461xxRUN"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at -10.16 11.43 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TMP461xxRUN"
+			(at 2.54 11.43 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_DFN_QFN:Texas_RUN0010A_WQFN-10_2x2mm_P0.5mm"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tmp461.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Texas Instruments High-Accuracy Remote and Local Temperature Sensor with Pin-Programmable Bus Address, WQFN-10"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "Temperature sensor remote I2C TI"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "Texas*RUN0010A*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TMP461xxRUN_0_1"
+			(rectangle
+				(start -10.16 10.16)
+				(end 10.16 -10.16)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "TMP461xxRUN_1_1"
+			(polyline
+				(pts
+					(xy 2.54 7.62) (xy 2.54 4.445)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 7.62) (xy 3.175 7.62)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 6.985) (xy 3.175 6.985)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 6.35) (xy 3.175 6.35)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 5.715) (xy 3.175 5.715)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 5.08) (xy 3.175 5.08)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(arc
+				(start 2.54 7.62)
+				(mid 3.175 8.2523)
+				(end 3.81 7.62)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 3.175 1.905)
+				(radius 1.27)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(polyline
+				(pts
+					(xy 3.81 7.62) (xy 3.81 4.445)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(rectangle
+				(start 3.81 2.54)
+				(end 2.54 4.445)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(pin power_in line
+				(at 0 12.7 270)
+				(length 2.54)
+				(name "V+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 12.7 7.62 180)
+				(length 2.54)
+				(name "D+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 12.7 -5.08 180)
+				(length 2.54)
+				(name "D-"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin open_collector line
+				(at -12.7 0 0)
+				(length 2.54)
+				(name "~{THERM}"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -12.7 -5.08 0)
+				(length 2.54)
+				(name "A0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -12.7 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin open_collector line
+				(at -12.7 -2.54 0)
+				(length 2.54)
+				(name "~{ALERT/THERM2}"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(alternate "~{ALERT}" open_collector line)
+				(alternate "~{THERM2}" open_collector line)
+			)
+			(pin bidirectional line
+				(at -12.7 7.62 0)
+				(length 2.54)
+				(name "SDA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -12.7 5.08 0)
+				(length 2.54)
+				(name "SCL"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -12.7 -7.62 0)
+				(length 2.54)
+				(name "A1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Device:R"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "R"
+			(at 2.032 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "R"
+			(at 0 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -1.778 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "R_0_1"
+			(rectangle
+				(start -1.016 -2.54)
+				(end 1.016 2.54)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "R_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	)
+	(symbol
+		(lib_id "ODSP12:LM61460-Q1")
+		(at 39.37 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "341648f2-dc61-580c-9237-c8cbaa0efb45")
+		(property "Reference" "U2" (at 39.37 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LM61460AQRJRRQ1" (at 39.37 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U2") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 31.75 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "b088eb17-23c7-5bab-95bb-e97f8bf6e40e")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 34.29 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "82757d3b-0809-5860-a2d4-f83a67ede912")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 36.83 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "b3f8e343-af30-59cb-a2d1-40f4fc287207")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 39.37 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "80f42cb2-73df-55d7-b86b-ea230cf387bc")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 41.910000000000004 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "fefef5b3-3fb4-5a4f-bbf7-4e85bc059beb")
+	)
+	(global_label "SW_5V_D"
+		(shape bidirectional)
+		(at 2.54 44.45 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "00c53256-1f0b-52a5-882b-b4fb210761f3")
+	)
+	(global_label "U2_CBOOT"
+		(shape bidirectional)
+		(at 2.54 46.99 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "ed1504d2-f14f-5f8b-81f2-3b7e2d6c2b0d")
+	)
+	(global_label "U2_CBOOT"
+		(shape bidirectional)
+		(at 76.2 31.75 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "2f4404d2-98f5-546b-83bf-2bff9cdcfdf5")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 76.2 34.29 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "d0aed275-0ada-5f55-992e-00f25a2f18b4")
+	)
+	(global_label "FB_5V_D"
+		(shape bidirectional)
+		(at 76.2 36.83 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8efec359-9bf9-5b5e-ae3e-3c1596631b2b")
+	)
+	(global_label "RT_U2"
+		(shape bidirectional)
+		(at 76.2 39.37 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "0dfe05cf-cfc8-5189-b326-3eca27db950c")
+	)
+	(global_label "PG_5V_D"
+		(shape bidirectional)
+		(at 76.2 41.910000000000004 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "ecb19bcb-e947-5f53-9b38-d83f6a8f626c")
+	)
+	(global_label "U2_VCC"
+		(shape bidirectional)
+		(at 76.2 44.45 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e4bfe536-2f90-5083-9aaa-dbb0d41690cf")
+	)
+	(global_label "+5V_D"
+		(shape bidirectional)
+		(at 76.2 46.99 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "68182fe3-9c12-5622-81f8-7cb3aa878af4")
+	)
+	(symbol
+		(lib_id "ODSP12:LM61460-Q1")
+		(at 39.37 100.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bb22f7b8-db1a-51af-a2af-4dc71c9934da")
+		(property "Reference" "U3" (at 39.37 78.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LM61460AQRJRRQ1" (at 39.37 81.33 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U3") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 92.71000000000001 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "81687db5-34c9-53f2-aab2-355b01cc0fb3")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 95.25 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "944a0c6b-852a-5896-aa98-905f6d93137c")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 97.79 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "8599bbb0-da88-5261-8373-f41b1971cc9e")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 100.33 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "854d1584-d418-585e-baab-7f691d98144d")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 102.87 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "22515312-e43e-5e79-a446-3c68dd67e727")
+	)
+	(global_label "SW_3V3_D"
+		(shape bidirectional)
+		(at 2.54 105.41 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "c42b81a9-8d84-5ef3-867a-38e90e2cbf31")
+	)
+	(global_label "U3_CBOOT"
+		(shape bidirectional)
+		(at 2.54 107.95 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "10a22495-a7bc-52cc-b6e8-450ac38bd52f")
+	)
+	(global_label "U3_CBOOT"
+		(shape bidirectional)
+		(at 76.2 92.71000000000001 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "31d1b849-830b-5bc1-9931-d55e40ac615d")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 76.2 95.25 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8b59d7e6-aa10-543e-812c-2a744fb043b5")
+	)
+	(global_label "FB_3V3_D"
+		(shape bidirectional)
+		(at 76.2 97.79 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "d1722986-9fac-5487-80de-15326fa7aea5")
+	)
+	(global_label "RT_U3"
+		(shape bidirectional)
+		(at 76.2 100.33 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "95814189-51ca-5c3e-8b56-c88f9342604b")
+	)
+	(global_label "PG_3V3_D"
+		(shape bidirectional)
+		(at 76.2 102.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "45b61c6e-53d7-5dba-b017-f4dc6e14a85a")
+	)
+	(global_label "U3_VCC"
+		(shape bidirectional)
+		(at 76.2 105.41 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "eff9d589-85ab-59ac-903f-99dfe197cae5")
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 76.2 107.95 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "2af2dd7b-7e3d-5a86-8a76-415282743471")
+	)
+	(symbol
+		(lib_id "ODSP12:LM61460-Q1")
+		(at 39.37 160.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ba231686-dbde-51c4-8673-8d5e6e4689d4")
+		(property "Reference" "U4" (at 39.37 138.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LM61460AQRJRRQ1" (at 39.37 141.02 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U4") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 152.4 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "e9d2b70c-c2b1-59e6-a6e4-2f449b31e2a2")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 2.54 154.94 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "a5dab64c-304f-5bd0-b9ad-76fddd2c30bc")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 157.48 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "45ebce7d-a7a9-5efa-a3a3-7fd943c5f788")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 160.02 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "83b0e4a0-3d1c-5c15-9164-1f98a1a7819d")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 2.54 162.56 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "3eb7c5a4-bb4f-5f1d-a34a-5083fd15c429")
+	)
+	(global_label "SW_6V2_A"
+		(shape bidirectional)
+		(at 2.54 165.1 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "9696b547-b467-5d0d-ac67-de734087e229")
+	)
+	(global_label "U4_CBOOT"
+		(shape bidirectional)
+		(at 2.54 167.64000000000001 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "b6bf0e81-982f-5adc-8b83-160c113675f0")
+	)
+	(global_label "U4_CBOOT"
+		(shape bidirectional)
+		(at 76.2 152.4 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "3a67ecc3-b9ee-54ff-84c2-9bb8765e4613")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 76.2 154.94 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e29558aa-50a0-5ad2-92f2-9dd703e6ecdc")
+	)
+	(global_label "FB_6V2_A"
+		(shape bidirectional)
+		(at 76.2 157.48 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "253b69cb-37e4-5585-9af3-f1d9a908d7a5")
+	)
+	(global_label "RT_U4"
+		(shape bidirectional)
+		(at 76.2 160.02 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "945e548c-20d6-5902-a71f-4d41ac51f835")
+	)
+	(global_label "PG_6V2_A"
+		(shape bidirectional)
+		(at 76.2 162.56 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "52195dd8-0b54-5be2-836f-9a3b2f8944ce")
+	)
+	(global_label "U4_VCC"
+		(shape bidirectional)
+		(at 76.2 165.1 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "5a62bbc6-c161-57fa-8ad9-5773690241a1")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 76.2 167.64000000000001 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "2822ae35-e950-58c9-843e-9685ea3f5cce")
+	)
+	(symbol
+		(lib_id "Regulator_Switching:TPS62823DLC")
+		(at 149.86 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0e4e16fb-fc5e-523d-a3cc-9ddae876c74d")
+		(property "Reference" "U5" (at 149.86 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TPS62823DLC" (at 149.86 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U5") (unit 1))
+			)
+		)
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 139.7 34.29 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "2617ab71-3d05-51f4-8627-c85f46bd0e10")
+	)
+	(global_label "FB_1V2"
+		(shape bidirectional)
+		(at 160.02 36.83 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "9203d4ce-29ae-5bbf-ba6a-e4c9a0b25cc3")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 152.4 49.53 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "11a92b8c-d8e6-5fea-a441-0430911fe05d")
+	)
+	(no_connect (at 157.48 34.29) (uuid "7c22c50c-fcb3-51a8-ad16-5061c8afa320"))
+	(global_label "GND"
+		(shape bidirectional)
+		(at 147.32 49.53 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "4e87d65a-3890-5fe4-a2ee-87ae014428d4")
+	)
+	(global_label "SW_1V2"
+		(shape bidirectional)
+		(at 160.02 31.75 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "75e6bc49-41b3-55c6-a684-5bae8045c532")
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 139.7 31.75 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "a09d2895-c8f4-5015-8998-b00ee6ad445a")
+	)
+	(global_label "PG_1V2"
+		(shape bidirectional)
+		(at 139.7 41.910000000000004 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "c3b987ed-5db8-55a8-9023-caf1b8cd6df7")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LT3045xDD")
+		(at 149.86 100.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6fc89baa-3488-5856-84ca-cecd2e144463")
+		(property "Reference" "U6" (at 149.86 78.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LT3045EDD" (at 149.86 81.33 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U6") (unit 1))
+			)
+		)
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 97.79 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "90072896-f5b2-50e8-b957-8092ededd29c")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 97.79 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "487aa399-1019-5665-819d-e9eae29b0194")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 100.33 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "164def4d-b62d-5c5d-9389-fc9e90907688")
+	)
+	(global_label "U6_PG"
+		(shape bidirectional)
+		(at 160.02 105.41 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "cb5a03a1-8a4d-5acc-8dba-60c1c8a16da5")
+	)
+	(global_label "U6_ILIM"
+		(shape bidirectional)
+		(at 139.7 102.87 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "1333e559-0039-595e-93b5-30b8c8706616")
+	)
+	(global_label "U6_PGFB"
+		(shape bidirectional)
+		(at 160.02 102.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8f0463d4-42f8-5ca8-b548-4a893f5b478a")
+	)
+	(global_label "U6_SET"
+		(shape bidirectional)
+		(at 139.7 105.41 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "fc764362-dedb-5899-b72d-6e05ce665fcf")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 149.86 110.49 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "4df41bd9-8c03-574c-abd8-ee693d95f207")
+	)
+	(global_label "+5V_A"
+		(shape bidirectional)
+		(at 160.02 100.33 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e8cbcaec-0691-5815-8d31-4eb4f721e0e8")
+	)
+	(global_label "+5V_A"
+		(shape bidirectional)
+		(at 160.02 97.79 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "3f8a32de-1199-5124-94a1-eaf6797a5cae")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 149.86 110.49 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "318ea5eb-9c2a-55eb-9b41-2610bab01733")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LT3045xDD")
+		(at 149.86 160.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0eb5d2d3-861f-53db-a741-9aef21df3a18")
+		(property "Reference" "U7" (at 149.86 138.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LT3045EDD" (at 149.86 141.02 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U7") (unit 1))
+			)
+		)
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 157.48 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "2cd6e181-35b2-57e0-a63e-6c6b65d6c071")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 157.48 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "d230c339-5e13-5dfd-acbf-eaa9d7874462")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 139.7 160.02 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "c06f35b9-0e88-5ff5-ba6c-003f2a494ad6")
+	)
+	(global_label "U7_PG"
+		(shape bidirectional)
+		(at 160.02 165.1 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "f9bea763-87ab-5613-a3ce-5b2d2e403d36")
+	)
+	(global_label "U7_ILIM"
+		(shape bidirectional)
+		(at 139.7 162.56 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "c87ab43c-97a4-52bc-9b2b-730caddec095")
+	)
+	(global_label "U7_PGFB"
+		(shape bidirectional)
+		(at 160.02 162.56 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "422cc6a6-f0a2-500b-b431-9592c166d0c3")
+	)
+	(global_label "U7_SET"
+		(shape bidirectional)
+		(at 139.7 165.1 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "3ff93e9b-fb29-5e6a-9124-49e024f09860")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 149.86 170.18 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8471bea3-790d-5120-857a-e017ab4c51b7")
+	)
+	(global_label "+3V3_A"
+		(shape bidirectional)
+		(at 160.02 160.02 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "dc705bb4-1c6f-551d-8d25-e2dba502ff72")
+	)
+	(global_label "+3V3_A"
+		(shape bidirectional)
+		(at 160.02 157.48 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "7a889c69-1326-55ee-a82f-bb53ba5a3b24")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 149.86 170.18 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "ee025216-5817-5e27-a6de-cc36f48176cb")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LT3045xDD")
+		(at 260.35 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ecfe7c41-43d1-5209-b415-1005f01be25e")
+		(property "Reference" "U8" (at 260.35 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LT3045EDD" (at 260.35 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U8") (unit 1))
+			)
+		)
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 250.19 36.83 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "b3a4aecc-6e1e-549d-80a5-90f5716e2aeb")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 250.19 36.83 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "3c1e5d46-26d8-567a-9280-a94146a1d532")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 250.19 39.37 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "2ffcfd54-c0a8-5492-8b3e-dea13cfdcbd9")
+	)
+	(global_label "U8_PG"
+		(shape bidirectional)
+		(at 270.51 44.45 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "20b03dfd-fff2-50f7-a287-aa1e45a6ab33")
+	)
+	(global_label "U8_ILIM"
+		(shape bidirectional)
+		(at 250.19 41.910000000000004 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "ada82366-c891-5e30-ba44-a87135ab7797")
+	)
+	(global_label "U8_PGFB"
+		(shape bidirectional)
+		(at 270.51 41.910000000000004 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "593ca565-5bab-538a-9cf0-a707c647939e")
+	)
+	(global_label "U8_SET"
+		(shape bidirectional)
+		(at 250.19 44.45 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "4b56daad-288e-529d-97ec-d924da171439")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 49.53 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8b80aedd-d334-5f15-a414-899954a3323c")
+	)
+	(global_label "+3V3_CLK"
+		(shape bidirectional)
+		(at 270.51 39.37 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "4b7c4f9a-047e-58de-9040-624c25fe3374")
+	)
+	(global_label "+3V3_CLK"
+		(shape bidirectional)
+		(at 270.51 36.83 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "96d16e6f-1cc9-5df2-a4de-efe95a3fdca8")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 49.53 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "a8d80f54-7efa-5a6f-b2dc-876c440a6b66")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LT3045xDD")
+		(at 260.35 100.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b6781e91-f6f6-53c2-9e2f-9959621a5315")
+		(property "Reference" "U9" (at 260.35 78.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LT3045EDD" (at 260.35 81.33 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U9") (unit 1))
+			)
+		)
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 250.19 97.79 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "328ef9dc-4dfd-5813-8c56-2a9ebd19665d")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 250.19 97.79 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "dcd95527-983c-5f35-b550-5df753cef6f9")
+	)
+	(global_label "EN_3V3_PLL"
+		(shape bidirectional)
+		(at 250.19 100.33 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "6f96c22d-c524-57b0-9615-3e84f6442c37")
+	)
+	(global_label "U9_PG"
+		(shape bidirectional)
+		(at 270.51 105.41 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "b7745d49-56d9-518d-80e1-4ec56896a4de")
+	)
+	(global_label "U9_ILIM"
+		(shape bidirectional)
+		(at 250.19 102.87 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "65695fd6-b5f5-5c70-b2ac-d6bc009c4890")
+	)
+	(global_label "U9_PGFB"
+		(shape bidirectional)
+		(at 270.51 102.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "7bcf445e-d161-5561-bd98-2990a41dd828")
+	)
+	(global_label "U9_SET"
+		(shape bidirectional)
+		(at 250.19 105.41 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "3b50905b-7693-5040-9862-9a1eacf0085d")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 110.49 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "f2d30d03-0857-531f-acb7-f769f7003415")
+	)
+	(global_label "+3V3_PLL"
+		(shape bidirectional)
+		(at 270.51 100.33 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "bfdb844c-9ede-51aa-9463-90c8a6c37155")
+	)
+	(global_label "+3V3_PLL"
+		(shape bidirectional)
+		(at 270.51 97.79 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "17127747-de33-5769-affe-7c8779719639")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 110.49 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "35a3ae30-3a5f-52a5-8312-c2ff26b4c7c3")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LT3045xDD")
+		(at 260.35 160.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ab99c33-f33a-500e-809a-4fdbaa598f22")
+		(property "Reference" "U10" (at 260.35 138.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "LT3045EDD" (at 260.35 141.02 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U10") (unit 1))
+			)
+		)
+	)
+	(global_label "+5V_D"
+		(shape bidirectional)
+		(at 250.19 157.48 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "1a037d75-4591-5161-82d2-27589278a320")
+	)
+	(global_label "+5V_D"
+		(shape bidirectional)
+		(at 250.19 157.48 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "179c1008-3efe-5318-8fc8-1a269885529d")
+	)
+	(global_label "+5V_D"
+		(shape bidirectional)
+		(at 250.19 160.02 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "a7c46c60-5d96-52a2-a1ff-d75d0d1bf3d9")
+	)
+	(global_label "U10_PG"
+		(shape bidirectional)
+		(at 270.51 165.1 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8c8d980f-a290-5d95-8fe1-35b961c25eff")
+	)
+	(global_label "U10_ILIM"
+		(shape bidirectional)
+		(at 250.19 162.56 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "adb8954a-57f8-596e-ad94-a88d1da30341")
+	)
+	(global_label "U10_PGFB"
+		(shape bidirectional)
+		(at 270.51 162.56 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "465b2f0d-c997-5c49-ae9e-20ceff3f354b")
+	)
+	(global_label "U10_SET"
+		(shape bidirectional)
+		(at 250.19 165.1 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "0dd6056b-42b0-51b6-a86c-5d8379912b57")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 170.18 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1b655857-2eb6-53a0-9d21-344d4ae00731")
+	)
+	(global_label "+3V6_BT"
+		(shape bidirectional)
+		(at 270.51 160.02 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e5a39475-7293-5058-bb6f-8755847f7244")
+	)
+	(global_label "+3V6_BT"
+		(shape bidirectional)
+		(at 270.51 157.48 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "233b18ac-bbf6-5dc6-b30a-3262ace85a53")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 260.35 170.18 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "faf5a10a-4edf-5518-a390-ee819ff3d5d3")
+	)
+	(symbol
+		(lib_id "Analog_ADC:ADS1015IDGS")
+		(at 369.57 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "58df9a4e-78aa-58ee-8662-40dd87b6bac0")
+		(property "Reference" "U11" (at 369.57 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "ADS1015IDGS" (at 369.57 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U11") (unit 1))
+			)
+		)
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 379.73 44.45 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "231b0ae5-4b10-53b6-ab9e-70acdd378623")
+	)
+	(global_label "RAILMON_ALERT"
+		(shape bidirectional)
+		(at 379.73 34.29 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1ddad674-cb0b-53ac-bba9-c0d39ddaf728")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 369.57 49.53 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "84a732aa-42e2-51f6-ad09-7264a5ac0264")
+	)
+	(global_label "MON_VBATT"
+		(shape bidirectional)
+		(at 359.41 36.83 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "71aa5494-ee9e-5735-a2c3-80348e920dcf")
+	)
+	(global_label "MON_P13V5"
+		(shape bidirectional)
+		(at 359.41 39.37 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "862e20cc-2138-534c-8681-01b085736776")
+	)
+	(global_label "MON_N13V5"
+		(shape bidirectional)
+		(at 359.41 41.910000000000004 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "6ad30e69-e250-5e5a-948e-8f0984906417")
+	)
+	(global_label "MON_3V3_A"
+		(shape bidirectional)
+		(at 359.41 44.45 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "8040014d-af91-5bd9-ac15-fefc49af0c59")
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 369.57 26.67 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "f6c52f3b-ae13-5528-8ff2-3e3128a7677b")
+	)
+	(global_label "I2C0_SDA"
+		(shape bidirectional)
+		(at 379.73 41.910000000000004 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "15b48db6-d3c2-5413-9b26-f4891bbc072d")
+	)
+	(global_label "I2C0_SCL"
+		(shape bidirectional)
+		(at 379.73 39.37 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "25ac91bb-cc57-5800-a484-fd18dda7b206")
+	)
+	(symbol
+		(lib_id "Sensor_Temperature:TMP461xxRUN")
+		(at 369.57 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cd3b2ec7-3b07-594b-8d26-cd81017d610b")
+		(property "Reference" "U12" (at 369.57 97.38 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TMP461-Q1" (at 369.57 100.38 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "U12") (unit 1))
+			)
+		)
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 369.57 106.68 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1604698a-7f43-51a9-89d5-a1f887de0b3b")
+	)
+	(global_label "DSP_THD_P"
+		(shape bidirectional)
+		(at 382.27 111.76 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "fb872eb0-a440-5ceb-be85-7c417073a329")
+	)
+	(global_label "DSP_THD_M"
+		(shape bidirectional)
+		(at 382.27 124.46000000000001 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e37931db-9b9e-5835-8914-a646ce9eda20")
+	)
+	(global_label "TEMP_THERM_N"
+		(shape bidirectional)
+		(at 356.87 119.38 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "e02f7b5d-f30a-5d51-a502-0024d6db962e")
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 356.87 124.46000000000001 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "6dda633b-8c3f-5dc4-8629-32dd58ce1381")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 369.57 132.08 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "7fa255a3-93a7-5b36-83dd-bf7ad22e08d4")
+	)
+	(global_label "TEMP_ALERT_N"
+		(shape bidirectional)
+		(at 356.87 121.92 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "06a6a9b2-6385-57e5-bab8-15a05cb738bb")
+	)
+	(global_label "I2C0_SDA"
+		(shape bidirectional)
+		(at 356.87 111.76 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "d858d320-4042-59bf-bacf-fc80980b48cc")
+	)
+	(global_label "I2C0_SCL"
+		(shape bidirectional)
+		(at 356.87 114.3 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "272d1cef-27cd-5225-ad96-9221d7061f24")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 356.87 127.0 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "1fb0dd8b-e015-5499-ad8b-55efe05eb88f")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 340.36 199.39000000000001 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "888347f4-8f6e-5fa1-9828-f645392728e6")
+		(property "Reference" "R2" (at 340.36 177.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "100k" (at 340.36 180.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "R2") (unit 1))
+			)
+		)
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 340.36 195.58 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "98680562-c9de-5a0d-8c70-e791b9642329")
+	)
+	(global_label "EN_3V3_PLL"
+		(shape bidirectional)
+		(at 340.36 203.2 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "2639371d-9e85-5e68-8a34-48cf3148b1e8")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 369.57 199.39000000000001 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "190fbb29-3956-503c-888a-4f1afc552dd2")
+		(property "Reference" "R3" (at 369.57 177.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "100k" (at 369.57 180.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "R3") (unit 1))
+			)
+		)
+	)
+	(global_label "EN_3V3_PLL"
+		(shape bidirectional)
+		(at 369.57 195.58 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e10828b6-a2ac-54d8-954c-5bb8527414ca")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 369.57 203.2 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1253088f-36fe-5003-acd1-6757210ff5bc")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 400.05 199.39000000000001 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ac357de1-8e08-52eb-a337-ff427485fcb1")
+		(property "Reference" "R4" (at 400.05 177.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "0R" (at 400.05 180.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "R4") (unit 1))
+			)
+		)
+	)
+	(global_label "PG_3V3_D"
+		(shape bidirectional)
+		(at 400.05 195.58 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "d59425a3-bccf-546f-b7e4-58acd648deb9")
+	)
+	(global_label "EN_3V3_PLL"
+		(shape bidirectional)
+		(at 400.05 203.2 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "167a77e6-e551-599d-9303-41bbc15e0d1c")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 39.37 229.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "210ce2b9-583e-5677-af86-d33af6a6f976")
+	)
+	(global_label "+5V_D"
+		(shape bidirectional)
+		(at 100.33 229.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "10e99c41-acdc-5d82-b291-267acbfcb644")
+	)
+	(global_label "+3V3_D"
+		(shape bidirectional)
+		(at 160.02 229.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "0325aad5-fb81-5dd3-afda-8af646664b30")
+	)
+	(global_label "+6V2_A"
+		(shape bidirectional)
+		(at 219.71 229.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "fe2c1708-222d-5ab4-afe2-8f2de379cf1a")
+	)
+	(global_label "+1V2_CORE"
+		(shape bidirectional)
+		(at 279.4 229.87 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "c7ad2cad-09c9-5746-a71e-b54b6e71e4d0")
+	)
+	(global_label "+5V_A"
+		(shape bidirectional)
+		(at 39.37 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "95b8aa18-1dfe-5924-9f37-d4f08ab3681b")
+	)
+	(global_label "+3V3_A"
+		(shape bidirectional)
+		(at 100.33 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "971cd92b-18db-5951-8111-f723cf204c40")
+	)
+	(global_label "+3V3_CLK"
+		(shape bidirectional)
+		(at 160.02 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "b97c45db-859f-5aaa-baf7-207a0c1a110c")
+	)
+	(global_label "+3V3_PLL"
+		(shape bidirectional)
+		(at 219.71 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "a66a2c0d-9de0-5164-8cb0-492e189d4536")
+	)
+	(global_label "+3V6_BT"
+		(shape bidirectional)
+		(at 279.4 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "fe235d47-f7fa-5dee-a3a5-4053cb0c2417")
+	)
+	(text "PG->EN DIVIDER ARITHMETIC (F34) -- check before any BOM cost-pass normalises these values.\nPGOOD on U3 is OPEN-DRAIN (T1-64). Three constraints on two resistors:\n  1. PG released (+3V3_D up): EN_3V3_PLL = 3V3 * R3/(R2+R3) must exceed the LDO's V_IH.\n  2. PG asserted low (fault): EN must sit below V_IL.\n  3. +3V3_D absent / PG high-Z: R3 must dominate so EN defaults LOW -- fail-safe off.\nValues above are PLACEHOLDERS. [VERIFY] the chosen LDO's EN threshold table, then solve.\nDo not substitute standard values without re-checking all three inequalities."
+		(exclude_from_sim no)
+		(at 149.86 199.39000000000001 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "f4b771e1-8b5b-5b70-b53f-3f0aaabea8d2")
+	)
+	(text "SCOPE: this pass places active devices, dispositions every pin, and defines the\nsequencing and monitor nets. Inductors, bulk/bypass caps and feedback dividers are the\nnext pass -- FB/SW/CBOOT/SET/ILIM pins carry named nets, not no-connects, so nothing\nis left undispositioned in the meantime (F28)."
+		(exclude_from_sim no)
+		(at 149.86 250.19 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "a768b167-9757-59f2-a96b-686ddce98501")
+	)
 	(embedded_fonts no)
 )

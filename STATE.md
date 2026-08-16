@@ -83,6 +83,19 @@ total.
 drawn yet. They retire as sheets fill. **G1b is not met and is not claimed.** Off-grid endpoints
 were found and fixed; that one *was* a real defect.
 
+**`01_power.kicad_sch` is drawn** (page 2). 14 devices — 3× LM61460-Q1, TPS62823, 5× LT3045,
+ADS1015, TMP461, and the R2/R3/R4 PG→EN network — **every pin dispositioned**, 10 rail testpoints,
+and the F34 divider arithmetic written on the sheet where a BOM cost-pass will trip over it.
+
+**Cross-sheet integration is live and netlist-verified:** `+3V3_PLL` joins U9's output to the DSP's
+`PVDD`; `DSP_THD_P`/`_M` join the TMP461's remote channel to the DSP's thermal diode;
+`PG_3V3_D` → R4 → `EN_3V3_PLL` → U9 `EN/UV` is the complete F34 chain.
+
+**Scope of this pass, stated on the sheet:** active devices and nets. **Inductors, bulk/bypass
+caps and feedback dividers are the next pass** — so the rails are *defined but not yet driven*,
+which is why ERC rose to 118 rather than falling. That number drops when the passives land, not
+before. **G1b remains unmet and unclaimed.**
+
 ### Session boundary — read this before reconstructing anything
 
 **`01_power.kicad_sch` is deliberately undrawn.** It is **not** stopped partway through: the file
@@ -203,6 +216,9 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-38 | **Exposed pad is ground and thermally mandatory:** soldered to a copper square of equivalent size, "**identical copper squares must exist on all layers** of the board, connected by vias, and they must be connected to a **dedicated copper ground layer within the PCB**" | Table 18 p.21 + Figure 11 note. Drives **F25** |
 | T1-39 | **The ADAU1466 has an integrated S/PDIF receiver AND transmitter** — pin 4 `SPDIFIN` ("Input to the Integrated Sony/Philips Digital Interconnect Format Receiver"), pin 5 `SPDIFOUT`. Both internally biased to IOVDD/2 | Table 18 p.18. Drives **F26** |
 | T1-40 | **Pins 63/64 `THD_M`/`THD_P` are a thermal diode**, intended for "the D- / D+ pin of an external temperature sensor IC" — a *remote-diode* sensor, not a local one | Table 18 p.21. Drives **F27** |
+| T1-68 | **LMK1C1104 `1G` has an internal 300 kOhm pull-DOWN and "switches the outputs into a low state when 1G is low"** — so **left floating, the entire clock fanout is disabled** and no MCLK reaches any converter. Must be actively pulled/driven high. **`Y3` unused: "Unused outputs can be left floating"** — the datasheet's own guidance | TI SNAS791D pp.3, 7. Textbook F21: floating is a state someone chose, and here it chose *off*. Failure presents as "the converters don't work" |
+| T1-69 | **MIC5504 is fixed-output only** — 1.2 / 1.8 / 2.5 / 2.8 / 3.3 V, **no 3.6 V variant** | Stock `Regulator_Linear.kicad_sym` enumeration. Drives **F36** |
+| T1-70 | **Stock symbol pin maps, read as name+number pairs from single matches:** `TPS62823DLC` 8 pins (4 = `NC`); `LT3045xDD` **11** pins (2 = second `IN`, 11 = second `GND`); `ADS1015IDGS` 10; `TMP461xxRUN` 10 | Direct extraction. **Supersedes an earlier zipped-regex map that was permuted** — see ledger |
 | T1-64 | **LM61460-Q1 `PGOOD` (pin 5) is open-drain** — *"Pull this pin up to a suitable voltage supply through a current limiting resistor. High = power OK, low = fault. PGOOD goes low when EN = low, VIN > 1 V."* | TI SNVSB70F Table 7-1 p.4, rendered. **Closes F34's open [VERIFY]** |
 | T1-65 | **LM61460-Q1 pins that must not float: `FB` (4), `RT` (6), `EN/SYNC` (7).** `RT` additionally must not be grounded — it needs 5.76-66.5 kOhm to set 200-2200 kHz. `VCC` (2) is an internal-LDO output: **"do not connect to any external loads"** | Same table. F28 dispositions required for all four |
 | T1-66 | **LMK1C1104 is 8-pin TSSOP with FOUR outputs** — `Y0` (3), `Y1` (8), `Y2` (5), `Y3` (7); `CLKIN` (1), `1G` output-enable (2), `VDD` (6), `GND` (4) | TI SNAS791D Figure 6-4 p.3. Drives **F35** |
@@ -504,6 +520,32 @@ follow-up.
 *The tell:* content edits and the version header living in **different edits**. If a change is
 worth a revision row, the row goes in before the content does, not after.
 
+**"The completeness assertion passed, so the part is fully connected"** — assistant, 2026-08-16
+*Correction:* the F28 assertion is `set(pin_geometry) - set(assigned_nets)`. My pin-extraction
+regex required a newline that **this project's own compact symbol format never emits**, so
+`pin_geometry` came back **empty** for all three project symbols — and an empty set has nothing
+missing. **The assertion passed vacuously and three LM61460-Q1 bucks were placed with every pin
+unconnected**, which the netlist showed as 14 `unconnected-(U3-…)` stubs.
+*The tell:* **an assertion over a set you did not also assert is non-empty is not a check.** Any
+"nothing is missing" test needs a companion "and there was something to miss." Both guards are now
+in: `assert pins` at extraction, `assert geo` at placement, plus `assert not extra` to catch a
+stale pin map pointing at pins that do not exist.
+*Family:* ERC on an empty sheet, `file` reporting 10 pages, HTTP 200 on the wrong PDF. **Fourth
+instance of a check that answers the question it was asked while the thing it guards is absent.**
+
+**"Zip the names and the numbers"** — assistant, 2026-08-16, caught before it shipped
+*Correction:* I extracted stock-symbol pin names and pin numbers with **two independent regexes
+and zipped the results.** Where either list dropped an entry — and both did, on `NC` pins and
+duplicated `IN`/`GND` pads — every subsequent pair silently **shifted by one**. It produced a
+complete-looking map in which the LT3045's `EN/UV` was pin 2 instead of 3, `PG` was 3 instead of
+4, and so on down the part. Had the two lists happened to be the same length, **the pin-set
+assertion would have passed and every net on the part would have been wrong.**
+*The tell:* **pairing data from two separate passes over the same source.** Extract name and
+number from **one match**, so a dropped entry loses the whole record rather than shifting the rest.
+*Why it matters more than it looks:* a pin-set assertion checks **completeness, not correctness.**
+It cannot see a permutation. This is the M1a shape — the check passed, the reasoning under it was
+unsound — and the only reason it surfaced is that the lists were *unequal*.
+
 **"The file parsed, so the file is right"** — assistant, 2026-08-16
 *Correction:* the first `02_dsp.kicad_sch` **parsed cleanly, passed ERC with zero violations, and
 exported as part of a 10-page PDF — while containing no components at all.** Every available check
@@ -739,7 +781,9 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
-| **F35** | ▫ | **NEW, observation. The clock buffer has exactly one more output than §3 currently uses.** T1-66: the LMK1C1104 has **four** outputs. §3 routes the XO **directly** to the ADAU1466's MCLK and puts only the three converters behind the buffer — which leaves `Y3` spare and gives the DSP a *different* path from every device it clocks. Driving all four from the buffer (`Y0`→DSP, `Y1`→ADC, `Y2`→DAC1, `Y3`→DAC2) equalises loading and propagation delay across the whole tree and still satisfies §3's "distribute from the XO through a buffer, not daisy-chained". | **Escalated, not applied** — §3 is [HARD] and this is clock-tree topology. Counter-consideration: it inserts the buffer's additive jitter (7.5 fs) into the DSP's PLL reference, where today the DSP sees the XO raw. That is almost certainly below the PLL's own contribution, but it is the operator's call, not an obvious win |
+| **F36** | ⚠ | **NEW. The decreed part class for `+3V6_BT` cannot reach 3.6 V.** MIC5504 is **fixed-output only** — stock variants run 1.2 / 1.8 / 2.5 / 2.8 / **3.3 V max**, with no 3.6 V option. The F31 decree named "AP2112/MIC5504-class at 3.6 V", and that combination does not exist in the MIC5504 line. **An LT3045 stands in provisionally on the sheet** (adjustable via `SET`, already in the BOM three times, and its transient behaviour suits a radio) — **marked PROVISIONAL in the Value field, not silently substituted.** | Operator's call: an **adjustable** small LDO (TLV757P / AP7361 class), a different fixed-3.6 V part, or accept the LT3045 on BOM-consolidation grounds. Worth noting the near-miss alternative: MIC5504-3.3 at ±2 % gives 3.234-3.366 V, which **does** clear BAT_IN's 3.2 V floor — but on tolerance alone, with no margin, which is the kind of "it fits" that F31 already rejected once |
+| **F35** | ✅ | **CLOSED — split kept. XO→DSP direct, three buffer outputs, `Y3` spare.** The equalisation argument dissolves on inspection: the converters care about BCLK/LRCLK skew **relative to each other**, and those are regenerated by the DSP's serial ports from the PLL — not from MCLK's arrival time. Matching the DSP's MCLK path equalises a delay **nothing downstream can perceive**. The cost side is asymmetric and real: the PLL reference is the root of every clock on the board, so jitter there multiplies through the PLL into everything, while the same jitter on a converter leg touches one device. **When one side of a trade is "no benefit", the error bar on the other side is irrelevant.** `Y3` disposition per datasheet: **"Unused outputs can be left floating"** — annotated as *datasheet-sanctioned*, explicitly not a convenient future tap. *Original text below.* | — |
+| ~~**F35-orig**~~ | | *Original:* **observation. The clock buffer has exactly one more output than §3 currently uses.** T1-66: the LMK1C1104 has **four** outputs. §3 routes the XO **directly** to the ADAU1466's MCLK and puts only the three converters behind the buffer — which leaves `Y3` spare and gives the DSP a *different* path from every device it clocks. Driving all four from the buffer (`Y0`→DSP, `Y1`→ADC, `Y2`→DAC1, `Y3`→DAC2) equalises loading and propagation delay across the whole tree and still satisfies §3's "distribute from the XO through a buffer, not daisy-chained". | **Escalated, not applied** — §3 is [HARD] and this is clock-tree topology. Counter-consideration: it inserts the buffer's additive jitter (7.5 fs) into the DSP's PLL reference, where today the DSP sees the XO raw. That is almost certainly below the PLL's own contribution, but it is the operator's call, not an obvious win |
 | **F34** | ⛔ | **NEW, and it is a direct consequence of F33's own fix — stop-the-line.** The ADAU1466 requires **`IOVDD` first**: *"IOVDD… is the reference for the ESD protection diodes situated inside the input and output pins, must be applied first to avoid stressing these diodes."* F33 moves `PVDD` onto the **+6V2_A branch**, a different limb of the tree from `IOVDD` (+3V3_D) — so nothing guarantees their order, and if the analog branch wins the race **PVDD precedes IOVDD and stresses the ESD diodes on every single power-up.** Raised **before** drawing 01_power because it changes the sheet's enable topology, and drawing first would have been work invalidated in flight. | **Gate the PVDD LDO's enable from +3V3_D** (rail or power-good). The shared ancestor becomes a *logic* signal, never a current path, so **F33's noise isolation survives intact — sequencing and noise isolation are separable, and are separated deliberately.** `AVDD` (shares +3V3_D) and `DVDD` (from the +1V2_CORE buck fed by +3V3_D) are safe by construction; **re-parenting either re-opens this** |
 | **F33** | ✅ | **CLOSED — dedicated LDO from +6V2_A, and both cheap fixes rejected on their merits.** *Against a +3V3_CLK tap:* the fanout buffer is a pure victim, but **the PLL is a victim and an aggressor** — charge pump and VCO switching current appears across a shared regulator's output impedance and would modulate the fanout's supply, putting the noisiest clock-domain device on the rail built to be the quietest. *Against a ferrite/RC off +3V3_D:* the contamination is **low-frequency** (WiFi TX envelope, hundreds of Hz to low kHz) where a ferrite does nothing and an adequate RC burns headroom out of a ±10 % window. **An LDO's PSRR is strongest exactly where a ferrite is weakest**, and +6V2_A removes the shared ancestor below the battery input. V-21 settles the sizing at **15 mA max → ~44 mW**: any small LDO, MIC5504/TPS7A02 class, not reference-grade. *Original text below.* | Spawned **F34** |
 | ~~**F33-orig**~~ | | *Original:* **The DSP's PLL supply is on the digital rail, and the PLL generates every serial clock on the board.** `PVDD` (pin 15) is the ADAU1466's PLL supply, 3.3 V ±10 %. In the current architecture that means +3V3_D — a switcher rail shared with the ESP32's WiFi bursts. **This is F22's argument one level in:** the fanout buffer was moved to a clean rail because its supply noise becomes jitter on every converter, and the PLL that *generates* BCLK/LRCLK for all of them has exactly the same property. | **Escalated, not applied** (rail architecture, `CLAUDE.md` §4). The DSP sheet labels it as its own net **`+3V3_PLL`** so the decision is visible and deferred rather than silently baked into +3V3_D. Cheapest resolutions: an RC/ferrite filter off +3V3_D, or a tap from +3V3_CLK which already exists for exactly this class of problem |
