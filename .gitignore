@@ -21,6 +21,11 @@ fp-info-cache
 # STATE.md §0; the blobs themselves stay out of history.
 /baseline/
 
+# Datasheet archive. Vendor PDFs, ~25 MB and growing, and redistributing them
+# is not ours to do. DATASHEETS.md is the tracked artefact: source URL, page
+# count and SHA256 per part, which is enough to re-fetch and verify.
+/datasheets/
+
 # Scratch
 *.tmp
 *~

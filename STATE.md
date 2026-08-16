@@ -23,9 +23,13 @@ except Q2 (channel policy) and Q4 (board name/PN/rev), neither of which blocks d
 The §8 [VERIFY] checklist is the gate: **13 of 16 open, every one a datasheet read.**
 G0-L **open** — blocked on Blocks D and E, unchanged.
 
-**Next action:** work the §8 checklist, **V-01 first** — it carries ADAU1466 pinout, package and
-the port-configurability question V-13 rides on, and it gates the first schematic sheet. Then
-V-07/V-08 (SPI clock, core rail), then V-04/V-05 for the converter sheets.
+**Next action:** **operator downloads the ADAU1466 (Rev. C) and LT3045 PDFs by hand** — analog.com
+is unreachable from here (T1-15) and the ADAU1466 is the V-01 gate. Drop them in `datasheets/`
+and V-01/V-07/V-08/V-13, the firmware contract, and **F17** all close in one pass. Everything else
+on the §8 checklist that can be worked from the local archive is being worked.
+
+**Datasheets:** 12 held and verified (`DATASHEETS.md`); 2 blocked on analog.com; the rest are
+parts not yet chosen.
 
 **Baseline safety copy:** none — nothing to copy yet. The first board file that lands here gets a
 copy with its SHA256 recorded in this section **before** any edit.
@@ -41,6 +45,8 @@ copy with its SHA256 recorded in this section **before** any edit.
 | 4 findings open (§7): F4, F12, F13, F15 | Open |
 | Mute topology decided (series–shunt, DL-19); parts not yet chosen | Open — V-14/V-15. Much lower risk than at v0.3: two lax requirements on two cheap parts rather than one constrained optimisation |
 | **Only the operator can close Q2** (channel policy) | Open — owed next round. Does not block drawing |
+| **F17 — ADAU1466 may have no LQFP option** | Open, T2 — if it is LFCSP-only, §2's hand-rework rationale fails and a thermal-via requirement enters the stackup. Settles at V-01 |
+| analog.com unreachable (T1-15) | Open — needs a manual download; blocks V-01 and therefore the first sheet |
 
 ---
 
@@ -60,6 +66,11 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-08 | `pcb drc` and `sch erc` both support `--severity-exclusions`, `--exit-code-violations`, `--format json`; `pcb drc` also `--schematic-parity` | `kicad-cli pcb drc --help`, `sch erc --help` |
 | T1-09 | Stock libraries present: 224 symbol, 155 footprint, 105 3D-model | directory count under `share\kicad\` |
 | T1-10 | **AK4118A has no internal SRC** — PLL clock recovery only; rate conversion was never on that die | Operator confirmation, 2026-08-15. Closes V-02 and is the basis of the F1 disposition |
+| T1-11 | **AK4458 full-scale output = 2.8 Vpp differential** at (VREFH−VREFL) = 5 V, per DAC channel | `AK4458_AKM.pdf` (90 pp, official AKM), 2026-08-15. Closes V-05 |
+| T1-12 | **INA1650 is dual-channel**; INA1651 is the single-channel sibling | `INA1650_TI.pdf` p.1 (official TI), 2026-08-15. Closes V-11 and re-grounds T1-D27 on the manufacturer document |
+| T1-13 | 12 manufacturer datasheets held locally in `datasheets/`, each verified by page count and first-page content after download; register in `DATASHEETS.md` | Retrieval + `pdfinfo`/`pdftotext` verification, 2026-08-15 |
+| T1-14 | poppler 25.07.0 installed (winget, user scope), on user PATH; provides `pdftotext`, `pdfinfo`, `pdftoppm` | `winget install`, binaries exercised on the archive, 2026-08-15 |
+| T1-15 | **analog.com is unreachable from this environment** — ADAU1466 and LT3045 PDFs and the HTML product page all timed out via `Invoke-WebRequest`, `curl` and `WebFetch`; Verical 403 | Four independent fetch attempts, 2026-08-15 |
 
 **No datasheet has been read on this project yet.** Every part parameter below is therefore T2 or
 lower. See `CLAUDE.md` §5: *a part number is not a datasheet.* T1-10 is the one exception and it
@@ -251,6 +262,19 @@ board-mount vs. flying-lead RCA is still an early decision (Q34). **A conclusion
 own broken evidence is not thereby vindicated;** it was re-derived, and the re-derivation is what
 it now rests on.
 
+**"A download that returned 200 is the document I asked for"** — assistant, 2026-08-15
+*Correction:* an LCSC URL for the ADAU1466 returned **HTTP 200, a `.pdf` extension and a
+plausible 47 KB** — and the content was an **HTML page for a Toshiba TLP185 optocoupler**, an
+unrelated part from a different manufacturer. Had it been filed unchecked, the V-01 gate would
+have shown as satisfied by a document that never mentions the part.
+*The tell:* **verify the artefact, not the transfer.** Page count and first-page text against the
+expected part number, every time, before a file is recorded as held. Transfer success is a fact
+about the network; content correctness is a fact about the document, and only the second one is
+what was wanted.
+*Second instance, same class, same day:* `file` reported "10 page(s)" for every TI PDF — a
+linearized-PDF artefact, not the truth. Both errors are a **metadata proxy trusted over content**.
+When a cheap indicator and the actual thing can disagree, read the actual thing.
+
 **"The zero-energy requirement excludes enhancement-mode devices"** — assistant, 2026-08-15
 *Correction:* it excludes them **in a shunt**. In **series** the polarity inverts — unpowered, an
 enhancement-mode device is open, and an open series path is mute. Form A photoMOS, ruled out one
@@ -433,8 +457,9 @@ Discrepancies, gaps and risks found in `REQUIREMENTS.md` v0.1. Per `CLAUDE.md` �
 **Severity:** ⛔ blocks capture · ⚠ affects capture · ▫ affects layout or later · ✅ **closed by
 operator disposition** (folded into `REQUIREMENTS.md` v0.2 — rows kept, never deleted).
 
-**12 of 16 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16.
-**Four remain open: F4 (impedance targets, layout), F12, F13 (capture), F15.**
+**12 of 17 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16.
+**Five open: F4 (impedance targets, layout), F12, F13 (capture), F15, and F17 — new, and the
+most consequential of them.**
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
@@ -453,6 +478,7 @@ operator disposition** (folded into `REQUIREMENTS.md` v0.2 — rows kept, never 
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F17** | ⛔ | **NEW 2026-08-15. The ADAU1466 appears to have no LQFP option.** `REQUIREMENTS.md` §2 specifies "(WLCSP/LQFP — prefer 72-LQFP for hand-rework)". Two independent sources describe the ADAU1462/ADAU1466 as **72-lead 10 × 10 mm LFCSP with a 5.3 mm exposed pad**, and the orderable part `ADAU1466WBCPZ300` carries ADI's `CP` package code, which is LFCSP — `ST` would be LQFP. If this holds: **the hand-rework rationale in §2 does not survive.** LFCSP is leadless, so there are no leads to touch with an iron; it needs hot air with preheat, and the exposed pad needs a paste stencil aperture and thermal vias. It also puts a thermal-via requirement into the stackup, which is a **Block E** input we do not have. T2-03's "no BGA" claim survives — LFCSP is not BGA — but "0.5 mm pitch, hand-rework friendly" does not. | **T2, pending V-01.** Not acted on. The whole point of V-01 is to settle this from the document; two web sources plus a decoded part suffix is strong but is not the datasheet. Raise with the operator once V-01 opens — it may change the package choice, the assembly plan, or both |
 | **F16** | ✅ | **CLOSED — ADS1015-class I2C ADC on I2C0; §9 dividers unchanged, only the converter moves; −13V5 divider referenced to a positive rail** → T1-D36. Side benefit: ~3 GPIO returned to the F13 budget. *Original:* **"rail monitor" described two ways.** §5 lists it as an I2C peer; §9 describes rail voltage dividers into the ESP32 ADC. §7.2 step 5 gates output unmute on it, so which one it is matters. Separately: **the −13.5 V rail cannot be measured by a plain divider to ground** — it needs a divider referenced to a positive rail to bring the tap into the ADC's range. | Q32. |
 
 ---
@@ -469,13 +495,13 @@ citation** — part number, document revision, and section.
 | V-02 | AK4118A: confirm it has no internal SRC, and its output-port master/slave capability | §3 / F1 | **Closed** → T1-10, operator confirmation. Re-check on the datasheet when it is open for pinout anyway — F1's whole disposition rests on it |
 | V-03 | BM83 I2S master/slave capability in the chosen firmware config | §3 | Open |
 | V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | Open |
-| V-05 | AK4458 differential full-scale output voltage | §6.2 / F12 | Open |
+| V-05 | AK4458 differential full-scale output voltage | §6.2 / F12 | **CLOSED → T1-11.** 2.8 Vpp differential at (VREFH−VREFL)=5 V. `AK4458_AKM.pdf`, see `DATASHEETS.md` |
 | V-06 | OPA1656 output swing and quiescent current at ±13.5 V — the ~4 mA/ch figure underpinning the 200 mA rail budget | §6.2 / F7 | Open |
 | V-07 | ADAU1466 slave-port maximum SPI SCLK (target ≥10 MHz) | §5 | Open |
 | V-08 | ADAU1466 core voltage and current | §7.1 | Open |
 | V-09 | AKM control-port mode strapping — each part, strapped consistently to I2C | §5 | Open |
 | V-10 | AKM part lifecycle and lead time; decide AKM vs TI (PCM1865 / PCM1690) | §2 / §11 | Open |
-| V-11 | INA1650 channel count per package | §2 / F2 | **Closed** → 2 ch/pkg, confirmed by operator with F2 |
+| V-11 | INA1650 channel count per package | §2 / F2 | **CLOSED → T1-12.** Dual-channel, confirmed against the TI datasheet, no longer resting on operator confirmation alone |
 | V-13 | ADAU1466 serial-port master/slave configurability **per port** — SDATA_IN2 must be a clock consumer while IN0/IN1 and all outputs stay master | §3 v0.2 / F1 | Open — **high-confidence T2**, operator: each of the 8 ports has its own master/slave and clock-source settings, and one input port consuming an external clock while everything else masters is the canonical SigmaDSP ASRC-input topology. **Closes with the register map in hand, at V-01, not before.** Fallback if wrong: AK4118A into a dedicated ASRC pair with the DSP re-clocking on its side — available without moving the architecture again |
 | V-14 | **Series photoMOS** (TLP3475-class): Ron, off-state Coff, voltage rating vs ±6.4 V peak plus rail-collapse excursion, LED drive current | §6.4 v0.4 | Open — **restated at v0.4.** No longer a constrained optimisation: Ron 1–2 Ω against ≥10 kΩ is inaudible and off-isolation is the easy half of the pair |
 | V-15 | **Shunt depletion FET pair**: Ron (100–500 Ω is ample), off-state Coff **and its nonlinearity**, Vgs(off) against the −13V5-derived bias | §6.4 v0.4 | Open — **restated at v0.4.** Small-die part; Coff is now the only tight number and it is tight against T1-D42, not against mute depth |
