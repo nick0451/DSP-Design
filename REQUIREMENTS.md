@@ -1,7 +1,10 @@
-# Car Audio DSP — System Architecture & Requirements
+# ODSP-12 — System Architecture & Requirements
 
-**Project:** Custom automotive DSP, 4 analog in / 12 analog out, BT audio + wireless control
-**Doc status:** v0.3 — architecture baseline for schematic capture
+**Project:** ODSP-12 — open DSP, 12 out. Custom automotive DSP, 4 analog in / 12 analog out,
+BT audio + wireless control
+**Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
+log in git rather than rev-suffix soup
+**Doc status:** v0.4 — architecture baseline for schematic capture
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -37,7 +40,16 @@ datasheets before capture.
 | F16 | Rail monitoring moves off the ESP32-S3 ADC to an **ADS1015-class I2C ADC** on I2C0. §9 dividers unchanged; only the converter behind them changes | §5, §9 |
 | F6 | **FCC Part 15 Class B design practices, no formal chamber test for v1.** CISPR 25 explicitly out of scope — same industrial fork taken at F5 | new §7.5 |
 
-Unchanged and still open at v0.3: F4 (impedance targets), F12, F13, F15.
+**v0.4 — 2026-08-15.** Mute topology resolved; acceptance criteria amended; board named.
+
+| Origin | Change | Section |
+|---|---|---|
+| Operator, correcting an assistant over-generalisation | **Series–shunt mute.** The zero-energy exclusion of enhancement-mode devices holds for a *shunt* and inverts for a *series* element — unpowered, a series Form A photoMOS is open, which is muted. Both halves fail safe independently and the depth-vs-capacitance conflict dissolves | §6.4 rewritten |
+| Operator | **CCIF twin-tone IMD criterion added** — 19 kHz + 20 kHz at 2 Vrms, IMD ≤ 0.003 %. Added *alongside* the 1 kHz THD line, not replacing it | §12 |
+| Operator | V-16 transient analysis gains a second layer: remote-out is itself fail-safe, so the requirement is bounded by the amp's remote-mute latency, not by indefinite suppression | §7.4 |
+| Operator | Board named **ODSP-12**, PN `ODSP12-MB-A` | header |
+
+Unchanged and still open at v0.4: F4 (impedance targets), F12, F13, F15.
 
 ---
 
@@ -193,10 +205,49 @@ flashing/debug/console.
   floor.~~ *(v0.3 — superseded by §6.4; the burden of proof is reversed.)*
 - Output impedance ≤ 100 Ω.
 
-### 6.4 Mute topology *(v0.3, Q38/F11)*
+### 6.4 Mute topology — series–shunt *(v0.4)*
 
-**Semiconductor shunt mute is the default. A relay must now justify itself, not the reverse.**
-The §7.4 zero-energy requirement, not THD, is what decides this.
+**Series–shunt semiconductor mute. Two devices, each fail-safe in its own polarity, splitting the
+two requirements that could not be met by one.**
+
+Fail-safe polarity is a property of the **topology**, not of the device class:
+
+- **Series element — Form A photoMOS** (TLP3475-class), LED driven = pass. Unpowered the LED
+  dies, the MOSFETs open, and an open series path *is* mute. Enhancement-mode is correct here;
+  the v0.3 exclusion applied only to the shunt case.
+  Ron 1–2 Ω against a ≥10 kΩ load is nothing, and photoMOS on-resistance is genuinely resistive —
+  the floating photovoltaic gate drive keeps Vgs constant as the signal moves, which is why these
+  parts live in ATE signal paths. Off, it delivers 60+ dB of isolation, the same as a relay
+  contact, without a coil.
+- **Shunt element — depletion-mode FET pair, back-to-back source-to-source**, after the series
+  device, gate biased off from a −13V5_A-derived rail. Rail collapse returns Vgs to 0 and it
+  conducts. The back-to-back requirement is not a refinement: a single MOSFET shunting a bipolar
+  signal conducts through its body diode on one half-cycle and becomes a rectifier.
+
+**Why this dissolves the v0.3 conflict.** The shunt's only remaining job is to kill the series
+device's off-state Coff leakage — tens of pF feeding a node that is being actively shorted. Ron of
+100–500 Ω is ample for that, which permits a small-die part, which means small Coff, which is
+exactly what the pass-state THD budget wanted. Depth and linearity stop competing because they are
+no longer asked of the same device.
+
+**Failure behaviour is the product of two independent mechanisms.** Rails collapse → LED dies →
+series opens. Independently, the −13V5-derived bias dies → shunt closes. Neither depends on the
+MCU, on the other, or on anything remaining powered.
+
+**Continuous cost, stated honestly:** the series photoMOS is energised-to-pass, so ~2–5 mA of LED
+drive per channel × 12 ≈ **60 mA on +5V_D, held for the operating life of the unit** (~0.3 W).
+That is an order of magnitude better than the 0.4–0.5 A and watt-plus of relay coils, but it is
+not zero and it belongs in the +5V_D budget as a line item, not as a rounding error.
+
+**Series device voltage rating** must cover the full output swing (±6.4 V peak at 4.5 Vrms) plus
+whatever the rails do on collapse.
+
+---
+
+*Superseded v0.3 text, retained for the record:* **semiconductor shunt mute is the default; a
+relay must justify itself.** That framing stands — a relay is still not the answer — but the
+reasoning below over-generalised the enhancement-mode exclusion from the shunt case to the whole
+device space, and §6.4 above is the correction.
 
 - **Latching relays: prohibited.** A latching relay holds its state through a rail collapse, so a
   unit that loses power while unmuted stays unmuted through the entire decay. That is the worst
@@ -206,34 +257,9 @@ The §7.4 zero-energy requirement, not THD, is what decides this.
   continuous on +5V_D and better than a watt of coil heat, permanently, to buy a THD improvement
   that sits below the DAC noise floor. If this option is taken, the +5V_D budget grows by 0.5 A
   and the LM61460-Q1 is re-checked against total load.
-- **Semiconductor shunt: the default.** Must satisfy §7.4 by construction, which rules out any
-  enhancement-mode device that needs drive to conduct. **Depletion-mode MOSFET or JFET**, gate
-  biased off from a mute rail derived from −13V5_A: the rail's own collapse returns Vgs to 0 and
-  the device conducts. The negative rail dying *is* the mute signal.
-
-**Two numbers decide the part, and neither is a preference:**
-
-1. **Mute depth.** With the shunt after the output series resistor, attenuation is
-   `Ron / (Ron + Rseries)`. Rseries is capped near 100 Ω by the §6.2 Zout limit, so 40 dB of mute
-   needs `Ron ≈ 1 Ω` and 20 dB needs `Ron ≈ 11 Ω`. Relay contacts give >60 dB trivially;
-   semiconductors do not.
-2. **Off-state distortion.** The shunt's nonlinear off-capacitance loads the output. It is
-   negligible at 1 kHz and rises 20 dB/decade, so the §12 criterion at 1 kHz is the easy case and
-   20 kHz is the real one.
-
-These two pull against each other — `Ron × Coff` is roughly constant within a device family, so
-buying mute depth costs off-capacitance. **The part is not chosen until both numbers are read off
-a datasheet** (V-14, V-15) and checked against the transient magnitude the disorderly path
-actually produces.
-
-**If discrete MOSFETs are used they must be back-to-back, source-to-source.** A single MOSFET
-shunting a bipolar audio signal conducts through its body diode on one half-cycle and clamps it.
-This is not a refinement; it is the difference between a mute circuit and a rectifier.
-
-PhotoMOS is an acceptable semiconductor option and brings galvanic isolation of the drive, which
-keeps the mute rail out of the analog ground — worth something given the §6.3 single-plane
-mandate. It must still meet §7.4, which means a **normally-closed (Form B)** part; ordinary Form A
-photoMOS is enhancement-mode and fails the requirement.
+*(The v0.3 single-device analysis — that `Ron × Coff` is roughly constant, so mute depth bought
+with a shunt costs off-capacitance and therefore THD — was correct **for a shunt-only design** and
+is what motivated the split. It no longer constrains the part choice.)*
 
 ### 6.3 Grounding/planes (guidance, layout-delegated)
 
@@ -305,6 +331,23 @@ is made quiet. Both are required, and only §7.4 survives a fault.
 
 This was implicit in v0.1's "no audible pop is an acceptance criterion, not a nice-to-have" and is
 now explicit because it turned out to decide the mute topology outright (§6.4).
+
+**How much depth, and for how long** *(v0.4)*. The requirement is bounded, not indefinite, because
+**remote-out is itself fail-safe by construction** — §7.3 line 1 is an energised high-side driver
+that de-energises the instant rails sag, before anything else on the board notices. Downstream
+amplifiers mute on remote loss within their own turn-off time. So the mute only has to suppress
+the dying DAC below audibility for the window between **our** rails sagging and **the amp's**
+remote-mute engaging — typically tens to a couple of hundred ms.
+
+The source in that window is not full-scale programme material; it is whatever a brown-out-
+resetting DAC emits, usually well under −20 dBFS equivalent. **V-16 must therefore model the whole
+stack — DAC residual × mute attenuation × amp gain × amp mute latency** — using a pessimistic
+latency, since that number belongs to someone else's amplifier and varies by model.
+
+Note this is a different question from §12's "< 10 mV transient at outputs", which is measured at
+**our** outputs and so does not involve amp gain at all. The 10 mV figure is a measurable proxy;
+the stack above is the actual requirement. Keep both — the proxy is what gets scoped on the bench,
+and the stack is what says whether the proxy was set correctly.
 
 ### 7.5 EMC posture *(v0.3, F6)*
 
@@ -383,6 +426,12 @@ Practical consequences for layout and capture:
 ## 12. Acceptance Criteria (v1 board)
 
 - [ ] All 12 outputs: ≥ 4.5 Vrms before clip, THD+N ≤ 0.003 % @ 1 kHz, 2 Vrms
+- [ ] *(v0.4)* All 12 outputs: **CCIF twin-tone IMD ≤ 0.003 %** — 19 kHz + 20 kHz at 2 Vrms,
+      difference product measured at 1 kHz. **This is the criterion that actually exercises the
+      mute shunt's nonlinear off-capacitance.** 1 kHz THD is blind to it because the mechanism is
+      negligible at 1 kHz; a 20 kHz THD test would be blind to it too, because its harmonics land
+      at 40/60 kHz, outside the measurement band. The twin tone puts the product **in band**,
+      where it cannot be forgiven. Added alongside the 1 kHz line, not replacing it
 - [ ] Output noise floor ≤ −105 dBV A-weighted, muted
 - [ ] No audible pop on power-up/down (scope-verified < 10 mV transient at outputs)
 - [ ] BT A2DP stream glitch-free ≥ 1 hr (ASRC path validation)

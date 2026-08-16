@@ -1,4 +1,4 @@
-# CLAUDE.md — Car Audio DSP ⬜ *(board name / PN UNSET)*
+# CLAUDE.md — ODSP-12 · `ODSP12-MB-A` rev A
 
 Project constitution. Scope, authority, and decision protocol.
 Read this, `STATE.md`, and `REQUIREMENTS.md` at the start of every session. Update
@@ -252,7 +252,9 @@ silent choice between them.
 | ±13V5_A budget | 200 mA continuous, 250 mA peak, per rail |
 | Channel↔slot map | AOUT1–6 = AK4458 #1 slots 1–6; AOUT7–12 = AK4458 #2 slots 1–6. Net names follow the **system** channel number, never the per-device slot |
 | **Mute is the zero-energy state** | De-energised = muted, by construction **[HARD, v0.3]**. §7.2/§7.3 sequencing makes the *orderly* path quiet; §7.4 is the only thing that survives crank sag, a blown fuse or a pulled connector. Latching relays prohibited; enhancement-mode devices excluded by construction |
-| Mute topology | Semiconductor shunt is the default and a relay must justify itself. Depletion-mode MOSFET or JFET biased off from a −13V5-derived rail. Discrete MOSFETs **back-to-back, source-to-source** — a single one rectifies. Part not chosen until Ron and Coff are read off a datasheet (V-14/V-15) |
+| Mute topology | **Series–shunt [HARD, v0.4].** Series = Form A photoMOS, energised-to-pass, open when unpowered. Shunt = depletion FET pair, **back-to-back source-to-source** (a single one rectifies), biased off from −13V5_A. Each fails safe in its own polarity; failed-state depth is the product. Fail-safe polarity is a property of the **topology**, not the device class — see ledger. ~60 mA continuous on +5V_D as a line item |
+| Mute depth | Bounded by the amp's remote-mute latency, not indefinite — remote-out is fail-safe and drops first. V-16 models DAC residual × mute attenuation × amp gain × amp latency |
+| Acceptance, HF | **CCIF twin-tone IMD ≤ 0.003 %**, 19 + 20 kHz at 2 Vrms, product at 1 kHz — *alongside* the 1 kHz THD line. This is the only criterion that can see nonlinear off-capacitance; both 1 kHz and 20 kHz THD are blind to it |
 | Rail monitoring | **ADS1015-class I2C ADC on I2C0**, not the ESP32-S3 ADC. §9 dividers unchanged; −13V5 divider referenced to a positive rail |
 | EMC posture | **FCC Part 15 Class B practices, no chamber test for v1. CISPR 25 out of scope.** Spread-spectrum **stays on** for the bucks — §3's prohibition covers the audio clock tree only. Input LC serves ISO 7637-2 and conducted emissions both; the RCA ground-field RC is an EMC component |
 | TDM map | per §4 table, ports IN0–3 / OUT0–3 **[HARD]** |
@@ -341,7 +343,9 @@ most force to the `pcbnew` Python API, which has broken across major versions be
 
   Applies to symbols too, in a different currency: a wrong footprint is a respin, a wrong **pin
   number** on a symbol is a respin that ERC will not catch, because ERC checks electrical types
-  against each other and cannot know the datasheet says pin 34 rather than pin 43.
+  against each other and cannot know the datasheet says pin 34 rather than pin 43. Pin maps are
+  verified against the datasheet's **pin-function table, not the package drawing** — vendors have
+  shipped datasheets where the two disagree, and the table is normative.
 
 **Before any batch edit to the board file: take a copy.** It is a large s-expression file and a
 bad write is not trivially undoable. Record the copy's path and SHA256 in `STATE.md` §0.

@@ -1,4 +1,4 @@
-# STATE.md — Car Audio DSP ⬜ *(board name / PN UNSET)*
+# STATE.md — ODSP-12 · `ODSP12-MB-A` rev A
 
 Working scope, tiered fact base, open unknowns, findings, and the anti-drift ledger.
 Governed by `CLAUDE.md` §5. **Read at session start. Update as work happens.**
@@ -36,10 +36,11 @@ copy with its SHA256 recorded in this section **before** any edit.
 |---|---|
 | ~~Directory not under version control~~ | **Closed** — git initialised 2026-08-15, T1-D38 / DL-15 |
 | No baseline copy exists yet | Open — vacuous until files arrive, then immediate. Note git now covers *history*, which is not the same thing as a pre-batch-edit restore point |
-| `REQUIREMENTS.md` is v0.3 and still a baseline | Open — cite by section **and** version; a v0.4 supersedes and does not merge silently |
+| `REQUIREMENTS.md` is v0.4 and still a baseline | Open — cite by section **and** version; a v0.5 supersedes and does not merge silently |
 | KiCad 10 postdates the assistant's training | Open, permanent — CLI and `pcbnew` API are T2 from memory, T1 only from `--help`/`dir()`. See ledger |
 | 4 findings open (§7): F4, F12, F13, F15 | Open |
-| **Mute topology is decided in principle but not in parts** | Open — DL-17 rests on V-14/V-15/V-16. If no part meets both mute depth and off-capacitance, energised-to-unmute relays return and +5V_D grows ~0.5 A |
+| Mute topology decided (series–shunt, DL-19); parts not yet chosen | Open — V-14/V-15. Much lower risk than at v0.3: two lax requirements on two cheap parts rather than one constrained optimisation |
+| **Only the operator can close Q2** (channel policy) | Open — owed next round. Does not block drawing |
 
 ---
 
@@ -111,6 +112,12 @@ independently confirmed. Section references are to `REQUIREMENTS.md` **v0.1**.
 | T1-D37 | **FCC Part 15 Class B design practices; no chamber test for v1; CISPR 25 out of scope.** Spread-spectrum **stays enabled on the bucks** — §3's prohibition is on the audio clock tree only | §7.5 v0.3 | |
 | T1-D38 | Version control is **git**, library **in-repo** not a submodule | Operator, 2026-08-15 | |
 | T1-D39 | Footprint sourcing: vendor-published verbatim → IPC-generated → hand-built as last resort. Verification is an adversarial rasterise-over-datasheet pass logged per part; operator personally checks ADAU1466, AK5574, AK4458, AK4118A, BM83SM1 | Operator, 2026-08-15 | |
+| T1-D40 | **Series–shunt mute.** Series = Form A photoMOS (TLP3475-class), energised-to-pass, open when unpowered. Shunt = depletion-mode FET pair, back-to-back source-to-source, biased off from −13V5_A, conducting when unpowered. Both fail safe independently; failed-state depth is the product | §6.4 v0.4 | HARD |
+| T1-D41 | Mute continuous cost: ~60 mA on +5V_D (12 × 2–5 mA photoMOS LED drive), ~0.3 W, held for the operating life. A **line item in the +5V_D budget**, not a rounding error | §6.4 v0.4 | |
+| T1-D42 | **CCIF twin-tone IMD ≤ 0.003 %** — 19 kHz + 20 kHz at 2 Vrms, product at 1 kHz. Added alongside the existing 1 kHz THD criterion, not replacing it | §12 v0.4 | |
+| T1-D43 | Mute depth requirement is **bounded by the amp's remote-mute latency**, not indefinite — remote-out is fail-safe and drops before anything else notices. V-16 models DAC residual × mute attenuation × amp gain × amp mute latency, with a pessimistic latency | §7.4 v0.4 | |
+| T1-D44 | Board is **ODSP-12**, PN `ODSP12-MB-A`, revision scheme A/B/C… for fab revisions with the running change log in git | Operator, 2026-08-15 | |
+| T1-D45 | Symbol pin maps verified against the datasheet's **pin-function table**, not the package drawing — vendors have shipped datasheets where the two disagree and the table is normative | Operator, 2026-08-15 | |
 
 ---
 
@@ -128,9 +135,10 @@ inherits the tag.
 | T2-05 | Reaching 4.5 Vrms SE from an AK4458 differential output requires roughly **13 dB of gain** in the diff-to-SE stage (if FS is ~2.8 Vpp diff ≈ 1.0 Vrms). This sets the output-stage noise budget and the resistor values, and it multiplies DAC-referred noise by ~4.5×. | AK4458 FS output voltage from datasheet (§8 V-05) |
 | T2-06 | ±13.5 V rails give OPA1656 roughly ±12 V of usable swing into 10 kΩ, i.e. ~8.5 Vrms capability against a 4.5 Vrms requirement — **comfortable headroom**, ~5.5 dB. | OPA1656 output swing spec (§8 V-06) |
 | T2-07 | ESP32-S3 pin budget drops to **~21 GPIO** after T1-D36 moves rail sensing to I2C: SPI 4, UART 2, I2C 2, signal-sense 4 (comparator outputs, digital), remote-in 1, mute 1, remote-out 1, BM83 MFB+reset 2, DSP reset 1, LED 1, USB 2. Was 22–24 with three ADC channels on the SoC. | The explicit pin map, which §5 requires before capture — not yet done |
-| T2-12 | **Mute depth from a semiconductor shunt is `Ron/(Ron+Rseries)`.** Rseries is capped near 100 Ω by the §6.2 Zout limit, so 40 dB needs Ron ≈ 1 Ω and 20 dB needs Ron ≈ 11 Ω. Relay contacts clear 60 dB trivially. `Ron × Coff` is roughly constant within a device family, so mute depth is bought with off-capacitance and the two requirements pull against each other. | V-14 + V-15 together, against the measured transient of the disorderly path. **This is the pair that picks the part** |
-| T2-13 | Off-state distortion from the shunt's nonlinear capacitance is negligible at 1 kHz and rises ~20 dB/decade. The §12 THD criterion is specified at 1 kHz, which is the **easy** case; 20 kHz is where the shunt actually has to be defended. | Tolerance/THD analysis once V-15 gives a Coff figure |
-| T2-14 | A **single** MOSFET shunting a bipolar audio signal conducts through its body diode on one half-cycle. Discretes must be **back-to-back, source-to-source**. | Standard device physics — high confidence, but it goes in the schematic as a reviewed detail, not an assumption |
+| ~~T2-12~~ | ~~`Ron × Coff` constrains a single shunt device, so depth and linearity compete~~ | **Retired by topology, not disproved.** The analysis was correct *for a shunt-only design* and is what motivated the split into series–shunt (T1-D40). It no longer constrains the part choice, because no single device is now asked for both |
+| T2-13 | Off-state distortion from a shunt's nonlinear capacitance is negligible at 1 kHz and rises ~20 dB/decade. **1 kHz THD cannot see it; 20 kHz THD cannot either**, because the harmonics land at 40/60 kHz outside the band. Only an in-band distortion *product* catches it. | Resolved into T1-D42 (CCIF twin-tone). Retained here because the reasoning, not just the criterion, is what transfers |
+| T2-14 | A **single** MOSFET shunting a bipolar audio signal conducts through its body diode on one half-cycle. Discretes must be **back-to-back, source-to-source**. | Standard device physics — high confidence, but it goes in the schematic as a reviewed detail, not an assumption. Survives the v0.4 topology change unchanged |
+| T2-15 | Series photoMOS off-isolation alone is frequency-dependent — a few pF of Coff against a 10 kΩ load gives roughly 70 dB at 1 kHz falling to ~45 dB at 20 kHz. **This is exactly the leakage the shunt exists to kill**, and it is why the shunt's Ron requirement is lax (100–500 Ω against a ~MΩ leakage source impedance still buys ~70 dB). | V-14/V-15 with real part numbers. The point that matters is the *ratio*, and it is comfortable by two orders of magnitude |
 | ~~T2-08~~ | CMRR ≥ 60 dB is set by attenuator resistor matching, implying 0.1 % or better | **Promoted → T1-D31.** Decreed as a BOM requirement 2026-08-15. A tolerance analysis before the BOM freezes is still worth doing — 0.1 % is the estimate that generated the decree, not a measured margin |
 | T2-11 | **RCA-class jack count is 17 populated, 18 positions**: 4 line in + 12 out + 1 SPDIF coax in, plus 1 DNP SPDIF out. Differential inputs are tip-vs-shield on a single jack, so 4 inputs = 4 jacks, not 8. | Confirmed against `REQUIREMENTS.md` §8 by the operator, 2026-08-15, after the assistant stated 28 in error. See ledger |
 | T2-09 | The ADAU1466's PLL locks to the same 24.576 MHz XO that feeds the converters' MCLK, so LRCLK and MCLK are frequency-coherent by construction. Phase/jitter relationship is not thereby guaranteed. | AKM MCLK/LRCK synchronisation requirement in TDM slave mode (§8 V-04) |
@@ -161,7 +169,7 @@ Rows are **BLOCKING** unless marked. Closed rows are struck and promoted to §1.
 | ~~Q1~~ | ~~What is being delivered?~~ | | **Closed** → schematic capture then layout, greenfield. `CLAUDE.md` §1 |
 | Q2 | Is the client channel **open** or **closed book**, and how fast is a turnaround? | §11 delegates five decisions, but every *other* gated item still needs a policy. Inverts `CLAUDE.md` §4 | BLOCKING |
 | ~~Q3~~ | ~~Version control?~~ | | **Closed** → git, initialised 2026-08-15, library in-repo. T1-D38 / DL-15 |
-| Q4 | Board name/PN, hardware revision string, target date | Names the deliverable; revision prevents stale-file confusion. Doc gives "v1 board" but no PN | BLOCKING |
+| ~~Q4~~ | ~~Board name/PN/revision~~ | | **Closed** → **ODSP-12**, PN `ODSP12-MB-A`, rev A/B/C… per fab revision, change log in git. T1-D44 |
 | Q5 | Is the process visible to the client as well as the result? | Changes how much reasoning is written for an outside reader | Non-blocking |
 
 ### Block B — Tooling · *gates: G0-S, and therefore capture*
@@ -242,6 +250,36 @@ candidate is a slipped digit or a double-count, not a subtle modelling differenc
 board-mount vs. flying-lead RCA is still an early decision (Q34). **A conclusion that survives its
 own broken evidence is not thereby vindicated;** it was re-derived, and the re-derivation is what
 it now rests on.
+
+**"The zero-energy requirement excludes enhancement-mode devices"** — assistant, 2026-08-15
+*Correction:* it excludes them **in a shunt**. In **series** the polarity inverts — unpowered, an
+enhancement-mode device is open, and an open series path is mute. Form A photoMOS, ruled out one
+sentence earlier, is the correct series element. The exclusion was a property of the **topology**
+and was stated as a property of the **device class**, which closed a design space that was open,
+and left a real depth-vs-capacitance conflict looking irreducible when it was only irreducible
+*for a shunt*.
+*The tell:* **a conclusion that names a component class rather than a configuration.** Fail-safe
+polarity is topological. Any statement of the form "X devices are excluded" must be re-read as "X
+devices are excluded *here*" and then tested in the other topology before the space is declared
+closed.
+*The sharper tell:* this happened **immediately after** correctly solving the shunt sub-case. The
+frame that produced the sub-answer was carried forward without re-deriving. Solving a sub-case is
+the moment of maximum risk for over-generalising from it — the reasoning is fresh, fluent and
+still scoped to conditions that are no longer stated aloud.
+*Cost if uncaught:* the design would have gone to capture with a single-device shunt, a
+constrained part search that probably fails, and relays waiting as the fallback — carrying 0.5 A
+and a watt of coil heat, forever, to solve a problem that two cheap parts solve better.
+
+**"An acceptance criterion covers the failure mode it was written for"** — corollary, 2026-08-15
+*Correction:* it covers the failure mode **at the stimulus and frequency it specifies**. §12's
+1 kHz THD is blind to nonlinear off-capacitance because the mechanism is negligible at 1 kHz. The
+obvious repair — test THD at 20 kHz — is *also* blind, because the harmonics land at 40/60 kHz,
+outside the measurement band. Only a stimulus whose distortion **product** falls in band catches
+it: CCIF 19 + 20 kHz, product at 1 kHz.
+*The tell:* when a new failure mode is identified, ask **which existing criterion would catch it**
+and at what stimulus. If the answer is "none, as written", the criterion needs amending — and
+amending it means choosing the test, not moving the number. A number tightened at a frequency
+where the mechanism is silent buys nothing and reads like diligence.
 
 **"Mute is a state the MCU commands"** — implicit in v0.1 §7.2/§7.3, corrected 2026-08-15
 *Correction:* the sequenced mute is the **orderly** path. Rails also collapse by crank sag, blown
@@ -380,6 +418,10 @@ found fifteen.
 | DL-16 | 2026-08-15 | `REQUIREMENTS.md` → **v0.3** under operator disposition of F6, F11, F16 and Q38 | `CLAUDE.md` §4 | — |
 | DL-17 | 2026-08-15 | **Semiconductor shunt mute is the default**, relay must justify itself — decided by the §7.4 zero-energy requirement, **not** by THD. Depletion-mode/JFET topology; part deferred to V-14/V-15 | T1-D34/D35 | V-14/V-15 show no part meets both mute depth and off-capacitance — then energised-to-unmute relays return, with the +5V_D budget consequence |
 | DL-18 | 2026-08-15 | Rail monitoring on an ADS1015-class I2C ADC rather than the SoC ADC — also returns ~3 GPIO to the F13 budget | T1-D36 | — |
+| DL-19 | 2026-08-15 | **DL-17 superseded: series–shunt mute.** Enhancement-mode series photoMOS + depletion-mode shunt pair, each fail-safe in its own polarity. Relays now out on merit, not on burden of proof | T1-D40, operator correction of an assistant over-generalisation | V-14/V-15 show the series part cannot meet the voltage rating, or the shunt Coff fails T1-D42 |
+| DL-20 | 2026-08-15 | **CCIF twin-tone IMD added to §12**, not substituted for the 1 kHz THD line — the failure mode needed a different *test*, not a tighter *number* | T1-D42, ledger corollary | — |
+| DL-21 | 2026-08-15 | Board named **ODSP-12** / `ODSP12-MB-A`; fab revisions A/B/C with the change log in git rather than rev-suffix proliferation | T1-D44 | — |
+| DL-22 | 2026-08-15 | V-01 expanded to a **single-pass ADAU1466 read** covering V-07, V-08, V-13 and the firmware contract (safeload register addresses, slave-boot header format) | Operator | — |
 
 ---
 
@@ -423,7 +465,7 @@ citation** — part number, document revision, and section.
 
 | ID | Item | Src | Status |
 |---|---|---|---|
-| V-01 | ADAU1466 package options; confirm 72-LQFP exists and its pitch; serial port count (4 in / 4 out); ASRC count | §2 | Open |
+| V-01 | ADAU1466 package options; confirm 72-LQFP exists and its pitch; serial port count (4 in / 4 out); ASRC count. **Same pass also pulls: V-13 port configurability, V-07 slave-port max SCLK, V-08 core voltage/current, and the safeload register addresses + slave-boot header format** — the firmware contract, captured into `STATE.md` so the document is opened once, not three times | §2 | Open — **do this first**, it gates the first sheet several times over |
 | V-02 | AK4118A: confirm it has no internal SRC, and its output-port master/slave capability | §3 / F1 | **Closed** → T1-10, operator confirmation. Re-check on the datasheet when it is open for pinout anyway — F1's whole disposition rests on it |
 | V-03 | BM83 I2S master/slave capability in the chosen firmware config | §3 | Open |
 | V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | Open |
@@ -435,7 +477,7 @@ citation** — part number, document revision, and section.
 | V-10 | AKM part lifecycle and lead time; decide AKM vs TI (PCM1865 / PCM1690) | §2 / §11 | Open |
 | V-11 | INA1650 channel count per package | §2 / F2 | **Closed** → 2 ch/pkg, confirmed by operator with F2 |
 | V-13 | ADAU1466 serial-port master/slave configurability **per port** — SDATA_IN2 must be a clock consumer while IN0/IN1 and all outputs stay master | §3 v0.2 / F1 | Open — **high-confidence T2**, operator: each of the 8 ports has its own master/slave and clock-source settings, and one input port consuming an external clock while everything else masters is the canonical SigmaDSP ASRC-input topology. **Closes with the register map in hand, at V-01, not before.** Fallback if wrong: AK4118A into a dedicated ASRC pair with the DSP re-clocking on its side — available without moving the architecture again |
-| V-14 | **Mute shunt `Ron`** for the candidate depletion-mode MOSFET / JFET / Form-B photoMOS | §6.4 v0.3 | Open — **new at v0.3.** With Rseries ≈ 100 Ω: 40 dB of mute needs Ron ≈ 1 Ω, 20 dB needs ≈ 11 Ω |
-| V-15 | **Mute shunt off-state capacitance and its nonlinearity** for the same candidate | §6.4 v0.3 | Open — **new at v0.3.** Trades directly against V-14; worst case is 20 kHz, not the 1 kHz the §12 THD spec names |
-| V-16 | Transient magnitude the **disorderly** shutdown path actually produces at the outputs, against the §12 <10 mV criterion | §7.4 v0.3 | Open — bench measurement on the first board. Sets how much mute depth V-14 has to buy; until then the Ron target is unanchored at the top end |
+| V-14 | **Series photoMOS** (TLP3475-class): Ron, off-state Coff, voltage rating vs ±6.4 V peak plus rail-collapse excursion, LED drive current | §6.4 v0.4 | Open — **restated at v0.4.** No longer a constrained optimisation: Ron 1–2 Ω against ≥10 kΩ is inaudible and off-isolation is the easy half of the pair |
+| V-15 | **Shunt depletion FET pair**: Ron (100–500 Ω is ample), off-state Coff **and its nonlinearity**, Vgs(off) against the −13V5-derived bias | §6.4 v0.4 | Open — **restated at v0.4.** Small-die part; Coff is now the only tight number and it is tight against T1-D42, not against mute depth |
+| V-16 | Disorderly-path transient, modelled as the **full stack**: DAC brown-out residual × mute attenuation × amp gain × amp remote-mute latency | §7.4 v0.4 | Open — bench, first board. **Bounded, not indefinite:** remote-out is fail-safe and drops first, so the window is the amp's own mute latency (tens to ~200 ms), and the source is a resetting DAC well under −20 dBFS, not programme material. Use a pessimistic latency — it belongs to someone else's amplifier |
 | V-12 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepout dimensions and board-edge requirements | §8 | Open |
