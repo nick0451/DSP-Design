@@ -344,11 +344,14 @@ PASSIVES += [
 PASSIVES += [
     ("F1", "Device:Fuse", 40, 780, "5A", {"1": "VBATT_IN", "2": "VBATT_FUSED"}),
     # D2 is drawn with the ZENER symbol (K/A), NOT Device:D_TVS. That symbol's pins are named
-    # A1/A2 -- it models a BIDIRECTIONAL TVS, and the SMBJ24A is unidirectional ('A' suffix;
-    # 'CA' is the bidirectional member). A polarity-blind symbol on a polarity-critical part
-    # gives assembly a coin-flip, and a unidirectional TVS fitted backwards across a 12 V
-    # battery is a DEAD SHORT, not a degraded clamp. K to the battery, A to GND.
-    ("D2", "Device:D_Zener", 80, 780, "SMBJ24A uni (see F42)", {"1": "VBATT_FUSED", "2": GND}),
+    # A1/A2 -- it models a BIDIRECTIONAL part. The SM8S family is UNIDIRECTIONAL ONLY (datasheet
+    # 88387 p.1: "Available in unidirectional polarity only"; the ordering code's position 5
+    # offers only "A +/-5 %, unidirectional"). So polarity is real and load-bearing, and a
+    # unidirectional TVS fitted backwards across a 12 V battery is a DEAD SHORT, not a degraded
+    # clamp. K to the battery, A to GND -- and note the heatsink tab IS the anode, i.e. GND.
+    #
+    # D2 SITS AHEAD OF Q2, AND THAT IS A THERMAL RESULT, NOT A PREFERENCE. See NOTE6 s3.
+    ("D2", "Device:D_Zener", 80, 780, "SM8S24AHM3 (F42)", {"1": "VBATT_FUSED", "2": GND}),
     ("Q2", "Transistor_FET:Q_PMOS_DGS", 120, 780, "60V P-FET (F38)",
         {"1": "VBATT_FUSED", "2": "VBATT_GATE", "3": "VBATT_REV"}),
     ("D3", "Device:D_Zener", 160, 780, "15V", {"1": "VBATT_GATE", "2": "VBATT_REV"}),
@@ -525,25 +528,45 @@ NOTE6 = (
     "   <= 15 A, for selectivity -- ours must clear first. An assumed fuse is an unstated\\n"
     "   requirement wearing someone else's part.\\n"
     "\\n"
-    "2. TVS ARITHMETIC -- AND IT DOES NOT CLOSE. SEE F42, THIS IS AN ESCALATION.\\n"
-    "   SMBJ24A: standoff 24 V, breakdown 26.7-29.5 V, clamp 38.9 V @ 15.4 A, 600 W/10-1000us.\\n"
-    "   STANDOFF AXIS -- fine. 24 V clears 16 V max operating and a 24 V jump start; that is\\n"
-    "     evidently what the 24 V choice was sized for.\\n"
-    "   ENERGY AXIS -- FAILS. A suppressed load dump (ISO 16750-2, Us* = 35 V, td = 400 ms,\\n"
-    "     Ri = 0.5-4 ohm) sits ABOVE the 26.7 V breakdown, so the TVS conducts for the whole\\n"
-    "     400 ms. At Ri = 2 ohm holding ~31 V: I = (35-31)/2 = 2 A, P = 62 W, E = 24.8 J.\\n"
-    "     At Ri = 0.5 ohm: I = 8 A, P = 250 W, E = 100 J. Against 600 W for 1 ms = 0.6 J,\\n"
-    "     that is 40x to 165x over. THE PART IS DESTROYED, and the fuse clears afterwards.\\n"
-    "   So the design as drawn implicitly claims 'no load dump reaches this input'. That is\\n"
-    "   a SCOPE STATEMENT and it has not been made. Ladder in F42; footprint is DO-214AB (SMC)\\n"
-    "   so the more capable part stuffs without a respin.\\n"
+    "2. TVS CAPABILITY, STATED BY THE TABLE -- NOT 'no load dump reaches this input'.\\n"
+    "   D2 = SM8S24A-class, DO-218AB, 6600 W (10/1000 us), AEC-Q101, molded heatsink.\\n"
+    "   Vwm 24 V, Vbr 26.7/28.1/29.5 V, Vc 38.9 V AT Ippm = 170 A, aT = 0.087 %/degC.\\n"
+    "   Dynamic resistance rd = (38.9 - 28.1)/170 = 0.0635 ohm -- USE THIS, not the 38.9 V\\n"
+    "   headline, which is the clamp at 170 A and never occurs here.\\n"
+    "   ISO 7637-2 pulse 5 for 14 V powertrains is Us = 65 to 87 V, Ri = 0.5 to 4 ohm,\\n"
+    "   td = 400 ms (Vishay 88490 Table 1). The 35 V figure is the SUPPRESSED level only.\\n"
+    "   Capability, against P(400 ms) from Fig. 6's R_thJM = 0.30 degC/W at 0.4 s:\\n"
+    "       allowed = (175 - T_mount)/0.30  ->  500 W from 25 degC, 300 W from 85 degC\\n"
+    "     suppressed 5b, Us* 35 V, Ri 2 ohm :  3.3 A, Vc 28.3 V,   95 W  -> PASSES, 3-5x\\n"
+    "     unsuppressed  Us 79 V, Ri 4 ohm   : 12.5 A, Vc 28.9 V,  362 W  -> passes cold,\\n"
+    "                                                                       MARGINAL hot\\n"
+    "     unsuppressed  Us 79 V, Ri 2 ohm   : 24.7 A, Vc 29.7 V,  732 W  -> EXCEEDED\\n"
+    "     unsuppressed  Us 87 V, Ri 0.5 ohm :  105 A, Vc 34.7 V, 3631 W  -> EXCEEDED 7-12x\\n"
+    "   THE CAPABILITY STATEMENT IS THEREFORE: this board survives SUPPRESSED load dump\\n"
+    "   (centrally-clamped alternator) across the full Ri range with 3-5x margin, and\\n"
+    "   UNSUPPRESSED pulse 5 only at the high-Ri end. It is specified for vehicles with\\n"
+    "   central load-dump suppression. That is a bounded claim backed by the table above,\\n"
+    "   not an assumption -- and it belongs in the acceptance criteria, not in a comment.\\n"
+    "   FALLOUT WORTH KNOWING: the clamp never threatens the bucks. Worst realistic case is\\n"
+    "   Vc = 34.2 V (48 A at Tj = 150 degC, Vbr scaled by aT) against the LM61460's 42 V\\n"
+    "   absmax -- 7.8 V of margin. Reading the headline 38.9 V and adding tempco would have\\n"
+    "   said 44 V and condemned the design; the headline is at a current we never reach.\\n"
     "\\n"
-    "3. REVERSE STRATEGY -- SERIES FET, SEAMLESS, not a crowbar. Q2 blocks; nothing conducts;\\n"
-    "   the unit resumes when polarity is corrected, with no fuse to replace. This is why the\\n"
-    "   TVS sits on the BATTERY side of Q2: on the load side it would be unbiased in reverse\\n"
-    "   and protect nothing. Q2 stress, both polarities:\\n"
+    "3. REVERSE STRATEGY -- SERIES FET, AND REVERSE BATTERY IS A FUSE-CLEARING EVENT.\\n"
+    "   NOT seamless, and the reason is thermal, not preference. D2 must sit AHEAD of Q2:\\n"
+    "     - D2 ahead of Q2: clamp current returns to GND without passing through Q2.\\n"
+    "     - D2 behind Q2 (which WOULD give seamless reverse, since Q2 would block and leave\\n"
+    "       D2 unbiased): the entire clamp current then flows THROUGH Q2. At Us 79 V /\\n"
+    "       Ri 1 ohm that is 48 A for 400 ms; at a hot R_DS(on) of ~51 mohm that is 117 W\\n"
+    "       into a D2PAK, ~176 degC rise. Q2 IS DESTROYED. The seamless property costs the\\n"
+    "       FET, so it is not bought.\\n"
+    "   Consequence, stated so nobody re-litigates it: on reverse battery D2 forward-conducts\\n"
+    "   (Vf 1.8 V max at 100 A) and F1 clears. Q2 still earns its place -- it blocks reverse\\n"
+    "   for everything downstream during the fuse-clearing interval and for any sustained\\n"
+    "   reverse below the fuse's clearing current. D2 survives the event: Ifsm = 700 A/8.3 ms.\\n"
+    "   Q2 stress, both polarities:\\n"
     "     V_DS reverse  = battery reversed, worst case 24 V jump start reversed -> 24 V\\n"
-    "     V_DS forward  = ~0, Q2 is ON; the TVS holds the node, Q2 merely conducts the surge\\n"
+    "     V_DS forward  = ~0, Q2 is ON; D2 holds the node upstream of it\\n"
     "     -> 60 V part, >2x on the governing case.\\n"
     "   GATE is the fragile pin, not the channel. Source can reach the 38.9 V clamp while the\\n"
     "   gate is pulled to GND, i.e. V_GS = -38.9 V against a +/-20 V rating -> GATE DESTROYED.\\n"
@@ -570,8 +593,25 @@ NOTE6 = (
     "   (M7). The SEPIC's FET rating was derived FROM this clamp, not chosen independently:\\n"
     "       V_clamp(TVS) 38.9 V  +  V_out(SEPIC) 15.5 V  =  54.4 V switch stress  -> 80 V FET\\n"
     "   IF THE TVS PN CHANGES, THIS NUMBER CHANGES AND Q1's RATING MUST BE RE-CHECKED.\\n"
-    "   An SMCJ36A (clamp 58.1 V) would put the SEPIC switch at 73.6 V and a 80 V FET at 92%\\n"
-    "   of rating -- i.e. the F42 decision reaches Q1, which is on the other side of the sheet."
+    "   FIRED ONCE ALREADY, on the SMBJ24A -> SM8S24A change, and it CONFIRMED rather than\\n"
+    "   propagated: the SM8S24A is the SMBJ24A's voltage triple, so 38.9 V carries over and\\n"
+    "   Q1 sits at 68 % of its 80 V rating, unchanged. Using the realistic clamp (34.2 V hot)\\n"
+    "   rather than the 170 A headline it is 49.7 V, i.e. 62 %.\\n"
+    "\\n"
+    "6. PN IS **SM8S24AHM3**, NOT SM8S24A. The SM8S10A-thru-43A datasheet carries a\\n"
+    "   NOT-FOR-NEW-DESIGNS banner naming SM8S10AHM3 thru SM8S85AHM3 as the successors.\\n"
+    "   Every electrical figure on this sheet is read from the NRND document and must be\\n"
+    "   re-verified against the AHM3 datasheet, which is NOT YET HELD. Suffix decode from the\\n"
+    "   ordering table: A = +/-5 % and unidirectional, H = AEC-Q101 (absent = industry grade).\\n"
+    "   THE H IS LOAD-BEARING -- this part faces the harness, so S7.0 requires the Q-grade,\\n"
+    "   and dropping the suffix silently buys an unqualified part. Same shape as F37.\\n"
+    "\\n"
+    "7. FOOTPRINT: DO-218AB. Land pattern 15.30 x 10.70 mm overall (main pad 9.80 x 10.70,\\n"
+    "   lead pad 2.15 x 2.60, gap 3.35), body 13.3-13.7 x 8.3-8.7 mm, height 5.0 mm max.\\n"
+    "   IT DOES NOT STUFF ON AN SMC LAND. The heatsink tab IS THE ANODE, i.e. ground -- so it\\n"
+    "   pours straight into the ground plane, which is also what makes the 400 ms numbers\\n"
+    "   above real: R_thJM = 0.35 degC/W is junction-to-MOUNT, and it is only as good as the\\n"
+    "   copper under the tab. This pad is a Block E thermal input, not just an outline."
 )
 
 body = [place(*p) for p in PLACE]

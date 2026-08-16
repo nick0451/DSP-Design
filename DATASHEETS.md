@@ -39,8 +39,21 @@ Retrieved 2026-08-15.
 | **TPS55340-Q1** boost/SEPIC | `TPS55340-Q1_TI.pdf` | 40 | `1C9A8605568C0ED3` | ti.com **Rev. C** — *held for the elimination* |
 | **SNVA856** *(app note)* | `SNVA856_TI_InvertingBuckBoost.pdf` | 20 | `806345F00EA5D4BD` | ti.com **Rev. B** — "Working With Inverting Buck-Boost Converters" |
 | **LT3094** neg. LDO | `LT3094.pdf` | 34 | `C82438CA3359A588` | analog.com **Rev. B** — operator-supplied 2026-08-16 |
+| **SM8S10A–43A** TVS *(NRND)* | `sm8s.pdf` | 6 | `A627B4D5C5CD6D17` | vishay.com doc 88387 **Rev. 06-Feb-2026** — operator-supplied |
+| **TVS for automotive** *(app note)* | `tvs.pdf` | 4 | `4A8C122BEFD46EBC` | vishay.com doc 88490 — carries the ISO 7637-2 pulse-5 test table |
+| **Load dump: old vs new ISO** *(article)* | `49748.pdf` | 5 | `028F83CE47A98FF4` | vishay.com doc 49748, EDN reprint — **an article, not a specification** |
 
-All twenty-one are manufacturer-published documents, not aggregator copies.
+All twenty-four are manufacturer-published documents, not aggregator copies — but note the last
+row is an **EDN article reprinted by Vishay**, which is context, not a specification, and must not
+be cited as one.
+
+**`sm8s.pdf` has no text layer at all** — `pdftotext` returns nothing. It was read entirely by
+rendering, which is the M2 method anyway; recorded because a text-extraction pipeline over this
+archive will silently skip it rather than fail.
+
+**The SM8S10A–43A document is marked NOT FOR NEW DESIGNS** (successors SM8S10AHM3–SM8S85AHM3).
+It is held because every figure currently on the power sheet is read from it, and those figures
+inherit a re-verification against the AHM3 datasheet, which is **not held** — see F44.
 
 **Four of these are held for their eliminations, not their selections.** LM5155-Q1, LM5157-Q1,
 LM5175-Q1 and TPS55340-Q1 were each excluded from the ±13V5_A block by a number in their own
@@ -56,7 +69,8 @@ applies to topology exactly as it applies to pin numbers.
 
 | Part | Why it matters | Status |
 |---|---|---|
-| **SMBJ24A** TVS | ISO 7637-2 input protection | Not yet fetched; generic part, many vendors, low risk |
+| ~~**SMBJ24A** TVS~~ | ~~ISO 7637-2 input protection~~ | **Superseded — the part is gone from the design.** F42: a 600 W SMB misses the load-dump energy by 40–165×. Replaced by the SM8S24A class |
+| **SM8S24AHM3** TVS | **The actual BOM line.** The held `sm8s.pdf` covers SM8S10A–43A, which is **NRND**; the AHM3 series is its named successor and every figure on the power sheet inherits a re-verification against it | **Needed — manual fetch.** vishay.com refused this environment (as did st.com), so it joins the LT3094 route. **F44** |
 | **PNP pass transistor** | **New requirement** — the ADAU1466's internal regulator drives an external PNP (T1-21). Dissipates ~1 W at max program | Part not selected; needed only if F18 goes the internal-regulator way |
 | **24.576 MHz XO** | T1-D03 clock master | Part not finalised (SiT8208 vs CCHD-575 class) — fetch once chosen |
 | **TLP3475** photoMOS | **V-14**, mute series element | Candidate only; fetch with the part decision |

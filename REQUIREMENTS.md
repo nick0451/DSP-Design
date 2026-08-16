@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.3 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.4 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,13 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.4 - 2026-08-16.** F42 closed; F44 raised. Input protection is now a bounded, evidenced claim.
+
+| Finding | Change | Section |
+|---|---|---|
+| F42 | **TVS is SM8S24AHM3-class in DO-218AB, not SMBJ24A** — 6600 W with a molded heatsink, AEC-Q101, same 24 V standoff / 26.7 V breakdown / 38.9 V clamp, so **every derivation keyed to 38.9 V carries over unchanged**. Load-dump capability written into §12 **as a table**, not as an assumption. Reverse battery documented as a **fuse-clearing event**, seamless recovery rejected on a thermal result | §7.1, §12 |
+| F44 | **Three premises corrected against the datasheet.** The SM8S10A–43A family is **NRND** (successor AHM3); it is **unidirectional only**, so no `SM8S24CA` exists; and the 6600 W / 5200 W pair is the two **waveform** ratings, not uni-vs-bi. The `H` suffix is the **AEC-Q101** grade and is load-bearing under §7.0 | §7.1 |
 
 **v1.3 - 2026-08-16.** F39 decreed — the ±13V5_A topology, the last §11 delegated decision on
 the power sheet. V-26 decreed. Two new pre-rails enter §7.1.
@@ -420,7 +427,7 @@ table entirely — do not merge it with the original.*
 
 | Rail | Source | Loads | Budget |
 |---|---|---|---|
-| **VBATT_PROT** | reverse-FET + TVS (SMBJ24A) + LC filter | everything below | ISO 7637-2 **[HARD]** |
+| **VBATT_PROT** | **5 A fuse + SM8S24AHM3 TVS + reverse P-FET + damped LC** *(v1.4, F42)* — ~~SMBJ24A~~ | everything below | ISO 7637-2 **[HARD]**, bounded per §12 |
 | **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | USB, **+3V6_BT LDO** — ~~BM83~~ moved *(v1.0, F31)* | modest — see note 1 |
 | **+3V6_BT** *(v1.0, F31)* | **LDO from +5V_D** (AP2112/MIC5504-class at 3.6 V; TPS7A if its PSRR earns the price) | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
@@ -793,4 +800,30 @@ Practical consequences for layout and capture:
       sweep fast; they do not remove the one listen. Receiver lock range is 18 kHz–192 kHz.
 - [ ] Slave-boot + safeload parameter writes verified over SPI at target clock
 - [ ] Survives ISO 7637-2 test pulses (or documented protection analysis if untested)
+- [ ] **Load-dump capability is a BOUNDED CLAIM, stated by the table rather than assumed**
+      *(v1.4, F42)*. ISO 7637-2 pulse 5 for a 14 V powertrain is **U<sub>S</sub> = 65–87 V,
+      R<sub>i</sub> = 0.5–4 Ω, t<sub>d</sub> = 400 ms** (Vishay 88490 Table 1) — the commonly
+      quoted 35 V is the *suppressed* level, not the pulse. With the SM8S24A-class clamp and its
+      63.5 mΩ dynamic resistance, against P(400 ms) = (175 − T<sub>mount</sub>)/0.30 from the
+      part's transient thermal impedance:
+
+      | Condition | I | V_clamp | P | Verdict |
+      |---|---|---|---|---|
+      | Suppressed, U<sub>S</sub>\* 35 V, R<sub>i</sub> 2 Ω | 3.3 A | 28.3 V | 95 W | **passes, 3–5×** |
+      | Unsuppressed, 79 V, R<sub>i</sub> 4 Ω | 12.5 A | 28.9 V | 362 W | passes cold, **marginal hot** |
+      | Unsuppressed, 79 V, R<sub>i</sub> 2 Ω | 24.7 A | 29.7 V | 732 W | **exceeded** |
+      | Unsuppressed, 87 V, R<sub>i</sub> 0.5 Ω | 105 A | 34.7 V | 3631 W | **exceeded 7–12×** |
+
+      **Therefore: this board is specified for vehicles with central load-dump suppression.**
+      It is not rated for unsuppressed pulse 5 except at the high-R<sub>i</sub> end. This is a
+      scope statement with evidence behind it, and it must appear in the G7 note and in any
+      installation documentation — **an unstated environmental limit is the same defect as an
+      unstated fuse.**
+- [ ] **Reverse battery is a fuse-clearing event, by design, and is documented as such**
+      *(v1.4, F42)*. The series FET protects everything downstream, but the TVS sits ahead of it
+      and forward-conducts on reverse, clearing F1. Seamless recovery was evaluated and
+      **rejected on a thermal result, not on cost**: moving the TVS behind the FET routes the
+      full clamp current through it — 48 A for 400 ms at U<sub>S</sub> 79 V / R<sub>i</sub> 1 Ω,
+      ~117 W, ~176 °C rise — which destroys the FET. Acceptance is that the board is **undamaged**
+      after a reverse-polarity connection, not that it keeps running through one.
 - [ ] All four analog inputs pass CMRR ≥ 60 dB @ 1 kHz in speaker-level mode
