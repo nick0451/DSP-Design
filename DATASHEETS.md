@@ -70,7 +70,7 @@ applies to topology exactly as it applies to pin numbers.
 | Part | Why it matters | Status |
 |---|---|---|
 | ~~**SMBJ24A** TVS~~ | ~~ISO 7637-2 input protection~~ | **Superseded — the part is gone from the design.** F42: a 600 W SMB misses the load-dump energy by 40–165×. Replaced by the SM8S24A class |
-| **SM8S24AHM3** TVS | **The actual BOM line.** The held `sm8s.pdf` covers SM8S10A–43A, which is **NRND**; the AHM3 series is its named successor and every figure on the power sheet inherits a re-verification against it | **Needed — manual fetch.** vishay.com refused this environment (as did st.com), so it joins the LT3094 route. **F44** |
+| **SM8S24AHM3 _or_ CAHM3** TVS | **The actual BOM line, and the direction decision rides on it (F45).** The held `sm8s.pdf` covers SM8S10A–43A, which is **NRND**; the AHM3 series is its named successor and every figure on the power sheet inherits a re-verification against it | **Needed — manual fetch.** vishay.com refused this environment (as did st.com), so it joins the LT3094 route. **F44** |
 | **PNP pass transistor** | **New requirement** — the ADAU1466's internal regulator drives an external PNP (T1-21). Dissipates ~1 W at max program | Part not selected; needed only if F18 goes the internal-regulator way |
 | **24.576 MHz XO** | T1-D03 clock master | Part not finalised (SiT8208 vs CCHD-575 class) — fetch once chosen |
 | **TLP3475** photoMOS | **V-14**, mute series element | Candidate only; fetch with the part decision |

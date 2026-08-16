@@ -427,7 +427,7 @@ table entirely — do not merge it with the original.*
 
 | Rail | Source | Loads | Budget |
 |---|---|---|---|
-| **VBATT_PROT** | **5 A fuse + SM8S24AHM3 TVS + reverse P-FET + damped LC** *(v1.4, F42)* — ~~SMBJ24A~~ | everything below | ISO 7637-2 **[HARD]**, bounded per §12 |
+| **VBATT_PROT** | **5 A fuse + SM8S24 TVS (`AHM3` vs `CAHM3` pending V-28) + reverse P-FET + damped LC** *(v1.4, F42/F45)* — ~~SMBJ24A~~ | everything below | ISO 7637-2 **[HARD]**, bounded per §12 |
 | **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | USB, **+3V6_BT LDO** — ~~BM83~~ moved *(v1.0, F31)* | modest — see note 1 |
 | **+3V6_BT** *(v1.0, F31)* | **LDO from +5V_D** (AP2112/MIC5504-class at 3.6 V; TPS7A if its PSRR earns the price) | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
@@ -813,6 +813,15 @@ Practical consequences for layout and capture:
       | Unsuppressed, 79 V, R<sub>i</sub> 4 Ω | 12.5 A | 28.9 V | 362 W | passes cold, **marginal hot** |
       | Unsuppressed, 79 V, R<sub>i</sub> 2 Ω | 24.7 A | 29.7 V | 732 W | **exceeded** |
       | Unsuppressed, 87 V, R<sub>i</sub> 0.5 Ω | 105 A | 34.7 V | 3631 W | **exceeded 7–12×** |
+
+      **Two caveats travel with this table and must not be dropped from it:**
+      **(i) it is a SINGLE-pulse analysis.** ISO **16750-2** superseded the load-dump test with
+      **10 pulses in 10 minutes**, and repeated clamping measurably degrades capability. The 3–5×
+      margin on the suppressed row is where that has to come from — likely sufficient, not yet
+      evidenced (**V-29**). **(ii) The numbers assume the recommended pad.** Vishay ties these
+      capability figures to *"the recommended pad size as listed in the datasheet"*; the DO-218AB
+      land is **15.30 × 10.70 mm** with the **anode tab poured into ground**. **Shrinking that pad
+      at layout makes this criterion false** — it is an electrical input, not an outline.
 
       **Therefore: this board is specified for vehicles with central load-dump suppression.**
       It is not rated for unsuppressed pulse 5 except at the high-R<sub>i</sub> end. This is a

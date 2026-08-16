@@ -351,7 +351,10 @@ PASSIVES += [
     # clamp. K to the battery, A to GND -- and note the heatsink tab IS the anode, i.e. GND.
     #
     # D2 SITS AHEAD OF Q2, AND THAT IS A THERMAL RESULT, NOT A PREFERENCE. See NOTE6 s3.
-    ("D2", "Device:D_Zener", 80, 780, "SM8S24AHM3 (F42)", {"1": "VBATT_FUSED", "2": GND}),
+    # Polarity above is written for the UNIDIRECTIONAL member. If V-28 selects the CA, the part
+    # has no orientation and the symbol should change with it -- do not leave a K/A symbol on a
+    # bidirectional part either, for the same reason F43 rejected the reverse mistake.
+    ("D2", "Device:D_Zener", 80, 780, "SM8S24 A/CA HM3 - V-28", {"1": "VBATT_FUSED", "2": GND}),
     ("Q2", "Transistor_FET:Q_PMOS_DGS", 120, 780, "60V P-FET (F38)",
         {"1": "VBATT_FUSED", "2": "VBATT_GATE", "3": "VBATT_REV"}),
     ("D3", "Device:D_Zener", 160, 780, "15V", {"1": "VBATT_GATE", "2": "VBATT_REV"}),
@@ -605,6 +608,17 @@ NOTE6 = (
     "   ordering table: A = +/-5 % and unidirectional, H = AEC-Q101 (absent = industry grade).\\n"
     "   THE H IS LOAD-BEARING -- this part faces the harness, so S7.0 requires the Q-grade,\\n"
     "   and dropping the suffix silently buys an unqualified part. Same shape as F37.\\n"
+    "   A-vs-CA IS OPEN (V-28). The NRND document says 'unidirectional polarity only', but that\\n"
+    "   sentence is scoped to the family it describes; the HM3 catalogue carries a parallel\\n"
+    "   BIDIRECTIONAL series SM8S10CA-85CA. A superseded datasheet is authoritative about the\\n"
+    "   past, not about its redirect target (M11). If the CA's capability holds on the\\n"
+    "   suppressed row, reverse battery stops clearing F1 and SEAMLESS RECOVERY RETURNS for a\\n"
+    "   one-letter change -- and s3's fuse-clearing paragraph is then obsolete, so re-read it.\\n"
+    "   s3's THERMAL elimination of D2-behind-Q2 is NOT affected by polarity and stays dead.\\n"
+    "   PRE-FIRED so the read cannot surprise us: at the alternative endpoints a distributor\\n"
+    "   lists for the HM3 uni part (43 V at 153 A, r_d = 97 mohm), EVERY verdict row in s2 is\\n"
+    "   unchanged -- 93 / 364 / 739 / 3717 W -- and Q1 moves 68 % -> 73 % of its 80 V rating.\\n"
+    "   The pending read can refine numbers; it cannot move a conclusion.\\n"
     "\\n"
     "7. FOOTPRINT: DO-218AB. Land pattern 15.30 x 10.70 mm overall (main pad 9.80 x 10.70,\\n"
     "   lead pad 2.15 x 2.60, gap 3.35), body 13.3-13.7 x 8.3-8.7 mm, height 5.0 mm max.\\n"
