@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.9 — architecture baseline for schematic capture *(capture begun)*
+**Doc status:** v1.1 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,22 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.1 — 2026-08-16.** F33 closed, F34 raised.
+
+| Finding | Change | Section |
+|---|---|---|
+| F33 | **`+3V3_PLL`** — dedicated small LDO from +6V2_A for the DSP's PLL supply. Both cheap fixes rejected with reasons recorded, so they are not re-proposed | §7.1 note 9 |
+| F34 | **[HARD]: `IOVDD` must never come up after `PVDD`.** The PVDD LDO's **enable** is gated from +3V3_D — the shared ancestor is a logic signal, never a current path, so F33's isolation survives | §7.1 note 10 |
+| V-21 | PVDD current settled at **15 mA max**, sizing the LDO at ~44 mW | §7.1 |
+
+**v1.0 — 2026-08-16.** F30, F31, F32 dispositioned; `BRINGUP.md` created.
+
+| Finding | Change | Section |
+|---|---|---|
+| F30 | Config phase reordered so the **12.5 ms I2C bus-quiet window costs zero wall-clock** — absorbed under the SPI program load, which is bus-independent and longer anyway | §7.2 |
+| F31 | BM83 moved off +5V_D to a dedicated **`+3V6_BT`** LDO feeding `BAT_IN` directly; `ADAP_IN` rejected as the charger path | §7.1 note 8 |
+| F32 | Host-mode config flash as a **documented bring-up step**, config binary committed to the repo | `BRINGUP.md` §2 |
 
 **v0.9 — 2026-08-16.** Detail dispositions following F26.
 
