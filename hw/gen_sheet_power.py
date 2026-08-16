@@ -247,7 +247,16 @@ NOTE = (
     "  2. PG asserted low (fault): EN must sit below V_IL.\\n"
     "  3. +3V3_D absent / PG high-Z: R3 must dominate so EN defaults LOW -- fail-safe off.\\n"
     "Values above are PLACEHOLDERS. [VERIFY] the chosen LDO's EN threshold table, then solve.\\n"
-    "Do not substitute standard values without re-checking all three inequalities."
+    "Do not substitute standard values without re-checking all three inequalities.\n"
+    "\n"
+    "FB DIVIDER TOLERANCE NOTE -- the Err figures in STATE.md are E96-SNAP ONLY. The full\n"
+    "stack is snap + resistor tol (both legs) + reference tol. All rails here have wide\n"
+    "windows and clear comfortably; a future tight-window rail reusing this format does not\n"
+    "inherit that luck.\n"
+    "+1V2_CORE is the highest-impedance divider on the board: 100k/100k, R_thev = 50k, and\n"
+    "TPS62823 FB leakage is 10 nA typ / 50 nA max -> 50k * 50nA = 2.5 mV worst case against a\n"
+    "1.2 V rail with +/-5% window (60 mV). Leakage * R_thev << window, by ~24x. Term shown\n"
+    "because the convention is to make the whole inequality visible, not only the tight ones."
 )
 NOTE2 = (
     "SCOPE: this pass places active devices, dispositions every pin, and defines the\\n"

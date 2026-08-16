@@ -131,7 +131,32 @@ two of the three traps — **inductor saturation current** (the spec that matter
 and **ceramic DC-bias derating** (sheet values must be *effective* capacitance at working
 voltage). **G1b remains unmet and unclaimed.**
 
-### Session boundary — read this before reconstructing anything
+### Session boundary — deliberate, 2026-08-16 (second)
+
+**Stopped before the ±13V5_A disposition, not partway through it.** `01_power` is drawn to the
+passive pass and ERC sits at **80, falling for enumerated reasons**. Nothing is half-wired.
+
+**The next move is a single delegated decision**, prepared and waiting: **±13V5_A topology
+(SEPIC vs dual-boost)**, carrying its "designer's call" tag since v0.1. The operator has stated
+the disposition criteria **in advance**, so the proposal is built against them rather than
+defended after:
+
+| # | Criterion |
+|---|---|
+| **a** | **<50 µVrms, 20 Hz–20 kHz** at the op-amp rails after LDO/filtering — with the LDO's **actual PSRR curve at the topology's switching frequency** doing the work. **The proposal must state f_sw**, because PSRR at 100 kHz and at 2 MHz differ by decades |
+| **b** | **Asymmetric load reality** — the op-amp rails draw class-A-ish quiescent plus signal current, so **regulation under imbalance** matters more than total capacity |
+| **c** | **Magnetics honesty** — SEPIC's coupled inductor vs dual-boost's two inductors plus an inverting stage is where the real BOM difference lives |
+| **d** | **F38 applied at birth** — whatever controller is proposed, **PN pinned with options stated** |
+
+*"If the proposal survives those four, it's decreed on arrival."*
+
+Queued behind it: **VBATT_PROT** (ISO 7637-2 front end — reverse-FET, TVS, LC, with the gate
+zener and standoff-vs-clamp arithmetic getting the on-sheet-inequality treatment, because load
+dump is where nominally-fine boards die), **V-23** (AP2127K-ADJ divider), and the two remaining
+traps — **inductor saturation current** and **ceramic DC-bias derating** — which land *with* those
+blocks, not after them.
+
+### Earlier session boundary — read this before reconstructing anything
 
 **`01_power.kicad_sch` is deliberately undrawn.** It is **not** stopped partway through: the file
 is the empty stub `gen_hier.py` created, no components were placed, and nothing is half-wired.
@@ -460,6 +485,15 @@ its input is empty. Every completeness assertion needs a companion assertion tha
 non-empty **and plausibly sized against an independent expectation**. Four instances now: ERC on
 an empty sheet, `file` reporting 10 pages, HTTP 200 on the wrong PDF, and a pin-set assertion over
 an empty pin map. Stating the rule is what stops the fifth from needing to be caught by luck.
+
+**M7 — A design rationale is also a test, and consequences are cheaper to check than
+derivations.** Every constraint written down is a check that can be **executed against the
+artefact** — and executing them is not the same as having written them. The `RT` error was caught
+**not** by re-deriving the RT-to-frequency relation, but because a **consequence** of the value
+(fundamental lands at 360 kHz) contradicted a **recorded requirement** (stay above the AM band).
+*Why this compounds:* the document is now full of consequences. **It gets more protective as it
+grows, not merely longer** — provided the constraints are periodically run against the artefact
+rather than only consulted when someone remembers them.
 
 **M6 — Ask of any passing check: "what failure would this not have caught?"** A check is only
 sensitive to the failure modes it was designed around. **Completeness checks see omission, never
@@ -846,6 +880,7 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F38** | ⛔ | **NEW, F37's general form: an argument that depends on a part *option* must pin the orderable PN, not the part family.** F37's failure mode is that **the board works on the bench with the wrong variant while the argument evaporates silently** — a bench cannot detect an absent option whose job is regulatory or statistical. Only BOM discipline can. **Sweep required: every BOM line where a suffix changes behaviour gets its PN pinned with a one-line why.** Known option-sensitive lines so far: **(1)** LM61460 — SS-enabled variant, or F35/Q37/the sync non-action all collapse (F37). **(2)** ADAU1466 — the ordering guide lists **six** models; `WBCPZ300` is ours (1462 vs 1466 = memory, 150 vs 300 = core MHz, `RL` = tape-and-reel). **[VERIFY]** before one is picked by autocomplete. **(3)** ESP32-S3-WROOM-1 **N8R2 specifically** — the F13 GPIO analysis assumes **quad** PSRAM; an **R8** octal module consumes GPIO35-37 and breaks it. **(4)** BM83SM1 — firmware variant / config state per F32. **(5)** TPS6282x — the family spans **1 A / 2 A / 3 A** by suffix. **(6)** AK4458**VN** / AK5574**EN** — suffix is package. | Run as a single sweep when the BOM is first emitted, not per-part as they come up. **The one-line why is the deliverable**, not just the PN — a pinned number with no reason attached gets "optimised" by the next cost pass exactly like an un-pinned one |
 | **F37** | ⛔ | **NEW. Spread-spectrum on the LM61460 is a FACTORY OPTION, not a universal feature.** *"Spread spectrum is a factory option. To find which devices have spread spectrum enabled, see Section 6."* The entire Q37/F35 emissions posture — SS permitted on the power stages, SS decorrelating the two bucks, SS smearing harmonics — **assumes SS is present.** Order the wrong orderable part number and every one of those arguments silently evaporates while the board still works on the bench. | **The orderable PN must be chosen from the SS-enabled variants and pinned in the BOM with a note saying why.** This is not a preference; three separate design arguments rest on it |
 | **F36** | ✅ | **CLOSED — adjustable LDO, divider-set to 3.6 V.** The F31 intent was *small, cheap, transient-friendly, ~140 mW*, and that intent picks the replacement rather than the named part. **`AP2127K-ADJ` is the target** (stock symbol exists, correct economy class); the LT3045 stays on the sheet marked **PROVISIONAL only until the divider is computed**, then comes off entirely. **The LT3045 is the wrong *grade*, not merely the wrong price:** `BAT_IN` feeds the BM83's own internal regulation, so reference-grade PSRR here buys quiet the module immediately re-regulates away. **[VERIFY] V-23:** AP2127K-ADJ's FB reference and tolerance, stacked with divider tolerance, landing inside 3.2-4.2 V — trivially true across a 1 V window, but the arithmetic goes on the sheet where the inequality lives. **Sheet annotation required:** a divider on an **FB** pin is correct and designed-for; this must not be misgeneralised from the INA1650 **REF** rule. *The distinction: FB is a feedback input inside a loop that regulates it; REF is a reference input that believes whatever it sees.* | — |
 | ~~**F36-orig**~~ | | **The MIC5504-3.3 near-miss, rejected properly.** ±2 % is the **initial accuracy term only**. Stack line regulation, load regulation, temperature drift and trace drop, and the real minimum at the BM83's pin sits **meaningfully below 3.234 V** — so it does not reliably clear the 3.2 V floor at all once the error budget is honest. "Clears on tolerance alone" was the right rejection; this is the version that survives scrutiny. *Original:* **the decreed part class cannot reach 3.6 V.** MIC5504 is **fixed-output only** — stock variants run 1.2 / 1.8 / 2.5 / 2.8 / **3.3 V max**, with no 3.6 V option. The F31 decree named "AP2112/MIC5504-class at 3.6 V", and that combination does not exist in the MIC5504 line. **An LT3045 stands in provisionally on the sheet** (adjustable via `SET`, already in the BOM three times, and its transient behaviour suits a radio) — **marked PROVISIONAL in the Value field, not silently substituted.** | Operator's call: an **adjustable** small LDO (TLV757P / AP7361 class), a different fixed-3.6 V part, or accept the LT3045 on BOM-consolidation grounds. Worth noting the near-miss alternative: MIC5504-3.3 at ±2 % gives 3.234-3.366 V, which **does** clear BAT_IN's 3.2 V floor — but on tolerance alone, with no margin, which is the kind of "it fits" that F31 already rejected once |
