@@ -149,10 +149,26 @@ The delegated five: AKM vs TI converters · BM83 I2S master/slave · relay vs FE
 justification) · SEPIC vs dual-boost for ±13V5_A (noise budget < 50 µVrms, 20 Hz–20 kHz, at the
 op-amp rails) · board form factor (≤ 200 × 140 mm assumed until told otherwise).
 
-### For everything else, the channel policy is ⬜ UNSET
+### Channel policy — SET (Q2, 2026-08-15)
 
-Whether the client is reachable, and how fast, is **still unanswered** and inverts the handling
-of every approval-gated item. Until answered, gated items are held as blockers and batched.
+**Closed-book by default, with batched escalation.** Settled by observation rather than design:
+the project had been running this for five rounds before it was written down.
+
+| Authority | Handling |
+|---|---|
+| **T2 and below** | **Decide and log.** No escalation. The decision goes in `STATE.md` §6 with its reopen condition, and into the G7 note |
+| **[HARD] amendments · decree conflicts · respin-class consequences** — footprints, package changes, rail architecture | **Escalate.** Do not apply, even when the fix looks obvious |
+| **Stop-the-line** — anything that would invalidate work already in flight | **Escalate immediately**, interrupting the current block |
+
+**Escalations batch at natural checkpoints**, not mid-block — finish the unit of work, then raise
+them together. The exception is the stop-the-line class: F1 was one of those, and interrupting
+for it was correct.
+
+Note what this does *not* license. Closed-book applies to decisions inside our authority. It does
+**not** license filling an ⬜ UNSET in §0's sense, and it does not license routing around a decree
+because the workaround is available — F23's SPI escape hatch was rejected on exactly that ground:
+it would have contradicted §5 to avoid a problem the decree's author would rather solve
+differently. **When a decree blocks the obvious fix, that is an escalation, not an obstacle.**
 
 Note the asymmetry: closed-book applies to *delegated* decisions. It does **not** license filling
 an ⬜ UNSET in §0's sense — those are questions to the operator sitting right here.

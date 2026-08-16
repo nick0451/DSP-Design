@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.5 — architecture baseline for schematic capture
+**Doc status:** v0.6 — architecture baseline for schematic capture
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -62,8 +62,18 @@ than patched three times.
 | F22 | MCLK fanout buffer is a 3.3 V part, not 5 V — moved off +5V_D **to +3V3_A**, the clean rail, because it is the most jitter-critical device in the tree | §7.1 note 5 |
 | — | +5V_A LDO input rail flagged as unresolved: it cannot come from +5V_D, which has no headroom | §7.1 note 4 |
 
-Unchanged and still open at v0.5: F4 (impedance targets), F12, F13, F15, F21 (SELFBOOT strap —
-accepted, lands at capture), F23, F24.
+**v0.6 — 2026-08-15.** F23 and F24 closed; §7.1 completes — **no rail without a source, no source
+without a budget.** The power section is now stable pending V-17.
+
+| Finding | Change | Section |
+|---|---|---|
+| F24 | **New +6V2_A rail** — small Q1-rated buck from VBATT_PROT, pre-regulating both LT3045 stages. Deriving +5V_A from ±13V5_A would burn 1.3-1.7 W in a low-noise LDO; from +5V_D it is impossible | §7.1, notes 4 and 6 |
+| F23 | I2C0 packs: all four AKM parts into 0x10-0x13 with **zero spare**. Full bus map at `STATE.md` §9. Second I2C controller not needed | §5 |
+| F15 | Cross-DAC alignment reduces to a firmware rule — see §5 firmware note | §5 |
+| — | *Escalated, not applied:* a third LT3045 dedicated to the MCLK fanout buffer | §7.1 note 6 |
+
+Unchanged and still open at v0.6: F4 (impedance targets), F12, F13, F21 (accepted, lands at
+capture).
 
 ---
 
@@ -181,6 +191,20 @@ ESP32-S3 is the single owner of all device state.
 Firmware responsibilities (out of scope for PCB, listed so pin budget is right): BLE GATT
 NUS-style control service, WiFi HTTP/WS API, OTA, DSP program storage in ESP32 flash, param
 persistence.
+
+**Firmware contract** *(v0.6 — items the hardware design depends on being honoured)*:
+
+1. **Boot preamble** — §7.2 step 3a. Configure PLL (0xF000-0xF003), poll `PLL_LOCK` (0xF004
+   Bit 0) with a 15 ms timeout, *then* load the program. Timeout = distinct fault code.
+2. **Safeload** — `num_SafeLoad_Lower` / `num_SafeLoad_Upper`, 1-5 parameters per transaction,
+   page-split addressing. Output routing at `SOUT_SOURCEx`, 0xF180-0xF197.
+3. **I2C0 bus map** — fixed addresses per `STATE.md` §9. **The AKM prefix 0x10-0x13 is full**;
+   any future AKM part requires splitting the bus onto the S3's second I2C controller.
+4. **Do not mix digital-filter modes between the two AK4458s** *(F15)*. Both are slaved to the
+   same BCLK/LRCLK pair, so they are sample-aligned and group-delay-matched **by construction** —
+   provided their filter settings match. Cross-DAC alignment is therefore one register write away
+   from being wrong, and it is a firmware invariant, not something an acceptance test should be
+   asked to catch.
 
 **Pin budget note:** the above consumes roughly 20–24 ESP32-S3 GPIOs. WROOM-1 exposes enough, but
 do the explicit pin map before capture and reserve USB D+/D− (GPIO19/20) — do not assign them
@@ -309,7 +333,8 @@ table entirely — do not merge it with the original.*
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
 | **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
 | **±13V5_A** | SEPIC/flyback or dual-boost | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
-| **+5V_A / +3V3_A** | LT3045-class ultra-low-noise LDOs | ADC/DAC analog supplies **and the MCLK fanout buffer** *(v0.5, F22)* | see note 4 — **input rail unresolved** |
+| **+6V2_A** *(v0.6, F24)* | **small Q1-rated buck from VBATT_PROT**, spread-spectrum permitted | pre-regulator for the analog LDOs only | sized at V-17 |
+| **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies **and the MCLK fanout buffer** *(v0.5, F22)* | **1.2 V headroom → ~200 mW class** |
 
 **Note 1 — two bucks from the battery, not a cascade.** +3V3_D is taken directly from VBATT_PROT
 rather than from +5V_D. This avoids compounding conversion loss at the largest step, stops an
@@ -330,10 +355,26 @@ digital core; it has no seat at the §3 noise table.** The on-chip controller an
 unused and **no PNP footprint is fitted, not even DNP.** Spread-spectrum is permitted on this
 stage per §7.5 — it is a power stage, not the audio clock tree.
 
-**Note 4 — the LDO input rails are not yet specified, and one of them cannot work as implied.**
-An LT3045 needs headroom; **+5V_A cannot be derived from +5V_D**, which has none. It must come
-from a higher intermediate or from ±13V5_A, and the latter costs (13.5 − 5) × I in the LDO.
-Resolve before capture — see `STATE.md` F24.
+**Note 4 — +6V2_A is a pre-regulator, and it exists because the arithmetic killed the
+alternative** *(v0.6, F24)*. Feeding the +5V_A LT3045 from ±13V5_A burns (13.5 − 5) × I: at the
+150–200 mA the converter AVDDs plausibly draw, that is **1.3–1.7 W in a part chosen for its noise
+floor, not its thermals** — and it loads the bipolar converter with current that never needed to
+be bipolar. Deriving +5V_A from +5V_D is simply impossible; an LDO has no headroom there. A small
+buck at 6.2 V gives the LT3045s **1.2 V of headroom, keeping dissipation in the 200 mW class**,
+and the LT3045's PSRR at buck switching frequencies is precisely the job it was hired for. This is
+the standard pre-regulator shape.
+
+**Note 6 — the analog LDOs run in parallel from +6V2_A, not cascaded, and the clock buffer gets
+its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it puts the **converters'
+signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
+does not need to exist. Parallel LDOs decouple them.
+
+**Escalated, not decided** *(`CLAUDE.md` §4 — rail architecture is respin-class)*: the
+recommendation is a **third LT3045 dedicated to the MCLK fanout buffer**, separate from the
+converters' +3V3_A. The buffer is the most jitter-critical device in the [HARD] §3 tree and its
+7.5 fs additive-jitter figure assumes a quiet supply; a dedicated LDO removes the last
+signal-correlated modulation path into the clock tree, for the price of one part. **Awaiting
+operator approval — not fitted until then.**
 
 **Note 5 — the MCLK fanout buffer moves to a clean rail.** The LMK1C110x is a 1.8/2.5/3.3 V part
 and was never a 5 V load, so the v0.1 placement on +5V_D was wrong on its face (F22). More
