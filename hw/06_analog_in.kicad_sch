@@ -659,6 +659,233 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "Diode:BAV99"
+		(pin_names
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "D"
+			(at 0 5.08 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BAV99"
+			(at 0 2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 0 -12.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/BAV99_SER.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "BAV99 High-speed switching diodes, SOT-23"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "diode"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "SOT?23*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "BAV99_0_1"
+			(polyline
+				(pts
+					(xy -5.08 0) (xy 5.08 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "BAV99_1_1"
+			(polyline
+				(pts
+					(xy -3.81 1.27) (xy -1.27 0) (xy -3.81 -1.27) (xy -3.81 1.27) (xy -3.81 1.27) (xy -3.81 1.27)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.27 -1.27) (xy -1.27 1.27) (xy -1.27 1.27)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0 0) (xy 0 -2.54)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 0 0)
+				(radius 0.254)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 1.27) (xy 3.81 0) (xy 1.27 -1.27) (xy 1.27 1.27) (xy 1.27 1.27) (xy 1.27 1.27)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 3.81 1.27) (xy 3.81 -1.27) (xy 3.81 -1.27)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(pin passive line
+				(at -7.62 0 0)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 0 180)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -5.08 90)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "Relay:FINDER-30.22"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2012,6 +2239,82 @@
 		(uuid "a883f56c-3e96-5f0b-963f-459fd70969bb")
 	)
 	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e6ae0664-4b70-549c-a1b8-2ccf385aa9f6")
+		(property "Reference" "D1P" (at 165.1 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D1P") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 39.37 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "c749d522-6d06-516b-82d9-ce5c1e7fe3cd")
+	)
+	(global_label "ATT1_P"
+		(shape bidirectional)
+		(at 172.72 39.37 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "05273873-c66f-5ddb-b275-1a39581f31ac")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 44.45 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "e05bce23-943e-5b04-984e-badaf765a3d4")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 62.230000000000004 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4a625eef-442a-5bc8-b2ff-067ea34cb194")
+		(property "Reference" "D1N" (at 165.1 40.230000000000004 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 43.230000000000004 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D1N") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 62.230000000000004 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "7e756ef2-c3d0-5856-9b04-d80e401bf3dc")
+	)
+	(global_label "ATT1_N"
+		(shape bidirectional)
+		(at 172.72 62.230000000000004 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "5a614057-7516-5e61-8d39-6a397bd6065e")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 67.31 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1ced1f4e-8461-51c5-8513-4bdfd873db8d")
+	)
+	(symbol
 		(lib_id "Relay:FINDER-30.22")
 		(at 160.02 39.37 0)
 		(unit 1)
@@ -2071,6 +2374,82 @@
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "315d2d6a-371f-537f-8c6a-acca121355b8")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 100.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2aeb83cf-929c-55b4-8e31-fc53148bdf06")
+		(property "Reference" "D2P" (at 165.1 78.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 81.33 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D2P") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 100.33 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "7b9a5457-ee71-50fd-861d-a9b4f6da3d4c")
+	)
+	(global_label "ATT2_P"
+		(shape bidirectional)
+		(at 172.72 100.33 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "fbd1776c-a255-5c50-9272-a56fe976b6cd")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 105.41 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "4a71d54f-e8ae-5b44-b1d5-08b5e46122a2")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 121.92 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ba4c7dff-0426-5061-ada4-f307f821e1d3")
+		(property "Reference" "D2N" (at 165.1 99.92 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 102.92 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D2N") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 121.92 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "0f612b66-4c84-5217-8a67-48a07fb3fc68")
+	)
+	(global_label "ATT2_N"
+		(shape bidirectional)
+		(at 172.72 121.92 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "d73fd00a-276e-5dc6-b852-e4ac5f8a8814")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 127.0 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "35e8e055-8e88-5185-b493-c8616e61133a")
 	)
 	(symbol
 		(lib_id "Relay:FINDER-30.22")
@@ -2134,6 +2513,82 @@
 		(uuid "8b85d16c-4f72-5956-860d-5eb72f7c3bfd")
 	)
 	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 160.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "96d79e16-5c6b-5e7f-93e4-c14d3dd33934")
+		(property "Reference" "D3P" (at 165.1 138.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 141.02 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D3P") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 160.02 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "2e1fad2b-2e3b-5a6c-9cd4-81867f2532e7")
+	)
+	(global_label "ATT3_P"
+		(shape bidirectional)
+		(at 172.72 160.02 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "c3b11451-7953-5eb4-9ea3-cf184bfb8fa0")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 165.1 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "55e94aed-16ee-592f-95f9-46eea4ad431f")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 181.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "574e1b56-7b91-502f-849a-c793ef2e3b10")
+		(property "Reference" "D3N" (at 165.1 159.61 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 162.61 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D3N") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 181.61 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "af4c62e2-0d81-5da9-b00c-fa56fd2f327c")
+	)
+	(global_label "ATT3_N"
+		(shape bidirectional)
+		(at 172.72 181.61 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "31e2b7bb-0976-5195-a041-3433e45c5d42")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 186.69 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "d7511a6c-8afe-5a19-b3db-346b5c40d649")
+	)
+	(symbol
 		(lib_id "Relay:FINDER-30.22")
 		(at 160.02 160.02 0)
 		(unit 1)
@@ -2193,6 +2648,82 @@
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "6844fb7c-1208-5f6d-9375-7f03f1c288a2")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 219.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "59b20b50-075c-5f62-831e-4f2ca4316131")
+		(property "Reference" "D4P" (at 165.1 197.71 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 200.71 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D4P") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 219.71 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "e9c4f315-e8d0-5718-a861-783edef05cda")
+	)
+	(global_label "ATT4_P"
+		(shape bidirectional)
+		(at 172.72 219.71 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "dbbf781d-f5bb-5e4f-9650-f47aeb48a293")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 224.79 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "cdb8acfd-9074-5613-9086-0f9c916be9d4")
+	)
+	(symbol
+		(lib_id "Diode:BAV99")
+		(at 165.1 242.57 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "daf4ad1b-1d8e-5944-acac-7ddb0a65df38")
+		(property "Reference" "D4N" (at 165.1 220.57 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "BAV99" (at 165.1 223.57 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "D4N") (unit 1))
+			)
+		)
+	)
+	(global_label "-13V5_A"
+		(shape bidirectional)
+		(at 157.48 242.57 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "2a7af043-92bc-5b86-9b42-c2f730ba4a32")
+	)
+	(global_label "ATT4_N"
+		(shape bidirectional)
+		(at 172.72 242.57 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "22a425bc-41e3-5c70-b3a4-7e54dbebb65c")
+	)
+	(global_label "+13V5_A"
+		(shape bidirectional)
+		(at 165.1 247.65 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "5aaac387-8384-5ba0-a94e-99b7e4b8c75e")
 	)
 	(symbol
 		(lib_id "Relay:FINDER-30.22")
@@ -2345,7 +2876,7 @@
 	(no_connect (at 336.55 426.72) (uuid "ab69d597-c512-5a1c-86bd-61d004defec0"))
 	(no_connect (at 336.55 429.26) (uuid "09babb9a-3082-5002-b2d7-a46dfb9f0372"))
 	(no_connect (at 336.55 431.8) (uuid "c8383844-3180-5088-9112-aee31ab37f14"))
-	(global_label "EXP_INT_N"
+	(global_label "I2C_ALERT_N"
 		(shape bidirectional)
 		(at 336.55 434.34000000000003 0)
 		(fields_autoplaced yes)
@@ -3833,7 +4364,7 @@
 		(dnp no)
 		(uuid "f1ee5640-9c92-5c72-b482-886c21eccc66")
 		(property "Reference" "R445" (at 359.41 408.53000000000003 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "100k" (at 359.41 411.53000000000003 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "10k" (at 359.41 411.53000000000003 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R445") (unit 1))
@@ -3847,7 +4378,7 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "5704f1e6-6466-55da-884b-f5f622e117a7")
 	)
-	(global_label "EXP_INT_N"
+	(global_label "I2C_ALERT_N"
 		(shape bidirectional)
 		(at 359.41 434.34000000000003 0)
 		(fields_autoplaced yes)

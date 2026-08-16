@@ -86,7 +86,12 @@ ESP = {
     # --- converter control
     "17": "ADC_PDN_N", "18": "DAC1_PDN_N", "19": "DAC2_PDN_N",
     "20": "ADC_OVF",                                     # F29, edge interrupt
-    "21": "RAILMON_ALERT", "22": "TEMP_ALERT_N",
+    # The three I2C-side interrupt sources (ADS1015 ALERT, TMP461 ALERT, PCF8574 INT)
+    # are ALL open-drain and all mean the same thing -- "go read I2C" -- so they
+    # wire-OR onto ONE line with one pull-up. That is what gave the expander's INT
+    # a home; without it SIGNAL_SENSE would have become a polled net and the poll
+    # interval would have become an undeclared turn-on latency spec (S7.2).
+    "21": "I2C_ALERT_N", "22": "RAILMON_ALERT",   # dedicated: rail faults are the urgent ones (F47)
     "23": "MUTE_EN",
     # IO47/IO48 carry footnote c, which is R16V-ONLY: "for modules embedded with
     # ESP32-S3R16V, as the VDD_SPI voltage ... is set to 1.8 V, the working voltage for GPIO47

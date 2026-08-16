@@ -129,13 +129,19 @@ PLACE = [
     # Rail monitor: ADS1015  1 ADDR 2 ALERT/RDY 3 GND 4 AIN0 5 AIN1 6 AIN2 7 AIN3 8 VDD 9 SDA 10 SCL
     ("U11", "Analog_ADC:ADS1015IDGS", 370, 40, "ADS1015IDGS", {
         "8": "+3V3_D", "3": GND, "1": GND, "9": "I2C0_SDA", "10": "I2C0_SCL",
+        # ADS1015 ALERT/RDY keeps its OWN line rather than joining the wire-OR. Two reasons:
+        # the stock symbol mis-types this pin as "Output" when the datasheet says
+        # "Open-drain output. Connect to VDD using a pullup resistor" (F47), so ERC
+        # rejects the wire-OR; and a rail fault deserves a dedicated line anyway --
+        # it is the most urgent of the three and should not need an I2C read to
+        # identify. The pin it uses is the one the consolidation just freed.
         "2": "RAILMON_ALERT", "4": "MON_VBATT", "5": "MON_P13V5", "6": "MON_N13V5",
         "7": "MON_5V_A"}),
     # TMP461  1 V+ 2 D+ 3 D- 4 THERM 5 A0 6 GND 7 ALERT/THERM2 8 SDA 9 SCL 10 A1
     ("U12", "Sensor_Temperature:TMP461xxRUN", 370, 120, "TMP461-Q1", {
         "1": "+3V3_D", "6": GND, "2": "DSP_THD_P", "3": "DSP_THD_M",
         "8": "I2C0_SDA", "9": "I2C0_SCL", "5": "+3V3_D", "10": GND,
-        "4": "TEMP_THERM_N", "7": "TEMP_ALERT_N"}),
+        "4": "TEMP_THERM_N", "7": "I2C_ALERT_N"}),
     # PG -> EN divider (F34). PGOOD is open-drain (T1-64): R2 pulls up, R3 holds EN low
     # when PG is high-Z or +3V3_D is absent.
     ("R2", "Device:R", 340, 200, "100k", {"1": "+3V3_D", "2": "EN_3V3_PLL"}),

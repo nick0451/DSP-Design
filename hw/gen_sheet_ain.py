@@ -71,6 +71,7 @@ SRC = {
     "ODSP12:INA1650": (PROJ, "INA1650"),
     "Device:R":       (STOCK + "/Device.kicad_sym", "R"),
     "Device:C":       (STOCK + "/Device.kicad_sym", "C"),
+    "Diode:BAV99":    (STOCK + "/Diode.kicad_sym", "BAV99"),
     "Relay:FINDER-30.22": (STOCK + "/Relay.kicad_sym", "FINDER-30.22"),
     "ODSP12:PCF8574T": (PROJ, "PCF8574T"),
     "ODSP12:ULN2003A": (PROJ, "ULN2003A"),
@@ -196,6 +197,12 @@ for n in CH:
         P += [passive("R", 70, y, rtxt(RTOP), f"PRT{n}_{leg}", a)]     # Rtop
         P += [passive("R", 100, y, rtxt(RBOT), a, GND)]                # Rbot: line mode
         P += [passive("R", 130, y, rtxt(RSPK), a, f"SPK{n}_{leg}")]    # + Rspk in speaker mode
+        # RAIL CLAMP -- and it is NOT optional. See NOTE5: without it the speaker-in-line-mode
+        # fault puts +/-19 V on a pin whose absolute maximum is +/-14 V. Series pair to the
+        # +/-13V5_A rails, so the junctions sit ~12 V outside the +/-1.3 V signal swing and
+        # their nonlinear capacitance never modulates it. This is ALSO the ESD element.
+        PLACE.append((f"D{n}{leg}", "Diode:BAV99", 165, y, "BAV99",
+                      {"1": "-13V5_A", "2": a, "3": "+13V5_A"}))
         # Antialias: single-pole per leg into the ADC, differential pole across the pair.
         P += [passive("C", 190, y, "1n", a, GND)]
     # Relay shorts BOTH legs' Rspk to ground together -- one part, two poles, so the two legs
@@ -218,10 +225,12 @@ _ex = {"1": GND, "2": GND, "3": GND, "8": GND, "16": "+3V3_D",
        # 13 = INT, 15 = SDA. The first pass had these two SWAPPED, and the F28
        # coverage assertion passed anyway -- it proves every pin has a net, never
        # that the net is the right one (M6). Caught by reading the parent map.
-       "13": "EXP_INT_N", "14": "I2C0_SCL", "15": "I2C0_SDA"}
+       "13": "I2C_ALERT_N", "14": "I2C0_SCL", "15": "I2C0_SDA"}
 PLACE.append(("U43", "ODSP12:PCF8574T", 300, 430, "PCF8574T",
               {p: _ex.get(p) for p in EXP}))
-P += [passive("R", 360, 430, "100k", "+3V3_D", "EXP_INT_N")]
+# Pull-up for the shared open-drain alert line. ONE pull-up for three wire-ORed
+# sources; it lives here because this sheet added the third one.
+P += [passive("R", 360, 430, "10k", "+3V3_D", "I2C_ALERT_N")]
 # Coil driver. The PCF8574 sinks 25 mA per pin and far less across the package, against
 # ~30 mA x 4 coils -- so it CANNOT drive these directly, and the ULN2003A is not an
 # afterthought part: its internal freewheel diodes (COM, pin 9) are also the flyback path
