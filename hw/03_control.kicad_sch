@@ -2847,8 +2847,20 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "1a7cae4e-e0fe-53c0-b592-e65f62d76c5e")
 	)
-	(no_connect (at 105.41 139.7) (uuid "e549d1bc-19bb-5110-b91d-fba728c9744d"))
-	(no_connect (at 105.41 142.24) (uuid "d95d08c8-66c6-5e79-9be5-8ed70249a4d3"))
+	(global_label "BM83_RST_N_MCU"
+		(shape bidirectional)
+		(at 105.41 139.7 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "1cdf24bf-bffc-5452-b0e5-75dac1cbd214")
+	)
+	(global_label "BM83_TX_IND"
+		(shape bidirectional)
+		(at 105.41 142.24 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "73a943c6-cbfb-59cc-8d2f-2a208f772ac6")
+	)
 	(global_label "STRAP_IO45"
 		(shape bidirectional)
 		(at 105.41 134.62 0)
@@ -2933,7 +2945,7 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "db54a7ea-bb2e-56e5-82c2-10a16661d47e")
 	)
-	(global_label "BM83_MFB"
+	(global_label "BM83_MFB_MCU"
 		(shape bidirectional)
 		(at 74.93 106.68 180)
 		(fields_autoplaced yes)

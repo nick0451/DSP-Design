@@ -43,6 +43,8 @@ Retrieved 2026-08-15.
 | **TVS for automotive** *(app note)* | `tvs.pdf` | 4 | `4A8C122BEFD46EBC` | vishay.com doc 88490 — carries the ISO 7637-2 pulse-5 test table |
 | **Load dump: old vs new ISO** *(article)* | `49748.pdf` | 5 | `028F83CE47A98FF4` | vishay.com doc 49748, EDN reprint — **an article, not a specification** |
 | **SM8S10AHM3–85AHM3** TVS | `SM8S_AHM3_Vishay.pdf` | 6 | `A9B581CFDF743398` | vishay.com **doc 98647, rev. 14-Oct-2025** — the successor. **Closes V-28** |
+| **AP2127** LDO | `AP2127_Diodes.pdf` | 24 | `D48C96AC985D348A` | diodes.com — **closes V-23 and F36** |
+| **USBLC6-2** ESD array | `usblc6-2.pdf` | 20 | `BC30154F310CD631` | st.com Doc ID 11265 — operator-supplied. **Closes V-30** |
 
 All twenty-four are manufacturer-published documents, not aggregator copies — but note the last
 row is an **EDN article reprinted by Vishay**, which is context, not a specification, and must not

@@ -88,14 +88,19 @@ ESP = {
     "20": "ADC_OVF",                                     # F29, edge interrupt
     "21": "RAILMON_ALERT", "22": "TEMP_ALERT_N",
     "23": "MUTE_EN",
-    "24": None, "25": None,                              # IO47/IO48, footnote c
+    # IO47/IO48 carry footnote c, which is R16V-ONLY: "for modules embedded with
+    # ESP32-S3R16V, as the VDD_SPI voltage ... is set to 1.8 V, the working voltage for GPIO47
+    # and GPIO48 is also 1.8 V". The N8R2 is not R16V, so these are ordinary 3.3 V GPIOs --
+    # the same variant-conditional shape as footnote b, and the same reason the PN is pinned.
+    "24": "BM83_RST_N_MCU",                              # IO47 -- host hard-reset for the module
+    "25": "BM83_TX_IND",                                 # IO48 -- BM83 P0_0 wakes the MCU
     # --- power-good sense (all open-drain, pulled up on 01_power or here)
     "28": "PG_5V_D", "29": "PG_6V2_A", "30": "PG_1V2",
     "31": "PG_13V5P", "32": "PG_13V5N",
     # --- amp interface + status
     "33": "REMOTE_IN_SENSE", "34": "REMOTE_OUT_EN", "35": "STATUS_LED_N",
     "36": "UART0_RXD", "37": "UART0_TXD",                # console, keep for bring-up
-    "38": "BM83_MFB",
+    "38": "BM83_MFB_MCU",
     "39": "VBUS_DET",                                    # ADC1_CH0, divider only -- see NOTE2
 }
 
