@@ -250,6 +250,42 @@ F15 (MCLK/LRCK phase coherence) · **F37** (pin the SS-enabled LM61460 PN) ·
 G0-L still blocked on Blocks D/E (mechanical + fab), which remain the largest unknown on the
 project — **layer count has a floor of 4 (F25) but no outline, no stackup, no fab house.**
 
+### Session boundary — deliberate, 2026-08-16 (third): stopped BEFORE 06_analog_in
+
+**V-17 is closed and the analog anchors are staged, but the sheet is not started.** This is the
+same stop-before-a-block rule that governed `01_power`: `06_analog_in` is the largest analog block
+on the board and four of its eight published criteria need real derivation, not transcription.
+Starting it at the end of a long pass and finishing it in the next one is exactly the half-wired
+state the convention exists to prevent. **Nothing is partially drawn.**
+
+**Everything the sheet needs is now T1 and on the record:**
+
+| Anchor | Value | Source |
+|---|---|---|
+| AK5574 full scale | **0.56 × (VREFH−VREFL) = 2.80 Vpp diff = 0.99 Vrms** at AVDD 5 V | AK5574 Note 10 |
+| INA1650 | **gain 1 V/V**, 500 kΩ input resistors | SBOS818B |
+| Line range | 2 Vrms → **÷2.02, −6.1 dB** | §6.1 ceiling |
+| Speaker range | 30 Vrms → **÷30.3, −29.6 dB** | §6.1 ceiling |
+| +5V_A | **146 mA max** | V-17 |
+| +6V2_A | **186 mA identified** vs 250 mA assumed | V-17 |
+
+**Three things the anchors already decided, before any drawing:**
+1. **The INA1650 has no gain to give** (1 V/V), so the attenuator does *all* the range work in
+   both modes. There is no "share it between stages" option to consider.
+2. **The INA1650's CMRR is trimmed against its own 500 kΩ internal resistors.** External source
+   impedance from the attenuator lands in series with them and unbalances the trim — so F9's
+   matching requirement is not only about the divider's own ratio, it is about **what the
+   attenuator does to the receiver's CMRR**. That materially strengthens the criterion-4
+   argument for an integrated array over discrete 0.1 % singles.
+3. **Criterion 2 looks pre-decided by the arithmetic:** at 30 Vrms the node sees ±42 V, and an
+   analog switch would need rails containing that swing. ±13V5_A does not. Unless the switch
+   sits *after* a fixed first-stage attenuation, F8's "or it's a relay" is where this lands —
+   and that is the derivation to write on the sheet rather than assert.
+
+**Open and owed to the operator: F46** — `+3V3_A` has no identified load, and reading (c) would
+be a real design difference rather than bookkeeping. It is escalate-class (rail architecture) and
+it wants a decision before the analog sheets commit to supplies.
+
 ### Session boundary — deliberate, 2026-08-16 (second)
 
 **Stopped before the ±13V5_A disposition, not partway through it.** `01_power` is drawn to the
@@ -679,6 +715,24 @@ extractable** — `/URI (...)` entries, including inside compressed streams — 
 cross-references other documents hands you their doc numbers directly. That is how doc **98647**
 was located after the NRND banner text turned out not to be a link.
 
+**M14 — A multi-unit symbol placed as one instance strands the other units' labels.** They sit
+at coordinates no pin occupies: **attached to nothing, present in the netlist, and invisible as an
+error** — every completeness check passes because every pin *was* dispositioned. The countermeasure
+is structural: recompute per-unit geometry with **the symbol generator's own math**, then assert
+that the units **reconstruct the full pin set** and **do not overlap**. *Why it earns a rule now:*
+the next sheets are full of multi-unit parts — every op-amp package on the output stage is two
+units plus power — so this stops being a BM83 anecdote and becomes the default hazard. M6's blind
+spot in a third layer, after the zipped pin map and the label collision.
+
+**M13a — Variant-conditional footnotes are a confirmed pattern, not a curiosity.** The
+ESP32-S3-WROOM-1 carries **two** footnotes that reserve pins **by module suffix**: (b) IO35/36/37
+belong to the PSRAM on R8/R16V, (c) IO47/48 run at 1.8 V on R16V. Both are false for the N8R2, so
+five GPIOs are available that a careless read would have written off — and **two of them now carry
+nets** (`BM83_TX_IND`, `BM83_RST_N_MCU`). The pinned PN therefore guards two nets it did not exist
+to guard. *The rule:* on any part with variant suffixes, **read the footnotes as pinout conditions
+and resolve each against the ordered variant**, because they cut both ways — reserving pins you
+planned to use, and freeing pins you wrote off.
+
 **M13 — A PDF's cross-reference graph is machine-readable navigation, not decoration.**
 Embedded `/URI` entries — including inside compressed streams — turn "hunt the successor
 document" into a parse. Doc **98647** was found this way after the NRND banner's *text* turned
@@ -687,6 +741,14 @@ site search is worse than their own documents, which is most of them**, and it i
 than guessing doc numbers or trusting a distributor's link. *Companion to M11:* when a document
 points at a successor, the pointer is usually **in** the file, so the redirect boundary M11 warns
 about is normally crossable without leaving the archive.
+
+**M15 — Synchronising the wire does not synchronise the stream.** Slaving the BM83's I2S port to
+our clocks makes the *interface* synchronous; the A2DP stream remains asynchronous by nature, and
+§3's ASRC is what absorbs the difference. **The predictable "simplification" — delete the ASRC,
+the port is slaved now — is F1's error on a different path**, and it is most likely to be proposed
+precisely when the board works, because that is when the ASRC looks redundant. Generalised:
+**a clock relationship at the connector says nothing about the rate relationship at the source.**
+Written as a sentence on the sheet, not only here, because that is where the proposal will arrive.
 
 **M12 — An elimination carries its evidence and its scope, exactly like a promotion.** *(operator,
 2026-08-16.)* The project already tagged every T1 with how it was verified; **eliminations had no
@@ -1135,6 +1197,7 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
+| **F46** | ⛔ | **NEW — `+3V3_A` has no identified load.** Closing V-17 required enumerating everything on the analog rails, and the enumeration came up short: **AVDD is 5 V on all three converters** (AK5574 and both AK4458, per T1-11 and the current tables) and **TVDD is on +3V3_D** per §7.1's own note. The INA1650 is a ±supply part (±2.25 to ±18 V, 500 kΩ inputs) and belongs on ±13V5_A, where the speaker-level swing needs the headroom. **So nothing found so far uses +3V3_A** — yet it is a decreed §7.1 rail with an LT3045 (U7), a testpoint, and an ADS1015 monitor channel spent on it. | **Escalated, not resolved — deleting a decreed rail is rail architecture and the channel policy calls that escalate-class.** Three readings, and I cannot pick between them from the documents: **(a)** it is genuinely spare and should be deleted or explicitly reserved, freeing an LDO, a monitor channel and ~100 mW; **(b)** something on the undrawn analog sheets needs it and I have not reached it yet; **(c)** it was intended for converter TVDD, i.e. the *analog-side digital* supply, and §7.1's "converter digital sides → +3V3_D" is the line to re-read. **(c) would be a real design difference**, not bookkeeping: it would move the converters' digital supply off the rail shared with the ESP32's WiFi bursts, which is exactly the contamination §7.1 note 9 worries about elsewhere |
 | **F31** | ✅ | **CLOSED — direct rail feed, no battery, no charger.** T1-99: the datasheet explicitly permits *"any other power rail on the host board"* as the `BAT_IN` source. The full stack closes: **+3V6_BT = 3.584 V nominal, ~3.44–3.73 V worst case across V<sub>REF</sub> ±2 % and both divider legs, inside `BAT_IN`'s 3.2–4.2 V with 240 mV and 470 mV of margin.** Current is **59 mA worst** (T1-100) against a 300 mA LDO. Both of F31's [VERIFY]s answered from the document; **neither escalated.** | — |
 | **V-03** | ✅ | **CLOSED — BM83 is an I2S SLAVE, and the decree says so twice.** §4 [HARD] map: `SDATA_IN1 = BM83, I2S stereo, 2 ch → ASRC`. §3: *"BM83 I2S port (BM83 configured as I2S slave)."* T1-56 confirms it is *possible* — `SCLK1`/`RFS1` are I/O, `MCLK1` is output-only. **Note what this does and does not buy:** slaving the port makes the *wire* synchronous, **not the stream**. The A2DP stream is asynchronous by nature and §3's ASRC is what absorbs it — deleting the ASRC because "the port is slaved now" would be the exact mistake F1 caught on the S/PDIF path | — |
 | **F13** | ✅ | **CLOSED 2026-08-16 — all three module-level checks answered from the module datasheet, and one of them turned out to be load-bearing.** **(a)** IO35/36/37 free on the N8R2 (T1-95) — the octal-PSRAM reservation applies only to R8/R16V. **(b)** Strapping pins are GPIO0/3/45/46 (T1-96); nothing that drives during reset is on any of them, and each gets a **deterministic idle level** rather than inheriting an internal weak pull — including **GPIO3, which has no internal default at all**. **(c)** GPIO19/20 carry USB D± and nothing else; the stock symbol names those pins `USB_D-`/`USB_D+`, so the [HARD] reservation is visible on the sheet rather than living in a comment. | **The (a) result is why F38 exists.** Three power-good sense lines now sit on IO35/36/37, so ordering an R8 or R16V variant does not degrade performance — it shorts three nets into the PSRAM bus. The suffix is a **pinout**, not a stocking preference, and that sentence is on the sheet |
@@ -1247,6 +1310,7 @@ citation** — part number, document revision, and section.
 | ~~V-29-open~~ | | | **The gap, as located before closure.** The HM3 datasheet carries the same single-pulse figure set as its predecessor (Fig. 1 P<sub>PPM</sub> vs pulse width; Fig. 3 load-dump power for a **10 ms exponential**) and **publishes no M-suffix/S-suffix multi-pulse curves** — those appear in the EDN article for the *SM5S* family, not here. So ISO 16750-2's **10 pulses in 10 minutes** remains uncharacterised for this part. **Bound, not closed:** P<sub>D</sub> = 8 W steady-state sets the recovery rate between pulses, and at 1-minute intervals the junction fully recovers, so the binding case is per-pulse rather than cumulative heating — **but that is reasoning, not the vendor's curve.** Route: Vishay applications, or accept it as consumption of the suppressed row's 3–5× margin and say so in G7 |
 | ~~V-29-orig~~ | | | **Open.** ISO **16750-2** superseded the load-dump test between the power sheet and full T1.** Read at figure level: **(1)** the **6600 W / 5200 W** pair, which now has **three competing readings and no T1** — mine-and-operator's-original (uni vs bi, supported by the distributor pattern of uni at 6.6 kW and bi at 5200 W), mine-second (two waveform ratings of one part, 10/1000 µs vs 10/10 000 µs, which is what the NRND table literally shows), and the possibility that **both are true at different levels** — family-wide polarity split *and* a waveform pair within each. **(2)** The clamp endpoints: held document says **38.9 V at 170 A**, an HM3-era distributor listing says **43 V at 153 A**. **(3)** The **M-suffix (multi-pulse, ISO 16750-2) vs S-suffix (single-pulse, ISO 7637-2)** capability curves. **(4)** The CA member's curves, which settle F45's direction decision. **Pre-fired, so the read cannot surprise us:** the consequence chain was run against *both* clamp endpoints — with 43 V/153 A, r<sub>d</sub> becomes 97 mΩ, Q1 sits at **73 %** of its 80 V rating (58 % on the realistic 48 A clamp), and **every §12 verdict row is unchanged** (93 / 364 / 739 / 3717 W against the same thresholds). **The pending read can refine numbers; it cannot move a conclusion.** That is criterion 5 and M7 doing exactly the job they were installed for |
 | V-29 | **Multi-pulse derating: §12's table is a SINGLE-pulse analysis** | F42 | **Open.** ISO **16750-2** superseded the load-dump test with **10 pulses in 10 minutes**, and Vishay's own article states that *"10 continuous pulses affected the surge suppressing capability of the load dump TVS."* Our §12 rows compute one pulse. **The 3–5× margin on the suppressed row is the buffer this has to come out of**, and it is probably sufficient, but it is not yet evidenced. Settles from the HM3 M-suffix curves in the same read as V-28 |
+| V-17 | ~~AVDD currents for AK5574 and AK4458~~ | §7.1 / F24 | **CLOSED 2026-08-16 from the datasheet maxima.** AK5574 `AVDD+VREFH1/2` **64 mA max** (49 typ); AK4458 `AVDD` **41 mA max** (31 typ) each. **+5V_A = 146 mA max.** LMK1C1104 on +3V3_CLK: **40 mA max**, and that is specified at f<sub>IN</sub> = 100 MHz where ours is 24.576 MHz, so it is conservative by a wide margin. **+6V2_A identified load = 186 mA against the 250 mA assumption already on the sheet — the assumption holds and is now a derivation.** The 15 µH / Isat ≥ 0.5 A inductor stands unchanged |
 | V-26 | ~~LM5156-Q1 spread-spectrum deviation percentage~~ | F39 | **CLOSED by decree, 2026-08-16 — not by finding the number, but by removing the dependency.** `DITHOFF` is fitted as a stuffing pair with the **populated leg to VCC: dither OFF**. The fundamental then sits deterministically at 2.2 MHz with an RT-tolerance floor of 1980 kHz — **15.8 % above the AM band on specified numbers only**, where the dithered case rested on 4 % of margin against a parameter the datasheet declines to state (the F37 shape). The decorrelation argument is untouched: beat suppression needs only one party spread, and both LM61460s carry ±2 % SS on their pinned PNs. A DNP leg to GND re-enables dither if EMI measurement ever asks. **Second use this round of "close it by making the number irrelevant"** — see V-27 |
 | ~~V-26-orig~~ | | | **Open — and the datasheet does not contain it.** T1-76 gives the modulation *frequency* (0.156 × f<sub>SW</sub>) but never the deviation. Bounded meanwhile: f<sub>SW</sub> min is 1980 kHz, so even ±10 % dither reaches only 1782 kHz — above the AM band's 1710 kHz top, **but by 4 %**, which is margin-by-luck rather than by design. `DITHOFF` is a one-resistor escape hatch either way. Source: TI E2E or the EVM report, not the datasheet |
 | V-27 | **LM5156-Q1 / LM61460-Q1 pulse-skip onset current, and the repetition rate when skipping** | F39 | **Open — unspecified by both datasheets**, which mention light-load pulse skipping only in prose. Matters because the analog rails idle near 50 mA against a 200 mA budget, i.e. permanently at ~25 % load. **Bounded, not blocking:** even 100 mV<sub>PP</sub> of in-band skip artefact meets 0.35 µV<sub>RMS</sub> at the op-amp rail through T1-72's audio-band PSRR. Settles on the bench, not before capture |
