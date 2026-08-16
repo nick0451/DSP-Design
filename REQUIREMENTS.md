@@ -397,6 +397,7 @@ table entirely — do not merge it with the original.*
 | **+6V2_A** *(v0.6, F24)* | **small Q1-rated buck from VBATT_PROT**, spread-spectrum permitted | pre-regulator for the analog LDOs only | sized at V-17 |
 | **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies | **1.2 V headroom → ~200 mW class** |
 | **+3V3_CLK** *(v0.7)* | **dedicated LT3045 from +6V2_A** | **MCLK fanout buffer only** — see §3 | small; sized with V-17 |
+| **+3V3_PLL** *(v1.1, F33)* | **dedicated small LDO from +6V2_A** (MIC5504 / TPS7A02 class) — **enable-gated by +3V3_D, see note 10** | ADAU1466 `PVDD` (pin 15) **only** | **15 mA max** (V-21) → ~44 mW |
 
 **Note 1 — two bucks from the battery, not a cascade.** +3V3_D is taken directly from VBATT_PROT
 rather than from +5V_D. This avoids compounding conversion loss at the largest step, stops an
@@ -430,6 +431,39 @@ the standard pre-regulator shape.
 its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it puts the **converters'
 signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
 does not need to exist. Parallel LDOs decouple them.
+
+**Note 9 — the PLL supply is a victim *and* an aggressor, so it gets its own LDO** *(v1.1, F33)*.
+`PVDD` feeds the PLL that generates BCLK/LRCLK for every converter on the board, so supply noise
+on it becomes jitter everywhere at once — the F22 argument. But it is **not** tapped from
+`+3V3_CLK`: the fanout buffer is a pure victim, while **the PLL's charge pump and VCO draw
+switching current**, and on a shared LDO those transients appear across the regulator's output
+impedance and modulate the fanout's supply. Tapping +3V3_CLK would put the noisiest clock-domain
+device on the rail that exists to be the quietest.
+
+Nor is it a ferrite or RC off +3V3_D. **The contamination is low-frequency by nature** — WiFi TX
+bursts droop the rail at envelope rates of hundreds of Hz to low kHz, where a ferrite does nothing
+and an RC large enough to help would burn headroom out of a ±10 % window. **An LDO's PSRR is
+strongest exactly where a ferrite is weakest**, and feeding it from +6V2_A removes the shared
+upstream path entirely: the WiFi bursts and the PLL no longer have a common ancestor below the
+battery input. At 15 mA (V-21) with 2.9 V of headroom this is ~44 mW — any competent small LDO,
+not a reference-grade part.
+
+**Note 10 — `IOVDD` must never come up after `PVDD`, and the fix is the enable, not the supply
+path** **[HARD]** *(v1.1, F34)*. The ADAU1466 states: *"IOVDD, which is the reference for the ESD
+protection diodes that are situated inside the input and output pins, must be applied first to
+avoid stressing these diodes. PVDD, AVDD, and DVDD can then be supplied in any order."*
+
+Note 9 puts `PVDD` on a **different branch of the power tree** from `IOVDD` (+3V3_D), so nothing
+otherwise guarantees their relative order — if the +3V6/+6V2 branch wins the race, **PVDD precedes
+IOVDD and stresses the ESD diodes on every power-up.**
+
+**Resolution: gate the PVDD LDO's enable from +3V3_D** (rail or power-good). The shared ancestor is
+then only a *logic* signal, never a current path, so **note 9's noise isolation survives intact**.
+Sequencing and noise isolation are separable concerns and are separated here deliberately.
+
+The other two domains are safe by construction and stay that way: `AVDD` shares +3V3_D with IOVDD
+(simultaneous), and `DVDD` comes from the +1V2_CORE buck **fed from +3V3_D**, so it is necessarily
+later. **Any future re-parenting of those rails re-opens this note.**
 
 **Note 8 — the BM83 gets its own 3.6 V rail, and `ADAP_IN` is a trap door** *(v1.0, F31)*.
 `BAT_IN` is specified 3.2–4.2 V, so **+5V_D was never legal** and a nominal 3.3 V is not a fix
