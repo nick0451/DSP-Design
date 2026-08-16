@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.2 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.3 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,15 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.3 - 2026-08-16.** F39 decreed — the ±13V5_A topology, the last §11 delegated decision on
+the power sheet. V-26 decreed. Two new pre-rails enter §7.1.
+
+| Finding | Change | Section |
+|---|---|---|
+| F39 | **±13V5_A topology settled: SEPIC → +15V5_A from VBATT_PROT; inverting buck-boost → −15V5_A from +15V5_A; LT3045 / LT3094 post-regulators to ±13V5_A.** Two new pre-rails, **+15V5_A** and **−15V5_A**, added to the §7.1 table. **The cascade is forced, not preferred** — an IBB stresses its regulator at V<sub>IN</sub> + \|V<sub>OUT</sub>\|, which exceeds the regulator's absolute maximum on a battery-facing rail the moment the TVS conducts. f<sub>SW</sub> = 2.2 MHz on both stages | §7.1, new notes 11–13 |
+| V-26 | **Spread spectrum OFF on the SEPIC**, `DITHOFF` fitted as a stuffing pair. The AM-band clearance now rests on the specified f<sub>SW</sub> floor (1980 kHz, 15.8 % above the band) rather than on a dither deviation the datasheet never states. **This does not change §7.5** — SS stays on for the bucks, whose PNs specify it | §7.5 note |
+| — | **Fail order promoted to a safety property** *(operator, F39(b))*: −15V5_A cannot outlive its own source, so the analog rails collapse in the only safe order **by construction** | §7.4 |
 
 **v1.2 - 2026-08-16.** F34 resolved; V-22 closed.
 
@@ -416,7 +425,9 @@ table entirely — do not merge it with the original.*
 | **+3V6_BT** *(v1.0, F31)* | **LDO from +5V_D** (AP2112/MIC5504-class at 3.6 V; TPS7A if its PSRR earns the price) | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
 | **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
-| **±13V5_A** | SEPIC/flyback or dual-boost | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
+| **+15V5_A** *(v1.3, F39)* | **SEPIC from VBATT_PROT**, LM5156-Q1 + external FET, 2.2 MHz, dither **off** | +13V5_A LDO **and** the −15V5_A stage — see note 11 | ~544 mA, ≈ 8.5 W |
+| **−15V5_A** *(v1.3, F39)* | **inverting buck-boost from +15V5_A** (LM61460-Q1 reconfigured per SNVA856), 2.2 MHz | −13V5_A LDO only | ~250 mA |
+| **±13V5_A** | ~~SEPIC/flyback or dual-boost~~ → **LT3045 (+) / LT3094 (−) from ±15V5_A** *(v1.3, F39)* | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
 | **+6V2_A** *(v0.6, F24)* | **small Q1-rated buck from VBATT_PROT**, spread-spectrum permitted | pre-regulator for the analog LDOs only | sized at V-17 |
 | **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies | **1.2 V headroom → ~200 mW class** |
 | **+3V3_CLK** *(v0.7)* | **dedicated LT3045 from +6V2_A** | **MCLK fanout buffer only** — see §3 | small; sized with V-17 |
@@ -454,6 +465,37 @@ the standard pre-regulator shape.
 its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it puts the **converters'
 signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
 does not need to exist. Parallel LDOs decouple them.
+
+**Note 11 — the ±13V5_A cascade is forced by an absolute maximum, not chosen for elegance**
+*(v1.3, F39)*. An inverting buck-boost stresses its regulator at **V<sub>IN</sub> +
+|V<sub>OUT</sub>|**. Sited on VBATT_PROT, that is ≥ 26.7 + 15.5 = **42.2 V against the
+LM61460-Q1's 42 V absolute maximum** — and it holds without knowing the clamp voltage, because
+any TVS with a standoff above 24 V breaks down above 26.5 V. **The negative stage therefore
+cannot sit on the battery rail at all.** Fed from the regulated +15V5_A it sees a fixed 31 V, at
+the ideal 0.5 duty. The mirror argument excludes a plain boost on the positive rail: TI states
+that a boost passes its input through the high-side diode when V<sub>OUT</sub> ≤ V<sub>IN</sub>,
+which would land a clamped load dump on a 20 V LDO input. **Do not "simplify" either stage back
+onto VBATT_PROT.** The honest cost is that the SEPIC carries both rails — ≈ 8.5 W, ~1.65 A input
+at crank — where independent stages would be half that each.
+
+**Note 12 — f<sub>SW</sub> = 2.2 MHz on both stages, on three independent legs** *(v1.3, F39)*.
+**(a)** The LT3045's PSRR has a **notch at 500 kHz–1 MHz and recovers by 2 MHz** — 77 / 72 / 70 /
+84 dB at 100 kHz / 500 kHz / 1 MHz / 2 MHz with 2 V of headroom. The part is *better* at 2.2 MHz
+than at half that; this is what excluded the four-switch buck-boost, whose range tops out at
+600 kHz, squarely in the notch. **(b)** The dither triangle runs at 0.156 × f<sub>SW</sub> =
+343 kHz; at a 100 kHz f<sub>SW</sub> it would sit at 15.6 kHz, *inside the audio band*.
+**(c)** Nothing exists below the fundamental, so no harmonic falls in the AM band — a 440 kHz
+choice would put its 2nd and 3rd squarely in it.
+
+**Note 13 — the two analog rails are not symmetric, and the budget says so** *(v1.3, F39)*. The
+LT3094 has **its own** PSRR shape: it peaks at 100 kHz where the LT3045 peaks at 2 MHz, and
+**degrades as headroom grows past ~2 V**, the opposite behaviour. Against the [HARD] 50
+µV<sub>RMS</sub>: **+13V5_A ≈ 2.0 µV<sub>RMS</sub> (28 dB margin), −13V5_A ≈ 4.5 µV<sub>RMS</sub>
+(21 dB)**. Both clear comfortably, and the budget is carried by the LDOs' **audio-band** PSRR
+(110 dB / ≥93 dB), not by f<sub>SW</sub> — which is why the unspecified light-load pulse-skip
+behaviour (V-27) cannot break it. The ~1.9 V headroom target is a **PSRR specification, not a
+dropout one**: dropout is 260 mV and 235 mV respectively, so the design carries ~8× dropout on
+purpose.
 
 **Note 9 — the PLL supply is a victim *and* an aggressor, so it gets its own LDO** *(v1.1, F33)*.
 `PVDD` feeds the PLL that generates BCLK/LRCLK for every converter on the board, so supply noise
@@ -596,6 +638,27 @@ is made quiet. Both are required, and only §7.4 survives a fault.
 
 This was implicit in v0.1's "no audible pop is an acceptance criterion, not a nice-to-have" and is
 now explicit because it turned out to decide the mute topology outright (§6.4).
+
+**The analog rails fail in a safe order by construction** *(v1.3, F39)*. This is the same
+principle as the paragraph above, applied to the supply instead of the mute element, and it was
+a by-product of the topology rather than a goal of it — which is why it is written down here
+rather than left in the power section.
+
+The hazard is a **partial** rail failure, not a total one. The shunt mute element is held *off*
+by a bias derived from −13V5_A, so a state in which **+13V5_A dies while −13V5_A survives** is
+actively dangerous: the op-amps have one rail, their outputs slam to it, and the mute is being
+held open by the rail that is still alive. A total collapse is safe; this specific half-collapse
+is not.
+
+Two independent battery-fed converters can produce that state and sit in it indefinitely.
+**The cascade cannot**: −15V5_A is derived from +15V5_A, so the negative rail has no source of
+energy once the positive one is gone. The dangerous combination is not made unlikely, it is made
+**unreachable** — the transient case during discharge is bounded by capacitor decay and is the
+same class as any orderly power-down.
+
+*Generalisation worth carrying to other boards:* **where a protective element is biased from one
+rail and the thing it protects runs from another, the rails must be ordered by construction, not
+by sequencing firmware.** Firmware is not present for the disorderly paths §7.4 exists to cover.
 
 **How much depth, and for how long** *(v0.4)*. The requirement is bounded, not indefinite, because
 **remote-out is itself fail-safe by construction** — §7.3 line 1 is an energised high-side driver

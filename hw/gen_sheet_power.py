@@ -48,7 +48,12 @@ def extract(path, name):
 # lib alias -> (file, symbol name in that file)
 SRC = {
     "ODSP12:LM61460-Q1": (PROJ_LIB, "LM61460-Q1"),
+    "ODSP12:LM5156-Q1":  (PROJ_LIB, "LM5156-Q1"),
     "ODSP12:LMK1C1104":  (PROJ_LIB, "LMK1C1104"),
+    "ODSP12:LT3094":     (PROJ_LIB, "LT3094"),
+    "Transistor_FET:Q_NMOS_DGS":       (STOCK_DIR + "/Transistor_FET.kicad_sym", "Q_NMOS_DGS"),
+    "Device:D_Schottky":               (STOCK_DIR + "/Device.kicad_sym", "D_Schottky"),
+    "Device:L_Coupled":                (STOCK_DIR + "/Device.kicad_sym", "L_Coupled"),
     "Regulator_Switching:TPS62823DLC": (STOCK_DIR + "/Regulator_Switching.kicad_sym", "TPS62823DLC"),
     "Regulator_Linear:LT3045xDD":      (STOCK_DIR + "/Regulator_Linear.kicad_sym", "LT3045xDD"),
     "Analog_ADC:ADS1015IDGS":          (STOCK_DIR + "/Analog_ADC.kicad_sym", "ADS1015IDGS"),
@@ -74,11 +79,30 @@ def buck(ref, x, y, vin, vout, fbnet, pgnet, ennet, sw, rt):
 # LT3045xDD actual map, read as name+number PAIRS from one regex match rather than two
 # zipped lists (see ledger -- the zipped version silently permuted every name):
 #   1 IN  2 IN  3 EN/UV  4 PG  5 ILIM  6 PGFB  7 SET  8 GND  9 OUTS  10 OUT  11 GND
-def lt3045(ref, x, y, vin, vout, en=None):
+def lt3045(ref, x, y, vin, vout, en=None, pg=None, pgfb=None):
+    # ILIM (5) -> GND, the datasheet's own "not needed" disposition. See F40: this pin was
+    # previously carrying a 20k placeholder, and the scale factor is 150mA*kOhm / R_ILIM, so
+    # 20k programmed a 7.5 mA limit on rails that must deliver 15-200 mA. The datasheet gives
+    # the worked example directly -- "a 1k resistor programs 150mA". Tied to GND the pin can
+    # never reach its 300 mV threshold and the internal limit governs, which is what we want
+    # while V-17 (AKM AVDD currents) is still open: do not program a limit against an unknown load.
     return (ref, "Regulator_Linear:LT3045xDD", x, y, "LT3045EDD", {
-        "1": vin, "2": vin, "3": en or vin, "4": f"{ref}_PG", "5": f"{ref}_ILIM",
-        "6": vout, "7": f"{ref}_SET", "8": GND, "11": GND,
+        # PGFB (6) -> OUT is the datasheet's own disposition when fast start-up is unused
+        # ("tie PGFB to IN or to OUT for output voltages above 300mV"), and it explicitly
+        # DISABLES power good. The five housekeeping LDOs take that; U15 gets a real divider
+        # because F39 asked for +/-13V5_A to have a sequencing hook it did not have before.
+        "1": vin, "2": vin, "3": en or vin, "4": pg or f"{ref}_PG", "5": GND,
+        "6": pgfb or vout, "7": f"{ref}_SET", "8": GND, "11": GND,
         "9": vout, "10": vout})
+
+# LT3094 pin map -- ADI Rev. B p.15, verified. NOT a mirror of the LT3045 beside it:
+#   1,2 IN  3 EN/UV  4 PG  5 PGFB  6 ILIM  7 VIOC  8 SET  9 GND  10 OUTS  11,12 OUT  EP=IN
+def lt3094(ref, x, y, vin, vout, en, pgfb, pg):
+    return (ref, "ODSP12:LT3094", x, y, "LT3094EDD", {
+        "1": vin, "2": vin, "EP": vin,          # EP IS IN. Not a typo, not a copy of the LT3045.
+        "3": en, "4": pg, "5": pgfb, "6": GND,  # ILIM -> GND, same reasoning as F40 above
+        "7": None,                              # VIOC unused -> datasheet says FLOAT it (F28)
+        "8": f"{ref}_SET", "9": GND, "10": vout, "11": vout, "12": vout})
 
 PLACE = [
     buck("U2", 40, 40, "VBATT_PROT", "+5V_D",  "FB_5V_D",  "PG_5V_D",  "VBATT_PROT", "SW_5V_D",  "RT_U2"),
@@ -110,12 +134,40 @@ PLACE = [
     # when PG is high-Z or +3V3_D is absent.
     ("R2", "Device:R", 340, 200, "100k", {"1": "+3V3_D", "2": "EN_3V3_PLL"}),
     ("R3", "Device:R", 370, 200, "100k", {"1": "EN_3V3_PLL", "2": GND}),
+    # ---------------- F39: the +/-13V5_A block ----------------
+    # SEPIC -> +15V5_A.  LM5156-Q1 pin map: 1 BIAS 2 VCC 3 GATE 4 GND 5 CS 6 COMP
+    #                    7 DITHOFF 8 FB 9 SS 10 RT 11 PGOOD 12 UVLO/SYNC/EN  EP=GND
+    # DITHOFF is driven through a stuffing pair, not strapped: V-26 decree is dither OFF.
+    ("U13", "ODSP12:LM5156-Q1", 40, 560, "LM5156QDSSRQ1", {
+        "1": "VBATT_PROT", "2": "U13_VCC", "3": "U13_GATE", "4": GND, "EP": GND,
+        "5": "U13_CS", "6": "U13_COMP", "7": "DITHOFF_U13", "8": "FB_15V5_A",
+        "9": "U13_SS", "10": "RT_U13", "11": "PG_15V5_A", "12": "UVLO_U13"}),
+    # Inverting buck-boost -> -15V5_A, per SNVA856: a BUCK with its ground pin tied to the
+    # negative rail. Every "GND" pin below is therefore -15V5_A, and the part's regulated
+    # output node is SYSTEM ground. This is the whole trick; misreading it inverts the block.
+    ("U14", "ODSP12:LM61460-Q1", 150, 560, "LM61460AQRJRRQ1", {
+        "8": "+15V5_A", "12": "+15V5_A",
+        "3": "-15V5_A", "9": "-15V5_A", "11": "-15V5_A",
+        "1": "-15V5_A",          # BIAS: datasheet -- "if output voltage is above 12 V,
+                                 # connect this pin to ground." Ours is 15.4 V. Also keeps
+                                 # BIAS off a node 0.6 V from its 16 V abs max.
+        "2": "U14_VCC", "10": "SW_N15V5", "14": "U14_CBOOT", "13": "U14_RBOOT",
+        "4": "FB_N15V5_A", "6": "RT_U14", "7": "EN_N15V5",
+        "5": None}),             # PGOOD referenced to -15V5_A: a +3V3_D pull-up would sit
+                                 # 18.8 V above the pin's own ground against a 20 V abs max.
+                                 # The negative rail's power-good comes from U16 instead,
+                                 # which is system-referenced and needs no level shifter.
+    lt3045("U15", 260, 560, "+15V5_A", "+13V5_A", en="EN_13V5P", pg="PG_13V5P",
+           pgfb="PGFB_13V5P"),
+    lt3094("U16", 370, 560, "-15V5_A", "-13V5_A", en="EN_13V5N",
+           pgfb="PGFB_13V5N", pg="PG_13V5N"),
 ]
 # PG_3V3_D is the open-drain pull-down onto the same node
 PLACE.append(("R4", "Device:R", 400, 200, "0R", {"1": "PG_3V3_D", "2": "EN_3V3_PLL"}))
 
 TESTPOINTS = ["VBATT_PROT", "+5V_D", "+3V3_D", "+6V2_A", "+1V2_CORE", "+5V_A",
-              "+3V3_A", "+3V3_CLK", "+3V3_PLL", "+3V6_BT"]
+              "+3V3_A", "+3V3_CLK", "+3V3_PLL", "+3V6_BT",
+              "+15V5_A", "-15V5_A", "+13V5_A", "-13V5_A"]
 
 # ---------------------------------------------------------------- passive pass
 # Reference voltages read from datasheets, not assumed (M2):
@@ -207,9 +259,101 @@ for ref, vout, vin, rail, py in (("U6", 5.0, "+6V2_A", "+5V_A", 410),
         passive("C", 60,  py, "22uF",  rail, GND),
         passive("R", 80,  py, rs_t,    f"{ref}_SET", GND),
         passive("C", 100, py, "4.7uF", f"{ref}_SET", GND),
-        passive("R", 120, py, "20k",   f"{ref}_ILIM", GND),
+        # (F40) the 20k ILIM resistor that used to sit here is GONE, not re-valued.
+        # ILIM now ties straight to GND at the symbol. See the lt3045() comment.
     ]
+
+# ---------------------------------------------------------------- F39: +/-13V5_A block
+# Divider maths uses the SAME helper and the SAME reference as the bucks above: the
+# LM5156-Q1's FB reference is 1.000 V +/-1% (T1-75), identical to the LM61460's, so the
+# SEPIC and the IBB take an identical divider. One value pair, drawn twice.
+(RT15, RT15_T), (RB15, RB15_T), V15 = lm_divider(15.5)
+# LDO setpoints: Vout = 100 uA * RSET on BOTH parts (same SET architecture, +/-1% on ISET).
+# 13.5 V / 100 uA = 135 kOhm exactly -- and 135k IS NOT AN E96 VALUE (E96 goes 133, 137).
+# It exists in E192, so it is specified as 135k 0.1%. The 0.1% buys the VALUE, not accuracy:
+# ISET's own +/-1% dominates the stack either way. A cost pass that "normalises" this to 1%
+# will find the value does not exist -- which is why the reason is written on the sheet.
+RSET_135K = "135k 0.1%"
+PASSIVES += [
+    # --- SEPIC power stage (U13). Vin -> L1a -> A; Q1 A->CS; Rs CS->GND;
+    #     Cs A->B; L1b B->GND; D1 B->+15V5_A.  L1a/L1b are ONE coupled part.
+    passive("C", 40,  600, "10uF/50V",  "VBATT_PROT", GND),
+    ("Q1", "Transistor_FET:Q_NMOS_DGS", 100, 600, "80V N-FET (F38)",
+        {"1": "SEPIC_A", "2": "U13_GATE", "3": "U13_CS"}),
+    passive("R", 130, 600, "25m",       "U13_CS", GND),        # Rs: 100 mV / 25 m = 4 A peak limit
+    passive("C", 160, 600, "4.7uF/50V", "SEPIC_A", "SEPIC_B"), # Cs -- carries full ripple RMS
+    ("D1", "Device:D_Schottky", 190, 600, "60V 3A Schottky (F38)",
+        {"1": "SEPIC_B", "2": "+15V5_A"}),
+    passive("C", 220, 600, "22uF/25V",  "+15V5_A", GND),
+    passive("R", 250, 600, "9.09k",     "RT_U13", GND),        # 2200 kHz typ, T1-75 datasheet point
+    passive("C", 280, 600, "1uF",       "U13_VCC", GND),
+    passive("C", 310, 600, "22nF",      "U13_SS", GND),
+    passive("R", 340, 600, RT15_T,      "+15V5_A", "FB_15V5_A"),
+    passive("R", 370, 600, RB15_T,      "FB_15V5_A", GND),
+    passive("R", 400, 600, "100k",      "PG_15V5_A", "+3V3_D"),  # PGOOD is open-drain
+    # DITHOFF stuffing pair (V-26 decree): populated leg to VCC = dither OFF.
+    passive("R", 430, 600, "10k",       "DITHOFF_U13", "U13_VCC"),
+    passive("R", 460, 600, "10k DNP",   "DITHOFF_U13", GND),
+    # UVLO divider on VBATT_PROT: sets the SEPIC's start threshold (12 V system).
+    passive("R", 490, 600, "100k",      "VBATT_PROT", "UVLO_U13"),
+    passive("R", 520, 600, "13.7k",     "UVLO_U13", GND),
+    # --- IBB (U14). Note the caps that span the FULL 31 V, not 15.5 V. ---
+    passive("C", 40,  640, "10uF/50V",  "+15V5_A", "-15V5_A"),   # Cin spans Vin to IC ground
+    passive("C", 70,  640, "22uF/50V",  GND, "-15V5_A"),         # Cout: system GND to -15V5_A
+    passive("C", 100, 640, "100nF",     "SW_N15V5", "U14_CBOOT"),
+    passive("R", 130, 640, "0R",        "U14_CBOOT", "U14_RBOOT"),
+    passive("R", 160, 640, "5.76k",     "RT_U14", "-15V5_A"),    # 2.2 MHz, V-25 analysis carries over
+    passive("C", 190, 640, "1uF",       "U14_VCC", "-15V5_A"),
+    passive("R", 220, 640, RT15_T,      GND, "FB_N15V5_A"),      # "output" node IS system ground
+    passive("R", 250, 640, RB15_T,      "FB_N15V5_A", "-15V5_A"),
+    passive("R", 280, 640, "100k",      "+15V5_A", "EN_N15V5"),  # self-enable from its own input
+    passive("R", 310, 640, "13.7k",     "EN_N15V5", "-15V5_A"),
+    # --- post-regulators ---
+    passive("C", 40,  680, "10uF/25V",  "+15V5_A", GND),
+    passive("C", 70,  680, "22uF/25V",  "+13V5_A", GND),
+    passive("R", 100, 680, RSET_135K,   "U15_SET", GND),
+    passive("C", 130, 680, "4.7uF",     "U15_SET", GND),         # 0.8 uVrms needs C_SET = 4.7 uF
+    passive("R", 160, 680, "107k",      "+15V5_A", "EN_13V5P"),
+    passive("R", 190, 680, "10k",       "EN_13V5P", GND),
+    passive("R", 220, 680, "100k",      "PG_13V5P", "+3V3_D"),
+    passive("C", 40,  720, "10uF/25V",  "-15V5_A", GND),
+    passive("C", 70,  720, "22uF/25V",  "-13V5_A", GND),
+    passive("R", 100, 720, RSET_135K,   "U16_SET", GND),
+    passive("C", 130, 720, "4.7uF",     "U16_SET", GND),
+    passive("R", 160, 720, "105k",      "-15V5_A", "EN_13V5N"),  # EN/UV is bidirectional: turns
+    passive("R", 190, 720, "10k",       "EN_13V5N", GND),        # on at 1.26 V BELOW ground
+    passive("R", 220, 720, "392k",      "-13V5_A", "PGFB_13V5N"),
+    passive("R", 250, 720, "10k",       "PGFB_13V5N", GND),
+    passive("R", 280, 720, "100k",      "PG_13V5N", "+3V3_D"),
+    passive("R", 310, 720, "412k",      "+13V5_A", "PGFB_13V5P"),
+    passive("R", 340, 720, "10k",       "PGFB_13V5P", GND),
+]
+# The SEPIC's coupled inductor: ONE part, two windings. Placed as a single L_Coupled so the
+# BOM cannot count it twice and so the coupling is visible on the sheet rather than implied
+# by two adjacent inductors that happen to share a value.
+PLACE.append(("L1", "Device:L_Coupled", 70, 600, "10uH coupled, Isat >= 4A (F38)",
+              {"1": "VBATT_PROT", "2": "SEPIC_A", "3": "SEPIC_B", "4": GND}))
+# IBB inductor: SW to SYSTEM ground, because system ground is this converter's output node.
+PASSIVES.append(passive("L", 340, 640, "10uH PROVISIONAL", "SW_N15V5", GND))
 PLACE += PASSIVES
+
+# Every global label this sheet emits, keyed by (x, y). Connectivity here is BY LABEL at a
+# pin endpoint, so two labels sharing a coordinate is a short -- and a silent one: it passes
+# the F28 pin-coverage assertions, passes the symbol assertions, and only shows up if someone
+# reads the netlist. It happened: growing TESTPOINTS from 10 to 14 pushed a third row onto the
+# U2 passive row and shorted +5V_D/+15V5_A, GND/+13V5_A and U2_CBOOT/-15V5_A at once.
+# A completeness check sees omission, never collision (M6) -- so this is the collision check.
+LABELS = {}
+def emit_label(net, lx, ly, rot, just, uid):
+    prev = LABELS.get((lx, ly))
+    assert prev is None or prev == net, (
+        f"LABEL COLLISION at ({lx}, {ly}): '{prev}' and '{net}' would be shorted. "
+        f"Two nets cannot share a coordinate on a label-connected sheet.")
+    LABELS[(lx, ly)] = net
+    return [f'\t(global_label "{net}"', '\t\t(shape bidirectional)',
+            f'\t\t(at {lx} {ly} {rot})', '\t\t(fields_autoplaced yes)',
+            f'\t\t(effects (font (size 1.27 1.27)) (justify {just}))',
+            f'\t\t(uuid "{uid}")', '\t)']
 
 def place(ref, libid, x, y, val, nets):
     x, y = snap(x), snap(y)
@@ -234,10 +378,7 @@ def place(ref, libid, x, y, val, nets):
             continue
         rot = 180 if sx < 0 else 0
         just = "right" if sx < 0 else "left"
-        out += [f'\t(global_label "{nets[num]}"', '\t\t(shape bidirectional)',
-                f'\t\t(at {lx} {ly} {rot})', '\t\t(fields_autoplaced yes)',
-                f'\t\t(effects (font (size 1.27 1.27)) (justify {just}))',
-                f'\t\t(uuid "{u("l" + ref + num)}")', '\t)']
+        out += emit_label(nets[num], lx, ly, rot, just, u("l" + ref + num))
     return "\n".join(out)
 
 NOTE = (
@@ -265,14 +406,80 @@ NOTE2 = (
     "is left undispositioned in the meantime (F28)."
 )
 
+NOTE3 = (
+    "+/-13V5_A BLOCK (F39, decreed 2026-08-16). Read this before changing any value here.\\n"
+    "\\n"
+    "WHY THE CASCADE IS FORCED, not preferred:\\n"
+    "  An inverting buck-boost stresses its regulator at VIN + |VOUT| (SNVA856 s4.1). On\\n"
+    "  VBATT_PROT that is >= 26.7 + 15.5 = 42.2 V the instant the TVS conducts at all,\\n"
+    "  against the LM61460-Q1's 42 V ABSOLUTE MAX. True for ANY 12 V-system TVS, because a\\n"
+    "  standoff above 24 V breaks down above 26.5 V. Fed from +15V5_A it sees a fixed 31 V.\\n"
+    "  DO NOT 'simplify' U14 by moving its input to the battery.\\n"
+    "  A plain boost on the positive rail is excluded for the mirror reason: TI states that\\n"
+    "  boost converters pass the input straight through the high-side diode when VOUT <= VIN\\n"
+    "  (SNVSBI7B s9.3.8), which would put a clamped load dump on a 20 V LDO input.\\n"
+    "\\n"
+    "WHY f_sw = 2.2 MHz on BOTH stages -- three independent legs:\\n"
+    "  1. LT3045 PSRR has a NOTCH at 500 kHz-1 MHz and RECOVERS by 2 MHz: at 2 V headroom\\n"
+    "     it reads 77 / 72 / 70 / 84 dB at 100k / 500k / 1M / 2M (Rev. D curve G45).\\n"
+    "     The part is BETTER at 2.2 MHz than at half that. This is why LM5175-Q1 (4-switch\\n"
+    "     buck-boost, nicer magnetics) was rejected -- it tops out at 600 kHz, in the notch.\\n"
+    "  2. LM5156-Q1 dither triangle runs at 0.156 x f_sw = 343 kHz. At a 100 kHz f_sw it\\n"
+    "     would land at 15.6 kHz -- INSIDE the audio band.\\n"
+    "  3. Nothing below the fundamental, so no harmonic falls in the AM band. A 440 kHz\\n"
+    "     choice would put its 2nd and 3rd harmonics squarely in it.\\n"
+    "\\n"
+    "NOISE BUDGET vs the [HARD] 50 uVrms, 20 Hz-20 kHz. The two rails are NOT symmetric:\\n"
+    "  LT3094's PSRR curve is its own (G47), not the LT3045's. At 2 V headroom it reads\\n"
+    "  76 / 66 / 72 / 72 dB -- it PEAKS at 100 kHz, where the LT3045 peaks at 2 MHz, and it\\n"
+    "  DECLINES as headroom grows past ~2 V, which is the opposite behaviour. So:\\n"
+    "     +13V5_A : 0.8 (LDO) + 1.8 (50 mVpp ripple thru 80 dB) + 0.35 -> RSS 2.0 uVrms\\n"
+    "     -13V5_A : 0.8 (LDO) + 4.4 (50 mVpp ripple thru 72 dB) + 0.20 -> RSS 4.5 uVrms\\n"
+    "  Margin 28 dB and 21 dB. The budget is carried by the LDOs' AUDIO-BAND PSRR\\n"
+    "  (LT3045 110 dB / LT3094 >=93 dB at 20 kHz), NOT by f_sw -- which is why V-27's\\n"
+    "  unspecified pulse-skip onset cannot break it. Headroom target 1.9-2.0 V is a PSRR\\n"
+    "  specification, NOT a dropout one: dropout is 260 mV (LT3045) / 235 mV (LT3094).\\n"
+    "\\n"
+    "RSET = 135k ON BOTH RAILS: 13.5 V / 100 uA. 135k IS NOT AN E96 VALUE -- E96 runs\\n"
+    "  133, 137. It is E192, hence 0.1%. The 0.1% buys the VALUE, not the accuracy; ISET's\\n"
+    "  own +/-1% dominates. Normalising this to 'a 1% part' finds no such part exists.\\n"
+    "\\n"
+    "U16 EXPOSED PAD IS **IN**, NOT GND. U15 beside it has EP = GND. Same vendor, adjacent\\n"
+    "  part numbers, sold as a matched +/- pair, same SET architecture -- and DIFFERENT lead\\n"
+    "  counts with OPPOSITE pad nets (LT3045 DD = DFN-10, EP=GND; LT3094 DD = DFN-12, EP=IN).\\n"
+    "  Mirroring the positive channel to lay out the negative one shorts IN to GND.\\n"
+    "\\n"
+    "U14 IS A BUCK WIRED AS AN INVERTER (SNVA856). Its GND pins sit at -15V5_A and its\\n"
+    "  regulated output node is SYSTEM GROUND. Its input caps therefore span the full 31 V,\\n"
+    "  not 15.5 V -- 50 V parts, and the DC-bias derating trap applies with force here.\\n"
+    "  BIAS -> -15V5_A is the datasheet's instruction for outputs above 12 V, not a shortcut."
+)
+NOTE4 = (
+    "F40 -- CORRECTION APPLIED THIS PASS, recorded because the value looked plausible.\\n"
+    "Every LT3045 on this sheet carried R_ILIM = 20k. The LT3045 scale factor is\\n"
+    "150mA*kOhm / R_ILIM, and the datasheet gives the worked example outright: '1k programs\\n"
+    "150 mA'. So 20k programmed a 7.5 mA CURRENT LIMIT on rails budgeted 15-200 mA --\\n"
+    "including +3V6_BT feeding a radio at ~100 mA. All five would have current-limited.\\n"
+    "ILIM now ties to GND, which is the datasheet's own disposition when the programmable\\n"
+    "limit is unused, and leaves the internal limit governing. Deliberately NOT programmed:\\n"
+    "V-17 (AKM AVDD currents) is still open, and a limit set against an unknown load is the\\n"
+    "same mistake with a better-looking number.\\n"
+    "\\n"
+    "STILL PROVISIONAL ON THIS SHEET -- inductor values. The 10uH figures are placeholders\\n"
+    "from the first pass, not derivations; at 2.2 MHz a 5 V/6 A buck wants ~1-2.2 uH. They\\n"
+    "are marked PROVISIONAL and belong to the queued saturation-current pass, which must set\\n"
+    "them from ripple AND from Isat at low line -- not from RMS heating."
+)
+
 body = [place(*p) for p in PLACE]
+# Testpoints live in their own column clear of every device row, not tucked between them.
+# The previous layout interleaved them with the passive rows, which is what made the
+# collision above possible in the first place.
 for i, r in enumerate(TESTPOINTS):
-    x, y = snap(40 + (i % 5) * 60), snap(230 + (i // 5) * 12)
-    body.append(f'\t(global_label "{r}"\n\t\t(shape bidirectional)\n\t\t(at {x} {y} 0)\n'
-                f'\t\t(fields_autoplaced yes)\n'
-                f'\t\t(effects (font (size 1.27 1.27)) (justify left))\n'
-                f'\t\t(uuid "{u("tp" + r)}")\n\t)')
-for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2)]):
+    x, y = snap(700), snap(40 + i * 12)
+    body.append("\n".join(emit_label(r, x, y, 0, "left", u("tp" + r))))
+for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2),
+                                   (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4)]):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')

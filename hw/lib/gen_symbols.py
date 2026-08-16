@@ -118,6 +118,42 @@ LM61460 = [
     (1,"BIAS",P,1),
 ]
 
+# LM5156-Q1, 12-pin WSON with wettable flanks (DSS). TI SNVSBI7B Rev. B, Table 7-1 p.4,
+# cross-checked against Figure 7-1 on the same page -- 100% agreement, all 12 + EP.
+# "This pin must not be left floating. Connect to BIAS pin if not used." -- UVLO/SYNC/EN (12).
+# EP is an ELECTRICAL ground connection ("must be connected to GND"), not thermal-only.
+# DITHOFF (7): tied to VCC DISABLES dither; tied to GND ENABLES it. Note the polarity --
+# the pin name reads as an active-high disable and the datasheet confirms that reading.
+LM5156 = [
+    (1,"BIAS",P,1),(2,"VCC",PO,1),(3,"GATE",O,1),(4,"GND",P,1),
+    (5,"CS",I,1),(6,"COMP",O,1),(7,"DITHOFF",I,1),(8,"FB",I,1),
+    (9,"SS",PA,1),(10,"RT",PA,1),(11,"PGOOD",OC,1),(12,"UVLO/SYNC/EN",I,1),
+    ("EP","EP",P,1),
+]
+
+# LT3094, 12-lead DFN 3x3 (DD). ADI LT3094 Rev. B, Pin Functions p.15, cross-checked
+# against the Pin Configuration diagram p.3 -- 100% agreement, all 12 + EP.
+#
+# BUILT AS A PROJECT SYMBOL RATHER THAN TAKEN FROM STOCK, for two reasons:
+#   1. KiCad's LT3094xDD is an (extends "LT3093xMSE") alias, so its pin geometry lives under
+#      a different basename. Re-parenting it would leave child symbols whose names do not
+#      match the parent -- the exact shape of the silent-empty-schematic failure in the ledger.
+#   2. The EP fact below deserves to live in the symbol, not in a comment on a sheet.
+#
+# *** EP (pin 13) IS **IN**, NOT GND. *** The LT3045 sitting beside it on this same sheet has
+# EP = GND. The two parts are sold as a matched +/- pair, share the SET architecture and the
+# 100 uA reference, and have DIFFERENT lead counts and OPPOSITE exposed-pad nets:
+#     LT3045 "DD" = DFN-10 + EP,  EP = GND,  pins 5/6/7 = ILIM/PGFB/SET, no VIOC
+#     LT3094 "DD" = DFN-12 + EP,  EP = IN,   pins 5/6/7 = PGFB/ILIM/VIOC
+# Mirroring the positive channel to draw the negative one shorts IN to GND through the pad.
+LT3094 = [
+    (1,"IN",P,1),(2,"IN",P,1),("EP","EP (=IN)",P,1),
+    (3,"EN/UV",I,1),(4,"PG",OC,1),(5,"PGFB",I,1),(6,"ILIM",PA,1),
+    (7,"VIOC",O,1),(8,"SET",I,1),(9,"GND",P,1),(10,"OUTS",I,1),
+    (11,"OUT",PO,1),(12,"OUT",PA,1),   # one node internally: pin 11 is the source, 12 is
+]                                      # passive. Typing both power_out makes ERC read them
+                                       # as two supplies shorted together (pin_to_pin).
+
 # INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
 INA1650 = [
     (1,"VCC",P,1),(14,"VEE",P,1),
@@ -159,6 +195,16 @@ PARTS = {
         fp="ODSP12:TI_VQFN-HR-14_RJR",
         desc="3-36 V, 6 A synchronous buck, low EMI, AEC-Q100",
         ds="TI SNVSB70F"),
+    "LM5156-Q1": dict(pins=LM5156, n=12, ep=True, units=1,
+        value="LM5156QDSSRQ1", mfr="Texas Instruments",
+        fp="ODSP12:TI_WSON-12_3x2mm_DSS",
+        desc="3.5-60 V boost/SEPIC/flyback controller, 2.2 MHz, DRSS, AEC-Q100",
+        ds="TI SNVSBI7B Rev. B"),
+    "LT3094": dict(pins=LT3094, n=12, ep=True, units=1,
+        value="LT3094EDD", mfr="Analog Devices",
+        fp="ODSP12:ADI_DFN-12-1EP_3x3mm_P0.45mm_EP_IS_IN",
+        desc="-20 V, 500 mA ultralow-noise negative LDO. EXPOSED PAD IS IN, NOT GND",
+        ds="ADI LT3094 Rev. B"),
     "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
         value="INA1650PW", mfr="Texas Instruments",
         fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",

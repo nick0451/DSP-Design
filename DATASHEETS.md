@@ -38,6 +38,7 @@ Retrieved 2026-08-15.
 | **LM5175-Q1** 4-switch buck-boost | `LM5175-Q1_TI.pdf` | 38 | `7F53B15F7B5D0F8D` | ti.com — *held for the elimination* |
 | **TPS55340-Q1** boost/SEPIC | `TPS55340-Q1_TI.pdf` | 40 | `1C9A8605568C0ED3` | ti.com **Rev. C** — *held for the elimination* |
 | **SNVA856** *(app note)* | `SNVA856_TI_InvertingBuckBoost.pdf` | 20 | `806345F00EA5D4BD` | ti.com **Rev. B** — "Working With Inverting Buck-Boost Converters" |
+| **LT3094** neg. LDO | `LT3094.pdf` | 34 | `C82438CA3359A588` | analog.com **Rev. B** — operator-supplied 2026-08-16 |
 
 All twenty-one are manufacturer-published documents, not aggregator copies.
 
