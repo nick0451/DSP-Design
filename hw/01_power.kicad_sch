@@ -697,6 +697,791 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "Transistor_FET:Q_PMOS_DGS"
+		(pin_names
+			(offset 0)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "Q"
+			(at 5.08 1.905 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Q_PMOS_DGS"
+			(at 5.08 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 5.08 2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "P-MOSFET transistor, drain/gate/source"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "transistor PMOS P-MOS P-MOSFET"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "Q_PMOS_DGS_0_1"
+			(polyline
+				(pts
+					(xy 0.254 1.905) (xy 0.254 -1.905)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.254 0) (xy -2.54 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.762 2.286) (xy 0.762 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.762 1.778) (xy 3.302 1.778) (xy 3.302 -1.778) (xy 0.762 -1.778)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.762 0.508) (xy 0.762 -0.508)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.762 -1.27) (xy 0.762 -2.286)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 1.651 0)
+				(radius 2.794)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.286 0) (xy 1.27 0.381) (xy 1.27 -0.381) (xy 2.286 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 2.54) (xy 2.54 1.778)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(circle
+				(center 2.54 1.778)
+				(radius 0.254)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(circle
+				(center 2.54 -1.778)
+				(radius 0.254)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.54 -2.54) (xy 2.54 0) (xy 0.762 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 2.921 -0.381) (xy 3.683 -0.381)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 3.302 -0.381) (xy 2.921 0.254) (xy 3.683 0.254) (xy 3.302 -0.381)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "Q_PMOS_DGS_1_1"
+			(pin passive line
+				(at 2.54 5.08 270)
+				(length 2.54)
+				(name "D"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -5.08 0 0)
+				(length 2.54)
+				(name "G"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 2.54 -5.08 90)
+				(length 2.54)
+				(name "S"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Device:Fuse"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "F"
+			(at 2.032 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Fuse"
+			(at -1.905 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -1.778 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Fuse"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "fuse"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "*Fuse*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "Fuse_0_1"
+			(rectangle
+				(start -0.762 -2.54)
+				(end 0.762 2.54)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0 2.54) (xy 0 -2.54)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "Fuse_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Device:D_TVS"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 1.016)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "D"
+			(at 0 2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D_TVS"
+			(at 0 -2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "diode TVS thyrector"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "D_TVS_0_1"
+			(polyline
+				(pts
+					(xy -2.54 1.27) (xy -2.54 -1.27) (xy 2.54 1.27) (xy 2.54 -1.27) (xy -2.54 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.508 1.27) (xy 0 1.27) (xy 0 -1.27) (xy -0.508 -1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 0) (xy -1.27 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "D_TVS_1_1"
+			(pin passive line
+				(at -3.81 0 0)
+				(length 2.54)
+				(name "A1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 3.81 0 180)
+				(length 2.54)
+				(name "A2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "Device:D_Zener"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 1.016)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "D"
+			(at 0 2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D_Zener"
+			(at 0 -2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Zener diode"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "diode"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "D_Zener_0_1"
+			(polyline
+				(pts
+					(xy -1.27 -1.27) (xy -1.27 1.27) (xy -0.762 1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 0) (xy -1.27 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "D_Zener_1_1"
+			(pin passive line
+				(at -3.81 0 0)
+				(length 2.54)
+				(name "K"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 3.81 0 180)
+				(length 2.54)
+				(name "A"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "Device:D_Schottky"
 		(pin_numbers
 			(hide yes)
@@ -7505,6 +8290,292 @@
 		(uuid "4a134584-9518-52f2-bb15-bc9bea80cbe0")
 	)
 	(symbol
+		(lib_id "Device:Fuse")
+		(at 39.37 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6bdd4e0c-598f-582e-8825-bd4b586a2b01")
+		(property "Reference" "F1" (at 39.37 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "5A" (at 39.37 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "F1") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_IN"
+		(shape bidirectional)
+		(at 39.37 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "eb4598ef-2da0-5494-918a-c796feff0cc1")
+	)
+	(global_label "VBATT_FUSED"
+		(shape bidirectional)
+		(at 39.37 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "02c5c328-ea73-59dd-945d-3c2bd78234e5")
+	)
+	(symbol
+		(lib_id "Device:D_Zener")
+		(at 80.01 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ef62ffb4-4083-59a6-beb3-e9d3d68fdfce")
+		(property "Reference" "D2" (at 80.01 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "SMBJ24A uni (see F42)" (at 80.01 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "D2") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_FUSED"
+		(shape bidirectional)
+		(at 76.2 779.78 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "919e1fb9-804e-5db1-bf82-6192a1c68097")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 83.82000000000001 779.78 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "51631994-4dc8-5252-b8b3-a89f7a0952e7")
+	)
+	(symbol
+		(lib_id "Transistor_FET:Q_PMOS_DGS")
+		(at 119.38 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7ce62f9f-98e3-5064-afcb-37a8c7e762e0")
+		(property "Reference" "Q2" (at 119.38 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "60V P-FET (F38)" (at 119.38 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "Q2") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_FUSED"
+		(shape bidirectional)
+		(at 121.92 774.7 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "aac35476-4079-5bad-8105-bb7ac59afbe3")
+	)
+	(global_label "VBATT_GATE"
+		(shape bidirectional)
+		(at 114.3 779.78 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "a0d75247-1d7f-5bdc-aa9a-c29d3776d9f1")
+	)
+	(global_label "VBATT_REV"
+		(shape bidirectional)
+		(at 121.92 784.86 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "b9e28cc5-221d-52f5-810c-4473da761967")
+	)
+	(symbol
+		(lib_id "Device:D_Zener")
+		(at 160.02 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c804bbc7-677e-5c31-b92c-dfbf2fe7fe50")
+		(property "Reference" "D3" (at 160.02 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "15V" (at 160.02 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "D3") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_GATE"
+		(shape bidirectional)
+		(at 156.21 779.78 180)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify right))
+		(uuid "7bf1a7fe-da29-5c35-8621-231913b07535")
+	)
+	(global_label "VBATT_REV"
+		(shape bidirectional)
+		(at 163.83 779.78 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "c92c21ea-d716-5a89-a8f7-9664093e572b")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 199.39000000000001 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2960467f-fd6e-5b6a-a33b-f0e2ffb741a2")
+		(property "Reference" "R195" (at 199.39000000000001 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "100k" (at 199.39000000000001 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "R195") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_GATE"
+		(shape bidirectional)
+		(at 199.39000000000001 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "84fbc49c-c7f2-5094-8a6b-b60394dba795")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 199.39000000000001 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "fff9f599-e3b4-571c-ab7b-52c0c76104e5")
+	)
+	(symbol
+		(lib_id "Device:L")
+		(at 240.03 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "976ac28a-4b24-5c3d-902f-4915d8f8757b")
+		(property "Reference" "L196" (at 240.03 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "4.7uH 5A PROVISIONAL" (at 240.03 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "L196") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_REV"
+		(shape bidirectional)
+		(at 240.03 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "29b96ea8-50db-5798-8920-948a7c1edc6a")
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 240.03 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "a14f6795-4510-5b12-b6f0-11a135bc99c8")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 279.4 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f0ae3551-5df2-5752-b70a-68c00dfbe91a")
+		(property "Reference" "C197" (at 279.4 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "22uF/50V" (at 279.4 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "C197") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 279.4 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "ec28f834-11ab-50b8-9b7b-224e6b305422")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 279.4 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "2dfd5a77-3595-5929-9d5b-aefe64974b4f")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 320.04 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "15e34e1a-61b1-55b9-ad0f-9baa230df001")
+		(property "Reference" "R198" (at 320.04 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "0.68R" (at 320.04 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "R198") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_PROT"
+		(shape bidirectional)
+		(at 320.04 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "5c967627-5d64-5b5f-a4a9-7c67b54197c7")
+	)
+	(global_label "VBATT_DAMP"
+		(shape bidirectional)
+		(at 320.04 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "f89ab91c-6397-51ac-a2ce-34a47f25acd4")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 359.41 779.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5fcc0628-a8e9-57d5-90c6-69b7a67f4a1b")
+		(property "Reference" "C199" (at 359.41 757.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "47uF/50V" (at 359.41 760.78 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "C199") (unit 1))
+			)
+		)
+	)
+	(global_label "VBATT_DAMP"
+		(shape bidirectional)
+		(at 359.41 775.97 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "90328b2e-41f8-53c7-8f77-d9f1f808486a")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 359.41 783.59 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "75b9cc01-691e-59dd-b48f-37656c796c79")
+	)
+	(symbol
 		(lib_id "Device:L")
 		(at 340.36 640.08 0)
 		(unit 1)
@@ -7512,12 +8583,12 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "f8d933ac-abfc-5c1a-83b0-3cf530adde68")
-		(property "Reference" "L195" (at 340.36 618.08 0) (effects (font (size 1.27 1.27))))
+		(uuid "983c3952-6975-581e-ba18-a547791b27bf")
+		(property "Reference" "L200" (at 340.36 618.08 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "10uH PROVISIONAL" (at 340.36 621.08 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
-				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "L195") (unit 1))
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "L200") (unit 1))
 			)
 		)
 	)
@@ -7526,14 +8597,14 @@
 		(at 340.36 636.27 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "f5d6e72f-f145-5c64-8de2-00439590caff")
+		(uuid "8476ae70-9da2-5ade-9ef0-fb75c236a30d")
 	)
 	(global_label "GND"
 		(shape bidirectional)
 		(at 340.36 643.89 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "e748734d-4fe9-5953-b2eb-ff1d956e8864")
+		(uuid "f629c3c3-3a58-511c-a586-b99fb8b2be2d")
 	)
 	(global_label "VBATT_PROT"
 		(shape bidirectional)
@@ -7665,6 +8736,18 @@ because the convention is to make the whole inequality visible, not only the tig
 		(at 560.07 699.77 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "a155c2c0-2f1a-56e3-a056-604e5501836d")
+	)
+	(text "HEADROOM ON +/-15V5_A IS A JOINT OPTIMUM SERVING TWO CURVES WITH OPPOSITE SLOPES.\nDo not re-tune the intermediates as if this were a free parameter.\n  LT3045  (+13V5_A): PSRR COLLAPSES below ~1 V headroom -- 84 dB at 2 V, 62 dB at 1 V,\n                     off a cliff below that. It wants MORE headroom.\n  LT3094  (-13V5_A): PSRR PLATEAUS at ~1.5 V and then DECLINES as headroom grows --\n                     73 dB at 1.5 V, 72 dB at 2.0 V, 70.5 at 2.5 V, 68 at 4 V.\n                     It wants LESS headroom.\n~1.9-2.0 V is where both are near their best. MOVING IT HELPS ONE REGULATOR AND HURTS\nTHE OTHER, in opposite directions, which is not a trade anyone re-derives by accident.\nRaising it also costs dissipation on both (2 V x 250 mA = 500 mW each). Sources:\nLT3045 Rev. D curve G45, LT3094 Rev. B curve G47 -- read independently, not inherited."
+		(exclude_from_sim no)
+		(at 560.07 759.46 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "f18add56-1a59-5f35-818c-645545566a99")
+	)
+	(text "VBATT_PROT FRONT END -- the five claims, written out so they can be checked, not re-derived.\n\n1. FUSE. F1 = 5 A, BOARD-MOUNTED. Board draw ~20 W; at 9 V crank that is 2.2 A, so 5 A\n   carries >2x margin without nuisance-blowing on inrush. ADDITIONAL REQUIREMENT ON THE\n   INSTALL, and it belongs in the manual, not in someone's head: upstream harness fuse\n   <= 15 A, for selectivity -- ours must clear first. An assumed fuse is an unstated\n   requirement wearing someone else's part.\n\n2. TVS ARITHMETIC -- AND IT DOES NOT CLOSE. SEE F42, THIS IS AN ESCALATION.\n   SMBJ24A: standoff 24 V, breakdown 26.7-29.5 V, clamp 38.9 V @ 15.4 A, 600 W/10-1000us.\n   STANDOFF AXIS -- fine. 24 V clears 16 V max operating and a 24 V jump start; that is\n     evidently what the 24 V choice was sized for.\n   ENERGY AXIS -- FAILS. A suppressed load dump (ISO 16750-2, Us* = 35 V, td = 400 ms,\n     Ri = 0.5-4 ohm) sits ABOVE the 26.7 V breakdown, so the TVS conducts for the whole\n     400 ms. At Ri = 2 ohm holding ~31 V: I = (35-31)/2 = 2 A, P = 62 W, E = 24.8 J.\n     At Ri = 0.5 ohm: I = 8 A, P = 250 W, E = 100 J. Against 600 W for 1 ms = 0.6 J,\n     that is 40x to 165x over. THE PART IS DESTROYED, and the fuse clears afterwards.\n   So the design as drawn implicitly claims 'no load dump reaches this input'. That is\n   a SCOPE STATEMENT and it has not been made. Ladder in F42; footprint is DO-214AB (SMC)\n   so the more capable part stuffs without a respin.\n\n3. REVERSE STRATEGY -- SERIES FET, SEAMLESS, not a crowbar. Q2 blocks; nothing conducts;\n   the unit resumes when polarity is corrected, with no fuse to replace. This is why the\n   TVS sits on the BATTERY side of Q2: on the load side it would be unbiased in reverse\n   and protect nothing. Q2 stress, both polarities:\n     V_DS reverse  = battery reversed, worst case 24 V jump start reversed -> 24 V\n     V_DS forward  = ~0, Q2 is ON; the TVS holds the node, Q2 merely conducts the surge\n     -> 60 V part, >2x on the governing case.\n   GATE is the fragile pin, not the channel. Source can reach the 38.9 V clamp while the\n   gate is pulled to GND, i.e. V_GS = -38.9 V against a +/-20 V rating -> GATE DESTROYED.\n   D3 (15 V) clamps V_GS; R (100k) limits the zener current: (38.9-15)/100k = 239 uA.\n   D3 IS NOT OPTIONAL AND IS NOT A 'PROTECTION EXTRA' -- without it the FET dies on the\n   first transient it was fitted to survive.\n\n4. LC DAMPING vs THE CONVERTERS' NEGATIVE INCREMENTAL RESISTANCE (Middlebrook).\n   Three bucks and a SEPIC are CONSTANT-POWER loads: draw rises as the rail falls, which\n   is a negative incremental resistance and will happily ring an undamped input filter.\n     Load ~20 W. At 9 V crank:  R_neg = -V^2/P = -81/20 = -4.05 ohm  <-- the limit\n     L = 4.7 uH, C = 22 uF nominal -> ~10 uF EFFECTIVE at 14 V (DC-bias derating; use the\n       derated figure here, the nominal one is not the capacitor you have)\n     Z0 = sqrt(L/C) = sqrt(4.7u/10u) = 0.686 ohm ; f0 = 23.2 kHz\n   UNDAMPED, with ~10 mohm ESR:  Q = Z0/ESR = 68  ->  |Zout|peak = Q*Z0 = 47 ohm\n       47 ohm  >>  4.05 ohm   ->  CRITERION VIOLATED BY ~21 dB. This oscillates.\n   DAMPED, Rd = 0.68 ohm (= Z0) with Cd = 47 uF (>= 4x C, blocks DC so Rd burns nothing):\n       Q ~ 1  ->  |Zout|peak ~ 0.69 ohm  <<  4.05 ohm   ->  5.9x, 15.4 dB margin  OK\n   Rd AND Cd ARE A PAIR. Deleting Rd as 'a resistor doing nothing' restores the 47 ohm\n   peak. Replacing Cd with a plain bulk cap puts Rd across DC and burns it.\n   The alternator-whine filter and the stability network are THE SAME TWO COMPONENTS.\n\n5. CLAMP -> SWITCH-STRESS CHAIN, recorded as a consequence-check so a TVS change re-fires it\n   (M7). The SEPIC's FET rating was derived FROM this clamp, not chosen independently:\n       V_clamp(TVS) 38.9 V  +  V_out(SEPIC) 15.5 V  =  54.4 V switch stress  -> 80 V FET\n   IF THE TVS PN CHANGES, THIS NUMBER CHANGES AND Q1's RATING MUST BE RE-CHECKED.\n   An SMCJ36A (clamp 58.1 V) would put the SEPIC switch at 73.6 V and a 80 V FET at 92%\n   of rating -- i.e. the F42 decision reaches Q1, which is on the other side of the sheet."
+		(exclude_from_sim no)
+		(at 39.37 820.42 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "badac2fb-d3cd-50bb-a602-f537ec7bc1ce")
 	)
 	(embedded_fonts no)
 )

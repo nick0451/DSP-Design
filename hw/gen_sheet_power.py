@@ -52,6 +52,10 @@ SRC = {
     "ODSP12:LMK1C1104":  (PROJ_LIB, "LMK1C1104"),
     "ODSP12:LT3094":     (PROJ_LIB, "LT3094"),
     "Transistor_FET:Q_NMOS_DGS":       (STOCK_DIR + "/Transistor_FET.kicad_sym", "Q_NMOS_DGS"),
+    "Transistor_FET:Q_PMOS_DGS":       (STOCK_DIR + "/Transistor_FET.kicad_sym", "Q_PMOS_DGS"),
+    "Device:Fuse":                     (STOCK_DIR + "/Device.kicad_sym", "Fuse"),
+    "Device:D_TVS":                    (STOCK_DIR + "/Device.kicad_sym", "D_TVS"),
+    "Device:D_Zener":                  (STOCK_DIR + "/Device.kicad_sym", "D_Zener"),
     "Device:D_Schottky":               (STOCK_DIR + "/Device.kicad_sym", "D_Schottky"),
     "Device:L_Coupled":                (STOCK_DIR + "/Device.kicad_sym", "L_Coupled"),
     "Regulator_Switching:TPS62823DLC": (STOCK_DIR + "/Regulator_Switching.kicad_sym", "TPS62823DLC"),
@@ -328,6 +332,34 @@ PASSIVES += [
     passive("R", 310, 720, "412k",      "+13V5_A", "PGFB_13V5P"),
     passive("R", 340, 720, "10k",       "PGFB_13V5P", GND),
 ]
+# ---------------------------------------------------------------- VBATT_PROT front end
+# Order, connector outward to board inward:
+#   VBATT_IN -> F1 fuse -> D2 TVS (to GND) -> Q2 reverse P-FET -> L2 + C damped -> VBATT_PROT
+#
+# Q2 orientation is NOT arbitrary and is the half people get wrong: DRAIN to the battery,
+# SOURCE to the load. A P-channel's body diode runs drain->source, so this way it is forward
+# in normal flow and BLOCKS on reverse battery. Wired the other way round (source to battery)
+# the part still works forwards -- and in reverse the body diode conducts happily from the
+# load side back to the battery, which is the entire failure the FET was fitted to prevent.
+PASSIVES += [
+    ("F1", "Device:Fuse", 40, 780, "5A", {"1": "VBATT_IN", "2": "VBATT_FUSED"}),
+    # D2 is drawn with the ZENER symbol (K/A), NOT Device:D_TVS. That symbol's pins are named
+    # A1/A2 -- it models a BIDIRECTIONAL TVS, and the SMBJ24A is unidirectional ('A' suffix;
+    # 'CA' is the bidirectional member). A polarity-blind symbol on a polarity-critical part
+    # gives assembly a coin-flip, and a unidirectional TVS fitted backwards across a 12 V
+    # battery is a DEAD SHORT, not a degraded clamp. K to the battery, A to GND.
+    ("D2", "Device:D_Zener", 80, 780, "SMBJ24A uni (see F42)", {"1": "VBATT_FUSED", "2": GND}),
+    ("Q2", "Transistor_FET:Q_PMOS_DGS", 120, 780, "60V P-FET (F38)",
+        {"1": "VBATT_FUSED", "2": "VBATT_GATE", "3": "VBATT_REV"}),
+    ("D3", "Device:D_Zener", 160, 780, "15V", {"1": "VBATT_GATE", "2": "VBATT_REV"}),
+    passive("R", 200, 780, "100k",   "VBATT_GATE", GND),
+    passive("L", 240, 780, "4.7uH 5A PROVISIONAL", "VBATT_REV", "VBATT_PROT"),
+    passive("C", 280, 780, "22uF/50V", "VBATT_PROT", GND),
+    # Damping branch -- NOT optional, and not a bulk cap. See NOTE6.
+    passive("R", 320, 780, "0.68R",  "VBATT_PROT", "VBATT_DAMP"),
+    passive("C", 360, 780, "47uF/50V", "VBATT_DAMP", GND),
+]
+
 # The SEPIC's coupled inductor: ONE part, two windings. Placed as a single L_Coupled so the
 # BOM cannot count it twice and so the coupling is visible on the sheet rather than implied
 # by two adjacent inductors that happen to share a value.
@@ -471,6 +503,77 @@ NOTE4 = (
     "them from ripple AND from Isat at low line -- not from RMS heating."
 )
 
+NOTE5 = (
+    "HEADROOM ON +/-15V5_A IS A JOINT OPTIMUM SERVING TWO CURVES WITH OPPOSITE SLOPES.\\n"
+    "Do not re-tune the intermediates as if this were a free parameter.\\n"
+    "  LT3045  (+13V5_A): PSRR COLLAPSES below ~1 V headroom -- 84 dB at 2 V, 62 dB at 1 V,\\n"
+    "                     off a cliff below that. It wants MORE headroom.\\n"
+    "  LT3094  (-13V5_A): PSRR PLATEAUS at ~1.5 V and then DECLINES as headroom grows --\\n"
+    "                     73 dB at 1.5 V, 72 dB at 2.0 V, 70.5 at 2.5 V, 68 at 4 V.\\n"
+    "                     It wants LESS headroom.\\n"
+    "~1.9-2.0 V is where both are near their best. MOVING IT HELPS ONE REGULATOR AND HURTS\\n"
+    "THE OTHER, in opposite directions, which is not a trade anyone re-derives by accident.\\n"
+    "Raising it also costs dissipation on both (2 V x 250 mA = 500 mW each). Sources:\\n"
+    "LT3045 Rev. D curve G45, LT3094 Rev. B curve G47 -- read independently, not inherited."
+)
+NOTE6 = (
+    "VBATT_PROT FRONT END -- the five claims, written out so they can be checked, not re-derived.\\n"
+    "\\n"
+    "1. FUSE. F1 = 5 A, BOARD-MOUNTED. Board draw ~20 W; at 9 V crank that is 2.2 A, so 5 A\\n"
+    "   carries >2x margin without nuisance-blowing on inrush. ADDITIONAL REQUIREMENT ON THE\\n"
+    "   INSTALL, and it belongs in the manual, not in someone's head: upstream harness fuse\\n"
+    "   <= 15 A, for selectivity -- ours must clear first. An assumed fuse is an unstated\\n"
+    "   requirement wearing someone else's part.\\n"
+    "\\n"
+    "2. TVS ARITHMETIC -- AND IT DOES NOT CLOSE. SEE F42, THIS IS AN ESCALATION.\\n"
+    "   SMBJ24A: standoff 24 V, breakdown 26.7-29.5 V, clamp 38.9 V @ 15.4 A, 600 W/10-1000us.\\n"
+    "   STANDOFF AXIS -- fine. 24 V clears 16 V max operating and a 24 V jump start; that is\\n"
+    "     evidently what the 24 V choice was sized for.\\n"
+    "   ENERGY AXIS -- FAILS. A suppressed load dump (ISO 16750-2, Us* = 35 V, td = 400 ms,\\n"
+    "     Ri = 0.5-4 ohm) sits ABOVE the 26.7 V breakdown, so the TVS conducts for the whole\\n"
+    "     400 ms. At Ri = 2 ohm holding ~31 V: I = (35-31)/2 = 2 A, P = 62 W, E = 24.8 J.\\n"
+    "     At Ri = 0.5 ohm: I = 8 A, P = 250 W, E = 100 J. Against 600 W for 1 ms = 0.6 J,\\n"
+    "     that is 40x to 165x over. THE PART IS DESTROYED, and the fuse clears afterwards.\\n"
+    "   So the design as drawn implicitly claims 'no load dump reaches this input'. That is\\n"
+    "   a SCOPE STATEMENT and it has not been made. Ladder in F42; footprint is DO-214AB (SMC)\\n"
+    "   so the more capable part stuffs without a respin.\\n"
+    "\\n"
+    "3. REVERSE STRATEGY -- SERIES FET, SEAMLESS, not a crowbar. Q2 blocks; nothing conducts;\\n"
+    "   the unit resumes when polarity is corrected, with no fuse to replace. This is why the\\n"
+    "   TVS sits on the BATTERY side of Q2: on the load side it would be unbiased in reverse\\n"
+    "   and protect nothing. Q2 stress, both polarities:\\n"
+    "     V_DS reverse  = battery reversed, worst case 24 V jump start reversed -> 24 V\\n"
+    "     V_DS forward  = ~0, Q2 is ON; the TVS holds the node, Q2 merely conducts the surge\\n"
+    "     -> 60 V part, >2x on the governing case.\\n"
+    "   GATE is the fragile pin, not the channel. Source can reach the 38.9 V clamp while the\\n"
+    "   gate is pulled to GND, i.e. V_GS = -38.9 V against a +/-20 V rating -> GATE DESTROYED.\\n"
+    "   D3 (15 V) clamps V_GS; R (100k) limits the zener current: (38.9-15)/100k = 239 uA.\\n"
+    "   D3 IS NOT OPTIONAL AND IS NOT A 'PROTECTION EXTRA' -- without it the FET dies on the\\n"
+    "   first transient it was fitted to survive.\\n"
+    "\\n"
+    "4. LC DAMPING vs THE CONVERTERS' NEGATIVE INCREMENTAL RESISTANCE (Middlebrook).\\n"
+    "   Three bucks and a SEPIC are CONSTANT-POWER loads: draw rises as the rail falls, which\\n"
+    "   is a negative incremental resistance and will happily ring an undamped input filter.\\n"
+    "     Load ~20 W. At 9 V crank:  R_neg = -V^2/P = -81/20 = -4.05 ohm  <-- the limit\\n"
+    "     L = 4.7 uH, C = 22 uF nominal -> ~10 uF EFFECTIVE at 14 V (DC-bias derating; use the\\n"
+    "       derated figure here, the nominal one is not the capacitor you have)\\n"
+    "     Z0 = sqrt(L/C) = sqrt(4.7u/10u) = 0.686 ohm ; f0 = 23.2 kHz\\n"
+    "   UNDAMPED, with ~10 mohm ESR:  Q = Z0/ESR = 68  ->  |Zout|peak = Q*Z0 = 47 ohm\\n"
+    "       47 ohm  >>  4.05 ohm   ->  CRITERION VIOLATED BY ~21 dB. This oscillates.\\n"
+    "   DAMPED, Rd = 0.68 ohm (= Z0) with Cd = 47 uF (>= 4x C, blocks DC so Rd burns nothing):\\n"
+    "       Q ~ 1  ->  |Zout|peak ~ 0.69 ohm  <<  4.05 ohm   ->  5.9x, 15.4 dB margin  OK\\n"
+    "   Rd AND Cd ARE A PAIR. Deleting Rd as 'a resistor doing nothing' restores the 47 ohm\\n"
+    "   peak. Replacing Cd with a plain bulk cap puts Rd across DC and burns it.\\n"
+    "   The alternator-whine filter and the stability network are THE SAME TWO COMPONENTS.\\n"
+    "\\n"
+    "5. CLAMP -> SWITCH-STRESS CHAIN, recorded as a consequence-check so a TVS change re-fires it\\n"
+    "   (M7). The SEPIC's FET rating was derived FROM this clamp, not chosen independently:\\n"
+    "       V_clamp(TVS) 38.9 V  +  V_out(SEPIC) 15.5 V  =  54.4 V switch stress  -> 80 V FET\\n"
+    "   IF THE TVS PN CHANGES, THIS NUMBER CHANGES AND Q1's RATING MUST BE RE-CHECKED.\\n"
+    "   An SMCJ36A (clamp 58.1 V) would put the SEPIC switch at 73.6 V and a 80 V FET at 92%\\n"
+    "   of rating -- i.e. the F42 decision reaches Q1, which is on the other side of the sheet."
+)
+
 body = [place(*p) for p in PLACE]
 # Testpoints live in their own column clear of every device row, not tucked between them.
 # The previous layout interleaved them with the passive rows, which is what made the
@@ -479,7 +582,8 @@ for i, r in enumerate(TESTPOINTS):
     x, y = snap(700), snap(40 + i * 12)
     body.append("\n".join(emit_label(r, x, y, 0, "left", u("tp" + r))))
 for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2),
-                                   (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4)]):
+                                   (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4),
+                                   (560.0, 760.0, NOTE5), (40.0, 820.0, NOTE6)]):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')
