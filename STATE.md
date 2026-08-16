@@ -12,6 +12,35 @@ Last updated: 2026-08-15
 
 ## 0. Where we are
 
+### RESUME HERE — read order after a context compaction
+
+Everything needed to continue is **in the repo**; nothing load-bearing lives only in conversation.
+Read in this order, then act:
+
+| # | File | What it gives you |
+|---|---|---|
+| 1 | `CLAUDE.md` | The constitution. §0 UNSET rule, §4 channel policy, §5 evidence tiers, §8 working rules. **Non-negotiable.** |
+| 2 | **`STATE.md` §0** (this section) | Current position, next action, session boundary |
+| 3 | `STATE.md` §5 | **The ledger — read the method rules M1–M7a before doing any datasheet or file work.** They are why the mistakes below were caught |
+| 4 | `REQUIREMENTS.md` **v1.2** | The authority. Cite by section **and** version |
+| 5 | `hw/README.md` | Mechanical how-to: tool paths, build/verify commands, KiCad-10 format traps |
+| 6 | `STATE.md` §7 / §8 / §9 | Findings register, [VERIFY] checklist, I2C bus map |
+| 7 | `BRINGUP.md` | Sequence findings as bench checklist lines |
+| 8 | `DATASHEETS.md` | 15 datasheets held locally in `datasheets/` (untracked); this is the register |
+
+**Git is the memory of record — 21 commits, working tree clean.** Commit messages carry the
+reasoning, not just the change; `git log` is a usable narrative of why things are as they are.
+
+**Three habits that account for most of what went right**, all now in the ledger:
+1. **Read datasheets by rendering the page** (`pdftoppm`), not by text extraction. Text extraction
+   produced three wrong T1 facts here (T1-25, T1-28, and a permuted pin map).
+2. **Verify the artefact, not the receipt.** ERC on an empty sheet is clean; a 200 response can be
+   the wrong PDF. Check the netlist, the page content, the pin map.
+3. **Run the recorded constraints against the artefact.** The `RT` error was caught because a
+   *consequence* contradicted a written requirement — not by re-deriving anything (M7).
+
+
+
 **Phase:** **Capture begun** (2026-08-15). Architecture specified at `REQUIREMENTS.md` v0.7,
 governance closed, tooling verified. Mechanical and fabrication still unspecified — layout remains
 blocked, capture does not.
@@ -130,6 +159,31 @@ still carrying its "designer's call" tag since v0.1), **VBATT_PROT**'s ISO 7637-
 two of the three traps — **inductor saturation current** (the spec that matters, not RMS heating)
 and **ceramic DC-bias derating** (sheet values must be *effective* capacitance at working
 voltage). **G1b remains unmet and unclaimed.**
+
+### Open items at the boundary — the complete list
+
+**Operator-owned (nothing else is):** none. Q2 and Q4 closed; no ⬜ UNSET remains in the
+governance layer.
+
+**Next action, prepared and waiting:** the **±13V5_A topology proposal** (assistant brings it,
+operator dispositions against the four published criteria below).
+
+**Open [VERIFY]s:** V-04 (AK5574 MCLK ratios, ADC side) · V-06 (OPA1656 output swing) ·
+V-12 (BM83/WROOM-1 keepout *dimensions* — pages rendered, not yet read; belongs with footprints) ·
+V-14/V-15/V-16 (mute part Ron/Coff + disorderly-transient measurement) · V-17 (AKM AVDD currents,
+sizes +6V2_A) · V-18 (ADAU1466 core ripple tolerance) · V-23 (AP2127K-ADJ FB reference).
+
+**Open findings:** F4 (impedance targets — layout) · F12 (output-stage gain vs noise budget) ·
+F13 (ESP32-S3 GPIO map against the **module** datasheet, three specific checks logged) ·
+F15 (MCLK/LRCK phase coherence) · **F37** (pin the SS-enabled LM61460 PN) ·
+**F38** (the eight-line PN-pinning sweep, run once at first BOM emission).
+
+**Undrawn:** sheets 03–09 (control, BT, SPDIF, analog in, both DAC/output sheets, IO) ·
+±13V5_A and VBATT_PROT blocks on 01_power · all footprints · the whole PCB.
+
+**Gates:** G0-S closed except datasheet residue · **G1b unmet and unclaimed** (ERC 80) ·
+G0-L still blocked on Blocks D/E (mechanical + fab), which remain the largest unknown on the
+project — **layer count has a floor of 4 (F25) but no outline, no stackup, no fab house.**
 
 ### Session boundary — deliberate, 2026-08-16 (second)
 

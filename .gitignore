@@ -27,6 +27,10 @@ reports/
 # count and SHA256 per part, which is enough to re-fetch and verify.
 /datasheets/
 
+# Python bytecode from the generator scripts
+__pycache__/
+*.pyc
+
 # Scratch
 *.tmp
 *~
