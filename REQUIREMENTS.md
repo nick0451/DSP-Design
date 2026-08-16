@@ -389,7 +389,8 @@ table entirely — do not merge it with the original.*
 | Rail | Source | Loads | Budget |
 |---|---|---|---|
 | **VBATT_PROT** | reverse-FET + TVS (SMBJ24A) + LC filter | everything below | ISO 7637-2 **[HARD]** |
-| **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | BM83, USB | modest — see note 1 |
+| **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | USB, **+3V6_BT LDO** — ~~BM83~~ moved *(v1.0, F31)* | modest — see note 1 |
+| **+3V6_BT** *(v1.0, F31)* | **LDO from +5V_D** (AP2112/MIC5504-class at 3.6 V; TPS7A if its PSRR earns the price) | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
 | **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
 | **±13V5_A** | SEPIC/flyback or dual-boost | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
@@ -430,6 +431,21 @@ its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it put
 signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
 does not need to exist. Parallel LDOs decouple them.
 
+**Note 8 — the BM83 gets its own 3.6 V rail, and `ADAP_IN` is a trap door** *(v1.0, F31)*.
+`BAT_IN` is specified 3.2–4.2 V, so **+5V_D was never legal** and a nominal 3.3 V is not a fix
+either — 3.3 V −5 % = 3.135 V, below the minimum. **`ADAP_IN` is not the answer:** it is the input
+to the module's **Li-ion charger**, designed assuming a battery hangs on `BAT_IN` to absorb charge
+current and set the voltage. Battery-less operation through the charger path is the kind of thing
+that works on the bench and then **brown-outs on Bluetooth TX peaks**, when the charger's current
+limit meets a load transient it was never designed to source.
+
+An LDO at 3.6 V from +5V_D burns (5 − 3.6) × 0.1 ≈ **140 mW** — thermally trivial — and **an LDO's
+transient response suits a radio better than a small buck's** anyway. Two **[VERIFY]** items ride
+along: **(a)** the module's real peak current from the electrical tables, so the LDO is not sized
+on folklore; **(b)** confirmation the datasheet blesses supplying `BAT_IN` directly with no
+battery present. **If it requires the charger path for battery-less designs, escalate** — that
+section gets read together, not worked around.
+
 **Note 7 — the MCLK fanout buffer has its own LDO: `+3V3_CLK`** *(v0.7, approved)*. A third
 LT3045 from +6V2_A, feeding **only** the fanout buffer. It is the one device whose supply noise
 converts directly into jitter on **every converter simultaneously**; sharing an LDO with the
@@ -461,7 +477,22 @@ switcher.**
     **Timeout is a distinct fault code, not a retry loop.** A PLL that will not lock means the XO
     or its supply is broken, and no amount of retried writes repairs that.
 4. ESP32 slave-boots the program over SPI, verifies readback
-5. ESP32 configures ADC/DACs over I2C, DACs held in soft-mute
+5. **Converter config phase, reordered so the wait costs nothing** *(v1.0, F30)*:
+   - **5a.** Release the AK5574 `PDN` **first, at the top of the phase.**
+   - **5b.** **Hold the entire I2C0 bus quiet for ≥12.5 ms** — the max of the AK5574's 10 ms
+     register-write lockout and its 583/fs ≈ 12.1 ms initialisation at 48 kHz.
+     **Why bus-wide and not just the AK5574:** during this window the part may emit instantaneous
+     pulses on its digital pins, and AKM directs that *"data transmission with a device on the same
+     3-wire serial/I2C bus should be avoided in this period."* Traffic to the AK4458s, ADS1015 or
+     the temp sensor can be corrupted by a device that is not being addressed.
+     **A bus-noise edge that looks like a START is the same hazard the AK5574 documents against
+     itself in 3-wire mode — here it is on the other foot.**
+   - **5c.** **The wait is free if the firmware interleaves.** The DSP program load over SPI
+     (step 4) is bus-independent and takes longer than 12.5 ms anyway; run the quiet window
+     underneath it. By the time slave-boot readback verifies, I2C0 is legal again. **Wall-clock
+     cost zero; the cost of *not* knowing this is a day of "why does the second DAC sometimes lose
+     its filter config."**
+   - **5d.** Then configure ADC and DACs in one pass, DACs held in soft-mute.
 5. Analog rails confirmed in-window (rail monitor) → output mute released, DAC soft-unmute ramp
 6. Remote-out asserted after configurable delay (default 500 ms post-unmute)
 

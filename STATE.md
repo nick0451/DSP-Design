@@ -70,6 +70,19 @@ mechanical drawing together, and they belong with the footprint rather than the 
 live. This is the first Block E slot to close, and it closed from a datasheet rather than a fab
 conversation.
 
+**First sheet drawn: `02_dsp.kicad_sch`** (page 3). ADAU1466 as U1A/U1B/U1C, **all 73 pins
+dispositioned — 60 nets + 13 explicit no-connects**, generator-asserted so an undispositioned pin
+is a build failure rather than an oversight (F28 made mechanical). Net names per §10 [HARD].
+
+**Verified by netlist, not by ERC** — see the ledger entry. `+1V2_CORE` reaches pins 20/35/53/71;
+`GND` reaches all 13 ground-class pins including `VDRIVE` (T1-41) and the exposed pad; 54 nets
+total.
+
+**ERC is not clean, and should not be yet:** 38 `isolated_pin_label`, 11 `pin_not_driven`,
+4 `power_pin_not_driven` — every one of them a label or pin whose counterpart lives on a sheet not
+drawn yet. They retire as sheets fill. **G1b is not met and is not claimed.** Off-grid endpoints
+were found and fixed; that one *was* a real defect.
+
 **Next action:** three findings await operator disposition, two of them respin- or [HARD]-class:
 **F30** (AK5574 wake-up silences the whole I2C bus — §7.2 amendment), **F31** (BM83 supply rail:
 `BAT_IN` is 3.2-4.2 V, not 5 V, and 3.3 V −5 % is below its minimum), **F32** (module ships in
@@ -446,6 +459,23 @@ ends — and a blanket reverse is not a fix once new correctly-encoded text has 
 DL-15 earning its keep on the same day it was made — and an argument for committing before any
 bulk edit, not only after.
 
+**"The file parsed, so the file is right"** — assistant, 2026-08-16
+*Correction:* the first `02_dsp.kicad_sch` **parsed cleanly, passed ERC with zero violations, and
+exported as part of a 10-page PDF — while containing no components at all.** Every available check
+said fine except the one that mattered. The cause was that `lib_symbols` sub-symbols had been
+given the `LIB:` prefix that belongs only to the parent (`CM5IO:C` contains `C_0_1`, not
+`CM5IO:C_0_1`), so KiCad silently discarded every instance.
+*The tell:* **for a schematic, the artefact is the netlist, not the file.** ERC on an empty sheet
+is vacuously clean; a PDF of an empty sheet still has the right page count. Verify by extracting
+**pin-to-net connectivity** and checking it against intent — `+1V2_CORE` must reach pins
+20/35/53/71, or the sheet is decoration.
+*Family:* this is the same species as *"a download that returned 200 is the document I asked for"*
+and the `file`-says-10-pages artefact. Three instances now of **a cheap indicator standing in for
+the actual thing**. The rule that keeps earning: check the payload, not the receipt.
+*What resolved it:* reading a real KiCad 10 schematic from `share/kicad/demos/` rather than
+reasoning harder about the format — DL-13's "T1 only from the tool" applied to file format as
+well as CLI flags.
+
 **"A download that returned 200 is the document I asked for"** — assistant, 2026-08-15
 *Correction:* an LCSC URL for the ADAU1466 returned **HTTP 200, a `.pdf` extension and a
 plausible 47 KB** — and the content was an **HTML page for a Toshiba TLP185 optocoupler**, an
@@ -664,6 +694,7 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F33** | ⚠ | **NEW. The DSP's PLL supply is on the digital rail, and the PLL generates every serial clock on the board.** `PVDD` (pin 15) is the ADAU1466's PLL supply, 3.3 V ±10 %. In the current architecture that means +3V3_D — a switcher rail shared with the ESP32's WiFi bursts. **This is F22's argument one level in:** the fanout buffer was moved to a clean rail because its supply noise becomes jitter on every converter, and the PLL that *generates* BCLK/LRCLK for all of them has exactly the same property. | **Escalated, not applied** (rail architecture, `CLAUDE.md` §4). The DSP sheet labels it as its own net **`+3V3_PLL`** so the decision is visible and deferred rather than silently baked into +3V3_D. Cheapest resolutions: an RC/ferrite filter off +3V3_D, or a tap from +3V3_CLK which already exists for exactly this class of problem |
 | **F30** | ⛔ | **NEW. AK5574 wake-up silences the entire I2C0 bus — §7.2 step 5 collides with it.** T1-55: after `PDN` release, up to **10 ms** passes before register writes are accepted, and during that window the part may emit spurious pulses on its digital pins. AKM's instruction is explicit and *bus-wide*: **avoid data transmission with any device on the same I2C bus during this period.** Our bus also carries 2× AK4458, ADS1015 and the temp sensor, so "configure the ADC/DACs over I2C" immediately after power-up can corrupt traffic to parts that are themselves fine. **Third instance of the F20 family** — a [HARD] sequence step that omits a device's readiness precondition. | Amend §7.2: after releasing the converters' `PDN`, hold **the whole bus quiet ≥10 ms** (then allow 583/fs ≈ 12.1 ms for initialisation to complete) before any I2C traffic. Escalated as a [HARD] amendment |
 | **F31** | ⛔ | **NEW. §7.1 puts the BM83 on +5V_D, but its main supply pin wants 3.2-4.2 V.** T1-56: `BAT_IN` is 3.2-4.2 V; `ADAP_IN` is the 5 V path and is described as an adapter/charger input. **A nominal 3.3 V rail is not a safe answer either** — 3.3 V −5 % = 3.135 V, **below the 3.2 V minimum**. So the options are: feed `ADAP_IN` from +5V_D and accept the module's internal path, or provide a dedicated ~3.6-3.8 V rail for `BAT_IN`, or tighten +3V3_D's tolerance. | Escalated — rail architecture is respin-class. Note this interacts with F19: +5V_D's load shrinks or grows depending on the choice |
 | **F32** | ⚠ | **NEW. The BM83 ships in Embedded mode; this design needs Host mode.** T1-57: several pin meanings differ between the two, and the module is *pre-configured* for Embedded. §5's architecture (ESP32 as sole state owner, UART control + transparent data) is Host mode. **The schematic must be drawn against our config, not the datasheet default** — and the config step itself has to exist in the production flow. Pin 31 is also an Application/Test mode strap. | Config-dependent pins carry a `*` in the symbol so the sheet shows which meanings depend on the flashed config. Needs a decision on **who flashes the config and when** — factory-programmed part, or a production step |

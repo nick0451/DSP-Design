@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "ODSP12")(type "KiCad")(uri "${KIPRJMOD}/lib/ODSP12.pretty")(options "")(descr "ODSP-12 project footprints"))
+)
