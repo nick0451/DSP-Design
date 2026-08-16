@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.8 — architecture baseline for schematic capture *(capture begun)*
+**Doc status:** v0.9 — architecture baseline for schematic capture *(capture begun)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -85,7 +85,18 @@ protects. Capture begins.
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
 
-Unchanged and still open at v0.8: F4 (impedance targets), F12, F13, F21 (accepted, lands at
+**v0.9 — 2026-08-16.** Detail dispositions following F26.
+
+| Change | Section |
+|---|---|
+| **The S/PDIF AC coupling cap carries a [HARD] annotation on the schematic** — required by datasheet, looks optional by topology, therefore a deletion candidate for anyone who has not read p.74 | §8 |
+| Transformer specified: **1:1 pulse, PE-65612 / PT-class**, sourced on the connector/magnetics list | §8 |
+| Consumer-not-AES3 caveat annotated so it is not later misread as "pro sources will not work" — it is a level/impedance matter, and the transformer front end handles AES3 *better* than most consumer inputs | §8 |
+| **§12 SPDIF criterion split into two tiers** — register polls as the fast construction-check, plus one end-to-end tone pass. Lock is not audio | §12 |
+| `SPDIF_LOSS_OF_LOCK` given a **runtime** consumer: the input-switching debounce signal, exposed through the control API from day one | §5 |
+| Spare-port note updated: **four** spare serial ports, a full TDM8 in and out uncommitted | §4 |
+
+Unchanged and still open at v0.9: F4 (impedance targets), F12, F13, F21 (accepted, lands at
 capture).
 
 ---
@@ -212,7 +223,9 @@ fs = 48 kHz system-wide. 32-bit slots.
 | SDATA_OUT2 | out | **— spare —** *(v0.8, F26)* | | digital out is now **on-die**: `SPDIFOUT` pin 5, fed directly from the core at core rate, **costs zero serial ports** |
 | SDATA_OUT3 | out | — spare — | | header/testpoints only |
 
-- Spare ports OUT3/IN3 to 0.1" test headers with ground pins between signals.
+- *(v0.9)* **Four spare ports now, not two** — F26 returned SDATA_IN2 and SDATA_OUT2 to the pool
+  alongside IN3/OUT3. All four go to 0.1" test headers with ground pins between signals. A
+  comfortable position: a full TDM8 in and out remain uncommitted for expansion or bring-up.
 - 6+6 DAC split (rather than 8+4) keeps per-chip output loading symmetric and leaves 2 spare
   channels on each DAC for rework flexibility.
 
@@ -241,7 +254,13 @@ persistence.
    page-split addressing. Output routing at `SOUT_SOURCEx`, 0xF180-0xF197.
 3. **I2C0 bus map** — fixed addresses per `STATE.md` §9. **The AKM prefix 0x10-0x13 is full**;
    any future AKM part requires splitting the bus onto the S3's second I2C controller.
-4. **Do not mix digital-filter modes between the two AK4458s** *(F15)*. Both are slaved to the
+4. **S/PDIF registers** *(v0.9)*. `SPDIF_LOCK_DET` 0xF600 and `ASRC_LOCK` 0xF580 for the §12
+   tier-(a) sweep. **`SPDIF_LOSS_OF_LOCK` 0xF605 needs a *runtime* consumer, not just a test
+   hook** — it is the input-switching debounce signal, and it should be exposed through the BLE/WS
+   control API **from day one** rather than retrofitted once the need is discovered on a bench.
+   `SPDIF_RESTART` 0xF604 auto-resumes the receiver. Channel-status / user-data / validity /
+   parity blocks at 0xF610-0xF68B if source metadata is ever wanted.
+5. **Do not mix digital-filter modes between the two AK4458s** *(F15)*. Both are slaved to the
    same BCLK/LRCLK pair, so they are sample-aligned and group-delay-matched **by construction** —
    provided their filter settings match. Cross-DAC alignment is therefore one register write away
    from being wrong, and it is a firmware invariant, not something an acceptance test should be
@@ -512,11 +531,23 @@ Practical consequences for layout and capture:
 
 - 4× RCA in + speaker-level strip terminal (shared front end, §6.1)
 - 12× RCA out
-- SPDIF coax RCA in, transformer-coupled, **direct to `SPDIFIN` (pin 4)** *(v0.8, F26)*. The
-  receiver input is a comparator centred at IOVDD/2 needing **≥200 mV p-p**, and **an AC coupling
-  capacitor on the pin is required**; it accepts both TTL and bipolar signals. A 75 Ω-terminated,
-  transformer-coupled coax source clears 200 mV p-p comfortably. Optional coax out from
-  `SPDIFOUT` (pin 5) as a stuffing option — no external transceiver either way
+- SPDIF coax RCA in, transformer-coupled, **direct to `SPDIFIN` (pin 4)** *(v0.8, F26)*:
+  RCA → 75 Ω termination → **1:1 pulse transformer (PE-65612 / PT-class — part number belongs on
+  the connector/magnetics list, not left as an unsourced symbol)** → **AC coupling capacitor** →
+  pin 4. Optional coax out from `SPDIFOUT` (pin 5) as a stuffing option; no external transceiver
+  either way.
+  - **The AC coupling capacitor is required by the ADAU1466 datasheet [HARD]** *(v0.9)*. It must
+    carry that annotation on the schematic, not merely exist. **A component that is
+    required-by-datasheet but looks optional-by-topology is exactly what a future "simplification"
+    deletes** — the transformer already provides DC isolation, so the cap reads as redundant to
+    anyone who has not read p.74.
+  - Receiver input is a comparator centred at IOVDD/2 needing **≥200 mV p-p**; transformer-coupled
+    consumer coax clears this with wide margin. Logged as margin, no action.
+  - *Note for a future reader:* the consumer-not-AES3 caveat is about **specification compliance,
+    not compatibility**. AES3 and S/PDIF share biphase-mark framing; the difference is level and
+    impedance (AES3: 2–7 V into 110 Ω balanced). A transformer front end handles pro sources
+    **better** than most consumer inputs would. **Do not let the caveat later be read as "pro
+    sources will not work."**
 - Power: keyed automotive connector — BATT, GND, REM-IN, REM-OUT minimum
 - USB-C (ESP32-S3 native USB): debug/flash/console
 - BT antennas: BM83SM1 onboard antenna — enforce module keepout **[HARD]**; ESP32-S3-WROOM-1
@@ -584,10 +615,13 @@ Practical consequences for layout and capture:
 - [ ] Output noise floor ≤ −105 dBV A-weighted, muted
 - [ ] No audible pop on power-up/down (scope-verified < 10 mV transient at outputs)
 - [ ] BT A2DP stream glitch-free ≥ 1 hr (ASRC path validation)
-- [ ] SPDIF lock across 32/44.1/48/96 kHz sources (ASRC path validation). *(v0.8: the DSP exposes
-      `SPDIF_LOCK_DET` 0xF600, `SPDIF_LOSS_OF_LOCK` 0xF605 and `ASRC_LOCK` 0xF580, so this becomes
-      a **register poll** rather than a bench inference — M3, guarantee by construction then test
-      that the construction holds. Receiver lock range is 18 kHz–192 kHz)*
+- [ ] SPDIF lock across 32/44.1/48/96 kHz sources — **two tiers** *(v0.9)*:
+      - **(a)** `SPDIF_LOCK_DET` 0xF600 and `ASRC_LOCK` 0xF580 poll clean at every rate. Fast
+        construction-check; makes the bench sweep quick.
+      - **(b)** **One end-to-end pass** — tone in via coax, level verified at an output.
+      **(a) does not replace (b).** The registers prove *lock*, not *audio*: a receiver locked but
+      routed to the wrong ASRC slot polls perfectly while delivering silence. The polls make the
+      sweep fast; they do not remove the one listen. Receiver lock range is 18 kHz–192 kHz.
 - [ ] Slave-boot + safeload parameter writes verified over SPI at target clock
 - [ ] Survives ISO 7637-2 test pulses (or documented protection analysis if untested)
 - [ ] All four analog inputs pass CMRR ≥ 60 dB @ 1 kHz in speaker-level mode
