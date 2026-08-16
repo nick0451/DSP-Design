@@ -23,13 +23,13 @@ except Q2 (channel policy) and Q4 (board name/PN/rev), neither of which blocks d
 The §8 [VERIFY] checklist is the gate: **13 of 16 open, every one a datasheet read.**
 G0-L **open** — blocked on Blocks D and E, unchanged.
 
-**Next action:** **operator downloads the ADAU1466 (Rev. C) and LT3045 PDFs by hand** — analog.com
-is unreachable from here (T1-15) and the ADAU1466 is the V-01 gate. Drop them in `datasheets/`
-and V-01/V-07/V-08/V-13, the firmware contract, and **F17** all close in one pass. Everything else
-on the §8 checklist that can be worked from the local archive is being worked.
+**Next action:** operator dispositions the four new findings — **F20 first** (it is a defect in a
+[HARD] sequence), then F19, F18, F17. Meanwhile work the remaining §8 items that the local archive
+can answer: V-04 (AKM MCLK ratios), V-06 (OPA1656), V-09 (AKM control-port strapping), V-12
+(antenna keepouts).
 
-**Datasheets:** 12 held and verified (`DATASHEETS.md`); 2 blocked on analog.com; the rest are
-parts not yet chosen.
+**Datasheets:** 14 held and verified (`DATASHEETS.md`). ADAU1466 Rev. C and LT3045 Rev. D supplied
+by the operator 2026-08-15; analog.com remains unreachable from here for anything further.
 
 **Baseline safety copy:** none — nothing to copy yet. The first board file that lands here gets a
 copy with its SHA256 recorded in this section **before** any edit.
@@ -70,6 +70,16 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-12 | **INA1650 is dual-channel**; INA1651 is the single-channel sibling | `INA1650_TI.pdf` p.1 (official TI), 2026-08-15. Closes V-11 and re-grounds T1-D27 on the manufacturer document |
 | T1-13 | 12 manufacturer datasheets held locally in `datasheets/`, each verified by page count and first-page content after download; register in `DATASHEETS.md` | Retrieval + `pdfinfo`/`pdftotext` verification, 2026-08-15 |
 | T1-14 | poppler 25.07.0 installed (winget, user scope), on user PATH; provides `pdftotext`, `pdfinfo`, `pdftoppm` | `winget install`, binaries exercised on the archive, 2026-08-15 |
+| T1-16 | **ADAU1462/ADAU1466 ship in ONE package: 72-lead LFCSP, `CP-72-6`, 10 x 10 mm, 5.3 mm exposed pad.** The ordering guide lists six orderable models and every one is LFCSP. **There is no LQFP and no WLCSP.** Temp range -40 C to +105 C | `adau1462-1466.pdf` Rev. C p.202 ordering guide + p.1 features. **Closes V-01 (package), confirms F17** |
+| T1-17 | **4 serial input ports, 4 serial output ports.** Up to **8 stereo ASRCs**, ratio 1:8 to 7.75:1, 139 dB dynamic range, THD+N -120 dB, I/O sample rate 6-192 kHz | Rev. C p.1 features + spec tables. Closes V-01 (ports/ASRC); `REQUIREMENTS.md` §2/§4 confirmed correct |
+| T1-18 | **Serial ports are independently master/slave, per port.** `SERIAL_BYTE_x_0` at 0xF200 / 0xF204 / 0xF208 / 0xF20C (SDATA_IN0…IN3), Bit 9 `LRCLK_MODE`, Bit 8 `BCLK_MODE`. Pin descriptions state per port that "Serial Input Port *n* is a master or slave" | Rev. C register map + pin table. **Closes V-13 — the F1 disposition is confirmed against the document** |
+| T1-19 | **SPI slave-port max SCLK = 20 MHz**, read and write (`fSCLKWRITE`, `fSCLKREAD`) | Rev. C timing specs. **Closes V-07** — the 10 MHz target has 2x margin |
+| T1-20 | **DVDD = 1.2 V ±5% (1.14-1.26 V). ADAU1466 core current: 213 mA minimal program, 220 mA typical, 233 mA typ / 495 mA max for maximum program.** The typical figure is measured with 16-channel I/O, 10-band EQ per channel, all ASRCs active. IOVDD current 53 mA at 3.3 V with all serial ports as clock masters | Rev. C Tables 2/3. **Closes V-08** |
+| T1-21 | **The on-chip 1.2 V regulator is a controller, not a self-contained LDO** — pin 3 `VDRIVE` is a "PNP Bipolar Junction Transistor-Base Drive Bias Pin for the Digital Supply Regulator"; DVDD is derived from IOVDD "in combination with an external pass transistor", up to an 800 mA load | Rev. C pin table + regulator spec |
+| T1-22 | **Supply sequence depends on the DVDD method.** Internal regulator: DVDD comes up **after** AVDD, IOVDD and PVDD. DVDD supplied directly: **"no special sequence is required"** | Rev. C power supplies section |
+| T1-23 | **The control port is dead while the PLL locks.** "While the PLL is attempting to lock, the I2C slave and SPI slave control ports are inactive… all attempts to write to the control port fail." Max lock 10.666 ms at 48 kHz (3.072 MHz post-prescaler); typically ~3.5 ms. Poll `PLL_LOCK` at 0xF004 Bit 0 | Rev. C power-up / PLL section |
+| T1-24 | **Firmware contract, first pass:** PLL registers 0xF000 `PLL_CTRL0`, 0xF001 `PLL_CTRL1`, 0xF002 `PLL_CLK_SRC`, 0xF003 `PLL_ENABLE`, 0xF004 `PLL_LOCK`. Output routing `SOUT_SOURCEx` at 0xF180-0xF197. Software safeload via `num_SafeLoad_Lower` / `num_SafeLoad_Upper`, 1-5 parameters per transaction, page-split addressing | Rev. C register map + Software Safeload section |
+| T1-25 | **`SELFBOOT` is pin 34**, internal 250 kOhm pull-up. Floating -> SPI self-boot; 10 kOhm pull-down to DGND -> I2C self-boot; tied to GND -> **no self-boot** | Rev. C pin table |
 | T1-15 | **analog.com is unreachable from this environment** — ADAU1466 and LT3045 PDFs and the HTML product page all timed out via `Invoke-WebRequest`, `curl` and `WebFetch`; Verical 403 | Four independent fetch attempts, 2026-08-15 |
 
 **No datasheet has been read on this project yet.** Every part parameter below is therefore T2 or
@@ -261,6 +271,20 @@ candidate is a slipped digit or a double-count, not a subtle modelling differenc
 board-mount vs. flying-lead RCA is still an early decision (Q34). **A conclusion that survives its
 own broken evidence is not thereby vindicated;** it was re-derived, and the re-derivation is what
 it now rests on.
+
+**"A PowerShell round-trip through a text file is lossless"** — assistant, 2026-08-15
+*Correction:* Windows PowerShell 5.1 `Get-Content -Raw` reads a UTF-8 file **without a BOM using
+the system ANSI codepage**. Every multibyte character becomes separate CP1252 characters, and
+`Set-Content -Encoding utf8` then writes that mojibake back as valid UTF-8. One
+read-modify-write **double-encoded 204 characters across the whole file** — and it silently
+"succeeded". Recovery was `git checkout` plus re-applying the edits through the Edit tool.
+*The tell:* **any read-modify-write of a text file through PowerShell 5.1.** Use the Edit tool for
+file edits; reserve the shell for running programs, which is what `CLAUDE.md` §7 already implies
+and this made concrete. If a shell round-trip is truly unavoidable, force encoding on **both**
+ends — and a blanket reverse is not a fix once new correctly-encoded text has been mixed in.
+*Why it was cheap:* the damage was one commit deep, so `git checkout` cost only re-work. That is
+DL-15 earning its keep on the same day it was made — and an argument for committing before any
+bulk edit, not only after.
 
 **"A download that returned 200 is the document I asked for"** — assistant, 2026-08-15
 *Correction:* an LCSC URL for the ADAU1466 returned **HTTP 200, a `.pdf` extension and a
@@ -457,9 +481,11 @@ Discrepancies, gaps and risks found in `REQUIREMENTS.md` v0.1. Per `CLAUDE.md` �
 **Severity:** ⛔ blocks capture · ⚠ affects capture · ▫ affects layout or later · ✅ **closed by
 operator disposition** (folded into `REQUIREMENTS.md` v0.2 — rows kept, never deleted).
 
-**12 of 17 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16.
-**Five open: F4 (impedance targets, layout), F12, F13 (capture), F15, and F17 — new, and the
-most consequential of them.**
+**13 of 21 closed** 2026-08-15: F1, F2, F3, F5, F6, F7, F8, F9, F10, F11, F14, F16, F17.
+**Eight open — and four are new from the V-01 datasheet pass:**
+**F18** (+1V2_CORE method), **F19** (+3V3_D must be a buck), **F20** (§7.2 step 3 defect),
+**F21** (SELFBOOT strap), plus F4 (impedance, layout), F12, F13, F15.
+F17 closed as *confirmed* and still needs an operator decision on the assembly plan.
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
@@ -478,7 +504,11 @@ most consequential of them.**
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
-| **F17** | ⛔ | **NEW 2026-08-15. The ADAU1466 appears to have no LQFP option.** `REQUIREMENTS.md` §2 specifies "(WLCSP/LQFP — prefer 72-LQFP for hand-rework)". Two independent sources describe the ADAU1462/ADAU1466 as **72-lead 10 × 10 mm LFCSP with a 5.3 mm exposed pad**, and the orderable part `ADAU1466WBCPZ300` carries ADI's `CP` package code, which is LFCSP — `ST` would be LQFP. If this holds: **the hand-rework rationale in §2 does not survive.** LFCSP is leadless, so there are no leads to touch with an iron; it needs hot air with preheat, and the exposed pad needs a paste stencil aperture and thermal vias. It also puts a thermal-via requirement into the stackup, which is a **Block E** input we do not have. T2-03's "no BGA" claim survives — LFCSP is not BGA — but "0.5 mm pitch, hand-rework friendly" does not. | **T2, pending V-01.** Not acted on. The whole point of V-01 is to settle this from the document; two web sources plus a decoded part suffix is strong but is not the datasheet. Raise with the operator once V-01 opens — it may change the package choice, the assembly plan, or both |
+| **F20** | ⛔ | **NEW. §7.2 step 3 cannot work as written — the control port is dead while the PLL locks.** The [HARD] turn-on sequence says "ESP32 releases DSP reset, slave-boots program over SPI, verifies readback". But T1-23: while the PLL is locking, the SPI slave port is **inactive and every write fails** — up to **10.666 ms**, typically ~3.5 ms. Firmware that releases reset and immediately begins the slave boot has every write silently discarded. **Same shape as F1** — a [HARD] sequence omitting a hardware precondition, failing in a way that looks like a wiring fault. | Insert a step between current 3 and 4: after releasing reset, **configure the PLL (0xF000-0xF003), then poll `PLL_LOCK` 0xF004 Bit 0 until set, before any program write.** Needs operator sign-off as a [HARD] amendment |
+| **F19** | ⛔ | **NEW. The DSP core draws far more than §7.1 anticipates, and it lands on +3V3_D.** T1-20: **495 mA maximum, 220 mA typical** at 1.2 V. Because DVDD derives from IOVDD, that current is drawn **from the 3.3 V rail**, and the 3.3->1.2 V drop dissipates **~1 W at maximum program** wherever the pass element sits. §7.1 offers "+3V3_D - buck **or LDO** from 5 V": with ~500 mA for the DSP plus the ESP32-S3 (several hundred mA peak on WiFi TX) plus BM83 plus IOVDD's own 53 mA, +3V3_D is a **1 A-class rail**, and an LDO from 5 V would burn ~2 W. | **+3V3_D must be a buck, not an LDO** — the "or LDO" option should be struck. Also feeds a thermal requirement §9 does not currently carry |
+| **F18** | ⚠ | **NEW. §7.1's "+1V2_CORE - LDO from 3V3" is one of two valid methods, and the datasheet's own is the other.** T1-21: the on-chip regulator is a **controller driving an external PNP pass transistor** (`VDRIVE`, pin 3), rated to 800 mA. Real tradeoff: **the PNP path** moves ~1 W into a discrete you can give copper to rather than into an LDO package, but T1-22 imposes supply ordering (DVDD after AVDD/IOVDD/PVDD). **The external-LDO path** has *"no special sequence required"* but puts ~1 W in the LDO. | Operator's call — it trades thermal placement freedom against sequencing complexity, and both interact with the [HARD] §7.2. Not decided unilaterally |
+| **F21** | ⚠ | **NEW. `SELFBOOT` (pin 34) needs a deliberate strap.** T1-25: floating = SPI self-boot, 10 kOhm pull-down = I2C self-boot, tied to GND = no self-boot. The 25AA1024 is DNP on v1 (T1-D22) and the ESP32 is boot master, so **the intended state is tied to GND** — but the pin has a 250 kOhm internal pull-up, so leaving it unpopulated **silently selects SPI self-boot from an absent EEPROM**. | Fit a resistor option so self-boot can be enabled later without a cut: GND strap fitted by default, pull-down/float alternatives as DNP pads |
+| **F17** | ✅ | **CLOSED - CONFIRMED, and worse than suspected.** T1-16: the ordering guide lists six orderable models and **every one is 72-lead LFCSP `CP-72-6`**. There is **no LQFP *and no WLCSP*** — so §2's "(WLCSP/LQFP - prefer 72-LQFP for hand-rework)" is wrong on both counts and the hand-rework rationale has no package to rest on. Consequences: hot air with preheat, not an iron; stencil aperture and thermal vias for the 5.3 mm exposed pad, which is a **Block E stackup input we do not have**; T2-03's "no BGA" survives, "hand-rework friendly" does not. **Needs an operator decision, not just a note** — it changes the assembly plan. *Original finding:* **the ADAU1466 appears to have no LQFP option.** `REQUIREMENTS.md` §2 specifies "(WLCSP/LQFP — prefer 72-LQFP for hand-rework)". Two independent sources describe the ADAU1462/ADAU1466 as **72-lead 10 × 10 mm LFCSP with a 5.3 mm exposed pad**, and the orderable part `ADAU1466WBCPZ300` carries ADI's `CP` package code, which is LFCSP — `ST` would be LQFP. If this holds: **the hand-rework rationale in §2 does not survive.** LFCSP is leadless, so there are no leads to touch with an iron; it needs hot air with preheat, and the exposed pad needs a paste stencil aperture and thermal vias. It also puts a thermal-via requirement into the stackup, which is a **Block E** input we do not have. T2-03's "no BGA" claim survives — LFCSP is not BGA — but "0.5 mm pitch, hand-rework friendly" does not. | **T2, pending V-01.** Not acted on. The whole point of V-01 is to settle this from the document; two web sources plus a decoded part suffix is strong but is not the datasheet. Raise with the operator once V-01 opens — it may change the package choice, the assembly plan, or both |
 | **F16** | ✅ | **CLOSED — ADS1015-class I2C ADC on I2C0; §9 dividers unchanged, only the converter moves; −13V5 divider referenced to a positive rail** → T1-D36. Side benefit: ~3 GPIO returned to the F13 budget. *Original:* **"rail monitor" described two ways.** §5 lists it as an I2C peer; §9 describes rail voltage dividers into the ESP32 ADC. §7.2 step 5 gates output unmute on it, so which one it is matters. Separately: **the −13.5 V rail cannot be measured by a plain divider to ground** — it needs a divider referenced to a positive rail to bring the tap into the ADC's range. | Q32. |
 
 ---
@@ -491,18 +521,18 @@ citation** — part number, document revision, and section.
 
 | ID | Item | Src | Status |
 |---|---|---|---|
-| V-01 | ADAU1466 package options; confirm 72-LQFP exists and its pitch; serial port count (4 in / 4 out); ASRC count. **Same pass also pulls: V-13 port configurability, V-07 slave-port max SCLK, V-08 core voltage/current, and the safeload register addresses + slave-boot header format** — the firmware contract, captured into `STATE.md` so the document is opened once, not three times | §2 | Open — **do this first**, it gates the first sheet several times over |
+| V-01 | ADAU1466 package, ports, ASRCs + V-07/V-08/V-13 + firmware contract, in one pass | §2 | **CLOSED 2026-08-15 → T1-16…T1-25.** Single pass as planned (DL-22). Confirmed F17 and produced F18/F19/F20/F21 |
 | V-02 | AK4118A: confirm it has no internal SRC, and its output-port master/slave capability | §3 / F1 | **Closed** → T1-10, operator confirmation. Re-check on the datasheet when it is open for pinout anyway — F1's whole disposition rests on it |
 | V-03 | BM83 I2S master/slave capability in the chosen firmware config | §3 | Open |
 | V-04 | AK5574 and AK4458 MCLK ratio and MCLK/LRCK synchronisation requirements at 48 kHz TDM | §3 / F15 | Open |
 | V-05 | AK4458 differential full-scale output voltage | §6.2 / F12 | **CLOSED → T1-11.** 2.8 Vpp differential at (VREFH−VREFL)=5 V. `AK4458_AKM.pdf`, see `DATASHEETS.md` |
 | V-06 | OPA1656 output swing and quiescent current at ±13.5 V — the ~4 mA/ch figure underpinning the 200 mA rail budget | §6.2 / F7 | Open |
-| V-07 | ADAU1466 slave-port maximum SPI SCLK (target ≥10 MHz) | §5 | Open |
-| V-08 | ADAU1466 core voltage and current | §7.1 | Open |
+| V-07 | ADAU1466 slave-port maximum SPI SCLK (target ≥10 MHz) | §5 | **CLOSED → T1-19.** 20 MHz read and write — 2x margin on the target |
+| V-08 | ADAU1466 core voltage and current | §7.1 | **CLOSED → T1-20.** 1.2 V ±5%; 220 mA typical, **495 mA max**. Drove F18 and F19 |
 | V-09 | AKM control-port mode strapping — each part, strapped consistently to I2C | §5 | Open |
 | V-10 | AKM part lifecycle and lead time; decide AKM vs TI (PCM1865 / PCM1690) | §2 / §11 | Open |
 | V-11 | INA1650 channel count per package | §2 / F2 | **CLOSED → T1-12.** Dual-channel, confirmed against the TI datasheet, no longer resting on operator confirmation alone |
-| V-13 | ADAU1466 serial-port master/slave configurability **per port** — SDATA_IN2 must be a clock consumer while IN0/IN1 and all outputs stay master | §3 v0.2 / F1 | Open — **high-confidence T2**, operator: each of the 8 ports has its own master/slave and clock-source settings, and one input port consuming an external clock while everything else masters is the canonical SigmaDSP ASRC-input topology. **Closes with the register map in hand, at V-01, not before.** Fallback if wrong: AK4118A into a dedicated ASRC pair with the DSP re-clocking on its side — available without moving the architecture again |
+| V-13 | ADAU1466 per-port serial master/slave configurability | §3 v0.2 / F1 | **CLOSED → T1-18.** Per-port `SERIAL_BYTE_x_0` registers with `LRCLK_MODE` / `BCLK_MODE` bits, plus per-port pin-table wording. **The F1 disposition is confirmed against the document**, and the operator's T2 was correct. The fallback (dedicated ASRC pair) is not needed |
 | V-14 | **Series photoMOS** (TLP3475-class): Ron, off-state Coff, voltage rating vs ±6.4 V peak plus rail-collapse excursion, LED drive current | §6.4 v0.4 | Open — **restated at v0.4.** No longer a constrained optimisation: Ron 1–2 Ω against ≥10 kΩ is inaudible and off-isolation is the easy half of the pair |
 | V-15 | **Shunt depletion FET pair**: Ron (100–500 Ω is ample), off-state Coff **and its nonlinearity**, Vgs(off) against the −13V5-derived bias | §6.4 v0.4 | Open — **restated at v0.4.** Small-die part; Coff is now the only tight number and it is tight against T1-D42, not against mute depth |
 | V-16 | Disorderly-path transient, modelled as the **full stack**: DAC brown-out residual × mute attenuation × amp gain × amp remote-mute latency | §7.4 v0.4 | Open — bench, first board. **Bounded, not indefinite:** remote-out is fail-safe and drops first, so the window is the amp's own mute latency (tens to ~200 ms), and the source is a resetting DAC well under −20 dBFS, not programme material. Use a pessimistic latency — it belongs to someone else's amplifier |
