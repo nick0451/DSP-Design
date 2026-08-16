@@ -187,6 +187,9 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-38 | **Exposed pad is ground and thermally mandatory:** soldered to a copper square of equivalent size, "**identical copper squares must exist on all layers** of the board, connected by vias, and they must be connected to a **dedicated copper ground layer within the PCB**" | Table 18 p.21 + Figure 11 note. Drives **F25** |
 | T1-39 | **The ADAU1466 has an integrated S/PDIF receiver AND transmitter** — pin 4 `SPDIFIN` ("Input to the Integrated Sony/Philips Digital Interconnect Format Receiver"), pin 5 `SPDIFOUT`. Both internally biased to IOVDD/2 | Table 18 p.18. Drives **F26** |
 | T1-40 | **Pins 63/64 `THD_M`/`THD_P` are a thermal diode**, intended for "the D- / D+ pin of an external temperature sensor IC" — a *remote-diode* sensor, not a local one | Table 18 p.21. Drives **F27** |
+| T1-61 | **V-22, end-to-end read of Power Supplies / Voltage Regulator / Hardware Reset (pp.33-34). No third ordering constraint exists** — IOVDD-first (T1-59) is the only one. But **two mandatory-supply rules** that are easy to optimise away: **`AVDD` "must be supplied even if the auxiliary ADCs are not in use"** and **`PVDD` "must be supplied even if the PLL is not in use"**. Table 23 externally-supplied: IOVDD **yes**, DVDD **optional**, AVDD **yes**, PVDD **yes** | Rev. C pp.33-34, rendered. **Closes V-22** — the section is now read exhaustively, not sampled |
+| T1-62 | **`VDRIVE` grounded still draws ~100 µA from IOVDD**, and the internal regulator has **no control registers**. ADI also states *"do not use the regulator to provide a voltage supply to external ICs"* — not applicable here, DVDD is external | Rev. C p.33. Completes T1-41 |
+| T1-63 | **`RESET` wants an external pull-down of several kΩ** *"to guarantee that the device is held in reset in the event that the reset supervisory [circuit fails]"* — in addition to the internal pull-down (T1-36). Also: **RAM is not guaranteed cleared by a reset; the DSP program must clear it manually** | Rev. C p.34. Second half is a firmware-contract item |
 | T1-58 | **ADAU1466 `PVDD` current: 8.3 / 10.1 / 12.9 mA (25 °C), 15 mA max over temperature.** PVDD range 2.97-3.63 V; absolute max 0-4.0 V | Rev. C Tables 2/3. **Closes V-21** — settles the F33 LDO as a small part, ~44 mW |
 | T1-59 | **ADAU1466 supply ordering [HARD]:** all power pins may be applied simultaneously; if not, **`IOVDD` must be first** because it references the internal ESD protection diodes. `AVDD`, `DVDD`, `PVDD` may follow in any order but **must not precede IOVDD** | Rev. C Power-Up Sequence, p.24. Drives **F34** |
 | T1-60 | **Stock KiCad 10 already carries LT3045, TPS62823, MIC5504, ADS1015, TMP461, OPA1656 and ESP32-S3-WROOM-1.** Absent and needing project symbols: LM61460-Q1, LMK1C1104, INA1650 | `grep` over `share/kicad/symbols`. **DL-14's stock-first rule pays off** — 7 of 10 power-sheet parts need no symbol work |
@@ -470,6 +473,16 @@ ends — and a blanket reverse is not a fix once new correctly-encoded text has 
 *Why it was cheap:* the damage was one commit deep, so `git checkout` cost only re-work. That is
 DL-15 earning its keep on the same day it was made — and an argument for committing before any
 bulk edit, not only after.
+
+**"The revision history protects the document"** — assistant, 2026-08-16
+*Correction:* it protects everything **except itself**. `REQUIREMENTS.md` carried F30–F34 while its
+header still read v0.9 and the v1.0/v1.1 rows did not exist — the mechanism that exists to stop a
+version being merged silently had itself merged silently. **The integrity check that guards
+everything else has no guard of its own**, and the only thing standing behind it is commit
+discipline: the version bump belongs in the same commit as the content it describes, never as a
+follow-up.
+*The tell:* content edits and the version header living in **different edits**. If a change is
+worth a revision row, the row goes in before the content does, not after.
 
 **"The file parsed, so the file is right"** — assistant, 2026-08-16
 *Correction:* the first `02_dsp.kicad_sch` **parsed cleanly, passed ERC with zero violations, and

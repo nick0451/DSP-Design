@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.1 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.2 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -85,7 +85,14 @@ protects. Capture begins.
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
 
-**v1.1 — 2026-08-16.** F33 closed, F34 raised.
+**v1.2 - 2026-08-16.** F34 resolved; V-22 closed.
+
+| Finding | Change | Section |
+|---|---|---|
+| F34 | PVDD LDO enable gated from the **+3V3_D buck's `PG` pin**, not a divider off the raw rail - a loose EN threshold against a ramping rail is a race, not a guarantee. Pull-down for fail-safe-off. Note restated at **part level**: every ADAU1466 supply pin carries an ordering relationship to IOVDD | S7.1 note 10 |
+| V-22 | Power/regulator/reset section read **end-to-end**. No third ordering constraint. Recorded: `AVDD` and `PVDD` are **mandatory even when unused**; RESET wants an external kOhm-class pull-down; RAM is not cleared by reset | S7.1, BRINGUP |
+
+**v1.1 - 2026-08-16.** F33 closed, F34 raised.
 
 | Finding | Change | Section |
 |---|---|---|
@@ -473,13 +480,31 @@ Note 9 puts `PVDD` on a **different branch of the power tree** from `IOVDD` (+3V
 otherwise guarantees their relative order — if the +3V6/+6V2 branch wins the race, **PVDD precedes
 IOVDD and stresses the ESD diodes on every power-up.**
 
-**Resolution: gate the PVDD LDO's enable from +3V3_D** (rail or power-good). The shared ancestor is
-then only a *logic* signal, never a current path, so **note 9's noise isolation survives intact**.
-Sequencing and noise isolation are separable concerns and are separated here deliberately.
+**Resolution: gate the PVDD LDO's enable from the +3V3_D buck's `PG` (power-good) pin** — *not*
+from the raw rail through a divider. **A divider into an LDO enable turns the guarantee back into
+a race, just a slower one:** EN thresholds are specified loosely (often "somewhere in 0.4–1.2 V"),
+and against a ramping rail that is not a sequencing guarantee. The LM61460 has `PG`, which asserts
+at a defined threshold with defined brownout and hiccup behaviour — **PG-to-EN makes the order a
+designed property with a datasheet behind both ends.**
 
-The other two domains are safe by construction and stay that way: `AVDD` shares +3V3_D with IOVDD
-(simultaneous), and `DVDD` comes from the +1V2_CORE buck **fed from +3V3_D**, so it is necessarily
-later. **Any future re-parenting of those rails re-opens this note.**
+- **Pull-down on the EN net**, so the PVDD LDO defaults **off** when `PG` is high-Z or unpowered.
+  This is the fail-safe-polarity rule from §6.4 applied to a rail enable. **[VERIFY]** whether the
+  LM61460's `PG` is open-drain (likely) and size the pull-up/pull-down pair accordingly.
+- **The shared ancestor becomes a logic signal, never a current path.** Note 9's noise isolation
+  survives intact. *Sequencing and noise isolation are separable concerns, and are separated here
+  deliberately* — recorded verbatim so a future "simplification" does not tie PVDD back to +3V3_D
+  on the grounds that they are related anyway.
+
+**This constraint is a property of the part, not of these two rails.** **Every ADAU1466 supply pin
+carries an ordering relationship to `IOVDD`: none of `AVDD`, `DVDD` or `PVDD` may precede it.**
+Today `AVDD` shares +3V3_D (simultaneous) and `DVDD` comes from the +1V2_CORE buck fed from
++3V3_D (necessarily later), so both are safe by construction. **Consult this note before adding,
+moving, or re-parenting any rail that feeds any ADAU1466 supply domain** — not merely before
+touching these two.
+
+Related, and easy to optimise away by mistake *(T1-61)*: **`AVDD` must be supplied even though the
+auxiliary ADCs are unused**, and **`PVDD` must be supplied even if the PLL were unused.** Neither
+is droppable.
 
 **Note 8 — the BM83 gets its own 3.6 V rail, and `ADAP_IN` is a trap door** *(v1.0, F31)*.
 `BAT_IN` is specified 3.2–4.2 V, so **+5V_D was never legal** and a nominal 3.3 V is not a fix
