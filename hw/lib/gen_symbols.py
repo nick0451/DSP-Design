@@ -105,6 +105,34 @@ BM83 = [
     (42,"P2_3",B,2),(44,"P0_1*",B,2),(45,"P0_7",B,2),
 ]
 
+OC = "open_collector"; PO = "power_out"
+
+# LM61460-Q1, 14-pin VQFN-HR (RJR). TI SNVSB70F, Table 7-1 p.4.
+# "Do not float" pins per the datasheet: FB (4), RT (6), EN/SYNC (7) -- F28 dispositions required.
+LM61460 = [
+    (8,"VIN1",P,1),(12,"VIN2",P,1),(9,"PGND1",P,1),(11,"PGND2",P,1),(3,"AGND",P,1),
+    (10,"SW",O,1),(14,"CBOOT",PA,1),(13,"RBOOT",PA,1),
+    (7,"EN/SYNC",I,1),(4,"FB",I,1),(6,"RT",PA,1),
+    (5,"PGOOD",OC,1),            # open-drain: needs a pull-up (F34)
+    (2,"VCC",PO,1),              # internal LDO output -- "do not connect to any external loads"
+    (1,"BIAS",P,1),
+]
+
+# INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
+INA1650 = [
+    (1,"VCC",P,1),(14,"VEE",P,1),
+    (2,"IN+A",I,1),(4,"IN-A",I,1),(3,"COM_A",I,1),(13,"OUT_A",O,1),(12,"REF_A",I,1),
+    (7,"IN+B",I,1),(5,"IN-B",I,1),(6,"COM_B",I,1),(8,"OUT_B",O,1),(9,"REF_B",I,1),
+    (11,"VMID_IN",I,1),(10,"VMID_OUT",O,1),
+]
+
+# LMK1C1104, 8-pin TSSOP (PW). TI SNAS791D, Figure 6-4 p.3.
+LMK1C1104 = [
+    (1,"CLKIN",I,1),(2,"1G",I,1),
+    (3,"Y0",O,1),(8,"Y1",O,1),(5,"Y2",O,1),(7,"Y3",O,1),
+    (6,"VDD",P,1),(4,"GND",P,1),
+]
+
 PARTS = {
     "ADAU1466": dict(pins=ADAU1466, n=72, ep=True, units=3,
         value="ADAU1466WBCPZ300", mfr="Analog Devices",
@@ -126,6 +154,21 @@ PARTS = {
         fp="ODSP12:Microchip_BM83SM1_Module",
         desc="Bluetooth 5.0 stereo audio module, A2DP sink, aptX-HD/AAC",
         ds="BM83 DS70005402G"),
+    "LM61460-Q1": dict(pins=LM61460, n=14, ep=False, units=1,
+        value="LM61460AQRJRRQ1", mfr="Texas Instruments",
+        fp="ODSP12:TI_VQFN-HR-14_RJR",
+        desc="3-36 V, 6 A synchronous buck, low EMI, AEC-Q100",
+        ds="TI SNVSB70F"),
+    "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
+        value="INA1650PW", mfr="Texas Instruments",
+        fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+        desc="Dual-channel high-CMRR line receiver",
+        ds="TI SBOS818B"),
+    "LMK1C1104": dict(pins=LMK1C1104, n=8, ep=False, units=1,
+        value="LMK1C1104PWR", mfr="Texas Instruments",
+        fp="Package_SO:TSSOP-8_3x3mm_P0.65mm",
+        desc="4-output LVCMOS clock buffer, 7.5 fs additive jitter",
+        ds="TI SNAS791D"),
 }
 
 for name, d in PARTS.items():

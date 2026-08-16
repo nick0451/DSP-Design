@@ -368,6 +368,146 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "Device:R"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "R"
+			(at 2.032 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "R"
+			(at 0 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -1.778 0 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "R res resistor"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "R_*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "R_0_1"
+			(rectangle
+				(start -1.016 -2.54)
+				(end 1.016 2.54)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "R_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	)
 	(symbol
 		(lib_id "ODSP12:ADAU1466")
@@ -929,5 +1069,54 @@
 	(no_connect (at 356.87 66.04) (uuid "c2bca006-0a09-581b-b1d1-bb112147ee4f"))
 	(no_connect (at 356.87 68.58) (uuid "cc9d9d25-e139-58d8-ba47-f0746c64883d"))
 	(no_connect (at 356.87 71.12) (uuid "a1c91452-99a8-5d82-b3e0-f51f9da6c1f8"))
+	(symbol
+		(lib_id "Device:R")
+		(at 407.67 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c6a1674c-2253-53dc-ad52-8126fd67d3d8")
+		(property "Reference" "R1" (at 411.17 118.08 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Value" "10k" (at 411.17 120.67999999999999 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/6d78cb6b-a40b-51cb-91d0-d524f0be15d1" (reference "R1") (unit 1))
+			)
+		)
+	)
+	(global_label "DSP_RESET_N"
+		(shape bidirectional)
+		(at 407.67 115.57000000000001 90)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "49d04a6b-0dd2-5a5d-864e-68766c655103")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 407.67 123.19 270)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "29fc11df-5c50-500d-9a4d-7ce52423d728")
+	)
+	(text "AVDD (pin 7) and PVDD (pin 15) are REQUIRED even though AUXADC0-5 are unused and\neven if the PLL were unused -- ADAU1466 Rev.C p.33, V-22. Do not drop either rail.\nThe six AUXADC no-connects below make 'drop AVDD' look like a free optimisation. It is not."
+		(exclude_from_sim no)
+		(at 149.86 34.29 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "bc6528c6-1390-5d1a-95cf-f000f348a222")
+	)
+	(text "R1 holds RESET low if its driver is absent or high-Z (Rev.C p.34), backing up the\ninternal pull-down. Fail-safe polarity: unpowered = held in reset."
+		(exclude_from_sim no)
+		(at 149.86 45.72 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "91bc5fe3-394d-526a-ae5a-be9a0d514d92")
+	)
+	(text "Every pin on this sheet has an explicit disposition -- net label or no-connect (F28).\nUnused-pin policy is PER PART, sourced from that part's own datasheet. No board-wide default."
+		(exclude_from_sim no)
+		(at 149.86 54.61 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "6902e54d-3867-5861-aa87-aef7d9fea810")
+	)
 	(embedded_fonts no)
 )

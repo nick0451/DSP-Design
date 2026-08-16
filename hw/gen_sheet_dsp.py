@@ -142,7 +142,62 @@ def labels(unit):
                     f'\t\t(uuid "{u(f"lbl{unit}_{num}")}")', '\t)']
     return "\n".join(out)
 
-body = "\n".join([sym_instance(un) for un in (1, 2, 3)] + [labels(un) for un in (1, 2, 3)])
+# ---- stock Device:R, embedded for the RESET pull-down ----
+STOCK = r"C:/Program Files/KiCad/10.0/share/kicad/symbols/Device.kicad_sym"
+_s = open(STOCK, encoding="utf-8").read()
+_i = _s.index('\t(symbol "R"\n'); _d = 0
+for _j in range(_i, len(_s)):
+    if _s[_j] == "(": _d += 1
+    elif _s[_j] == ")":
+        _d -= 1
+        if _d == 0: break
+res_def = _s[_i:_j + 1].replace('(symbol "R"', '(symbol "Device:R"', 1)   # parent only (see ledger)
+
+RPOS = (snap(408.0), snap(120.0))
+
+def reset_pulldown():
+    px, py = RPOS
+    out = ['\t(symbol', '\t\t(lib_id "Device:R")', f'\t\t(at {px} {py} 0)', '\t\t(unit 1)',
+           '\t\t(exclude_from_sim no)', '\t\t(in_bom yes)', '\t\t(on_board yes)', '\t\t(dnp no)',
+           f'\t\t(uuid "{u("rst_r")}")',
+           f'\t\t(property "Reference" "R1" (at {px + 3.5} {py - 1.3} 0) (effects (font (size 1.27 1.27)) (justify left)))',
+           f'\t\t(property "Value" "10k" (at {px + 3.5} {py + 1.3} 0) (effects (font (size 1.27 1.27)) (justify left)))',
+           '\t\t(instances', '\t\t\t(project "ODSP12-MB"',
+           f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "R1") (unit 1))',
+           '\t\t\t)', '\t\t)', '\t)']
+    # Device:R pins sit at (0, +/-3.81) in symbol coords
+    for sy, net, rot, just in ((3.81, "DSP_RESET_N", 90, "left"), (-3.81, GND, 270, "left")):
+        x, y = snap(px), snap(py - sy)
+        out += [f'\t(global_label "{net}"', '\t\t(shape bidirectional)', f'\t\t(at {x} {y} {rot})',
+                '\t\t(fields_autoplaced yes)',
+                f'\t\t(effects (font (size 1.27 1.27)) (justify {just}))',
+                f'\t\t(uuid "{u("rstlbl" + net)}")', '\t)']
+    return "\n".join(out)
+
+# ---- sheet notes: defences placed where the mistake would be made (F28 principle) ----
+NOTES = [
+    (150.0, 34.0,
+     "AVDD (pin 7) and PVDD (pin 15) are REQUIRED even though AUXADC0-5 are unused and\\n"
+     "even if the PLL were unused -- ADAU1466 Rev.C p.33, V-22. Do not drop either rail.\\n"
+     "The six AUXADC no-connects below make 'drop AVDD' look like a free optimisation. It is not."),
+    (150.0, 46.0,
+     "R1 holds RESET low if its driver is absent or high-Z (Rev.C p.34), backing up the\\n"
+     "internal pull-down. Fail-safe polarity: unpowered = held in reset."),
+    (150.0, 54.0,
+     "Every pin on this sheet has an explicit disposition -- net label or no-connect (F28).\\n"
+     "Unused-pin policy is PER PART, sourced from that part's own datasheet. No board-wide default."),
+]
+
+def notes():
+    out = []
+    for i, (x, y, txt) in enumerate(NOTES):
+        out += [f'\t(text "{txt}"', f'\t\t(exclude_from_sim no)', f'\t\t(at {snap(x)} {snap(y)} 0)',
+                '\t\t(effects (font (size 1.27 1.27)) (justify left top))',
+                f'\t\t(uuid "{u(f"note{i}")}")', '\t)']
+    return "\n".join(out)
+
+body = "\n".join([sym_instance(un) for un in (1, 2, 3)] + [labels(un) for un in (1, 2, 3)]
+                 + [reset_pulldown(), notes()])
 
 sch = f'''(kicad_sch
 \t(version {VER})
@@ -159,6 +214,7 @@ sch = f'''(kicad_sch
 \t)
 \t(lib_symbols
 {adau}
+{res_def}
 \t)
 {body}
 \t(embedded_fonts no)
