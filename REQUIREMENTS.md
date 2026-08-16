@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.5 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.6 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,13 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.6 - 2026-08-16.** V-17 closed; F46 decreed — a rail deleted.
+
+| Finding | Change | Section |
+|---|---|---|
+| V-17 | AK5574 `AVDD+VREFH1/2` **64 mA max**, AK4458 `AVDD` **41 mA max** each → **+5V_A = 146 mA**. LMK1C1104 40 mA max. **+6V2_A = 186 mA identified against 250 mA assumed** — the assumption becomes a derivation | §7.1 |
+| F46 | **+3V3_A DELETED.** Vestigial twice over: its founding tenant was erased by V-09/V-04, its second tenant evicted by F33. Tombstone at note 14; §9 monitor set amended to VBATT / +13V5 / −13V5 / **+5V_A** | §7.1, §9 |
 
 **v1.5 - 2026-08-16.** V-28, V-29 and V-23 closed. The power sheet's open list is empty.
 
@@ -444,7 +451,8 @@ table entirely — do not merge it with the original.*
 | **−15V5_A** *(v1.3, F39)* | **inverting buck-boost from +15V5_A** (LM61460-Q1 reconfigured per SNVA856), 2.2 MHz | −13V5_A LDO only | ~250 mA |
 | **±13V5_A** | ~~SEPIC/flyback or dual-boost~~ → **LT3045 (+) / LT3094 (−) from ±15V5_A** *(v1.3, F39)* | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
 | **+6V2_A** *(v0.6, F24)* | **small Q1-rated buck from VBATT_PROT**, spread-spectrum permitted | pre-regulator for the analog LDOs only | sized at V-17 |
-| **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies | **1.2 V headroom → ~200 mW class** |
+| **+5V_A** | **LT3045 from +6V2_A** *(v0.6)* | AK5574 + both AK4458 `AVDD` | **146 mA max** (V-17) |
+| ~~**+3V3_A**~~ | **DELETED v1.6, F46** — see the tombstone below | — | — |
 | **+3V3_CLK** *(v0.7)* | **dedicated LT3045 from +6V2_A** | **MCLK fanout buffer only** — see §3 | small; sized with V-17 |
 | **+3V3_PLL** *(v1.1, F33)* | **dedicated small LDO from +6V2_A** (MIC5504 / TPS7A02 class) — **enable-gated by +3V3_D, see note 10** | ADAU1466 `PVDD` (pin 15) **only** | **15 mA max** (V-21) → ~44 mW |
 
@@ -477,9 +485,34 @@ and the LT3045's PSRR at buck switching frequencies is precisely the job it was 
 the standard pre-regulator shape.
 
 **Note 6 — the analog LDOs run in parallel from +6V2_A, not cascaded, and the clock buffer gets
-its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it puts the **converters'
+its own.** Cascading (+6V2 → +5V_A → +3V3_CLK) would multiply PSRR, but it puts the **converters'
 signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
 does not need to exist. Parallel LDOs decouple them.
+
+**Note 14 — tombstone: why +3V3_A existed, and why it does not** *(v1.6, F46)*. The rail was
+written in v0.1 when "+5V_A / +3V3_A → ADC/DAC analog supplies" was set down against *assumed*
+converter supply domains. **V-09/V-04 then established that all three converters run `AVDD` at
+5 V**, and their 3.3 V domain is `TVDD` — digital, and already assigned to +3V3_D by note 1. That
+erased its founding tenant. It got a second life housing the **clock fanout** when F22 moved the
+LMK1C1104 off the digital rail, and **F33's escalation evicted that tenant too** when the fanout
+earned its own `+3V3_CLK` from +6V2_A. **Nobody re-ran the occupancy check after the move-out, so
+an LT3045 has been regulating for an empty room since v0.6.** V-17's enumeration is the first thing
+that walked every load since then.
+
+*Reading (c) — repurposing it for converter `TVDD` — was considered and rejected, recorded so it
+is not re-had.* TVDD noise perturbs digital *thresholds*, on lines that latch data rather than
+convert it; the sampling instant on these parts is set by MCLK, which already rides the board's
+cleanest supply. And the interface levels are driven from the DSP's `IOVDD` on +3V3_D regardless,
+so a clean receiver supply under a noisy driver's signal buys threshold margin against noise that
+arrives *on the signal* — which is not the mechanism note 9 describes.
+**Reopen condition:** if bench EMI shows the converters' digital domains want isolation, the
+datasheet-standard answer is a **local ferrite plus bypass per TVDD pin** — two passives, below
+rail architecture. Unverified concern, not disproven (M12).
+
+**What the deletion freed:** one LT3045 and its 33.2 kΩ R<sub>SET</sub>, one testpoint, ~100 mW,
+and **one ADS1015 channel — reassigned to +5V_A**, which was never monitored and is the most
+diagnostic single analog voltage on the board: it feeds all three converters' `AVDD` directly, so
+a sagging +5V_A explains more field symptoms than the empty rail ever could.
 
 **Note 11 — the ±13V5_A cascade is forced by an absolute maximum, not chosen for elegance**
 *(v1.3, F39)*. An inverting buck-boost stresses its regulator at **V<sub>IN</sub> +
@@ -588,7 +621,7 @@ and a few cm².
 **Note 5 — the MCLK fanout buffer moves to a clean rail.** The LMK1C110x is a 1.8/2.5/3.3 V part
 and was never a 5 V load, so the v0.1 placement on +5V_D was wrong on its face (F22). More
 importantly it is the most jitter-critical device in the clock tree (§3 **[HARD]**), and its
-7.5 fs additive jitter figure is specified on a clean supply. **Put it on +3V3_A, not the +3V3_D
+7.5 fs additive jitter figure is specified on a clean supply. **Put it on +3V3_CLK** *(v1.6 — F33 gave the fanout its own rail; this line said +3V3_A, which F46 deleted)*, **not the +3V3_D
 switcher.**
 
 - All battery-facing regulators AEC-Q100.
@@ -744,7 +777,7 @@ Practical consequences for layout and capture:
 ## 9. Monitoring & Diagnostics
 
 - ~~Rail voltage dividers → ESP32 ADC~~ *(v0.3, F16)* — **rail voltage dividers → ADS1015-class
-  4-channel I2C ADC on I2C0**, covering VBATT, +13V5, −13V5 and 3V3_A. The ESP32-S3's own ADC is
+  4-channel I2C ADC on I2C0**, covering VBATT, +13V5, −13V5 and **+5V_A** *(v1.6, F46 — was 3V3_A, a rail that no longer exists)*. The ESP32-S3's own ADC is
   the module's known weak organ, nonlinear and noisy, and §7.2 step 5 gates output unmute on this
   reading. The dividers themselves are unchanged; only the converter behind them moves.
   −13V5 is brought into range by a divider referenced to a positive rail rather than to ground —

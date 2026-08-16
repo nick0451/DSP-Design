@@ -67,6 +67,27 @@ dispositioned across two units. **Cross-sheet integration verified in the netlis
 BM83 reset reached no GPIO at all. Both fixed; IO47/IO48 took the two new nets once T1-102
 showed footnote c does not apply to the N8R2.
 
+**`06_analog_in.kicad_sch` is drawn** (page 7, 2026-08-16). **66 device instances, 232 labels, no
+collisions.** 4 differential channels → 2× INA1650 → AK5574, with dual-range attenuators, 2-pole
+range relays, a PCF8574 expander and a ULN2003A coil driver. **ERC 70 → 81**, all of it new
+undrawn-counterpart labels. `+3V3_A` is gone from the netlist (F46).
+
+**The gain plan caught two errors that a parts-list approach would have shipped:**
+- **The INA1650's 500 kΩ input resistors are *part of* the divider, not a load on it.** The first
+  pass ignored them and put **speaker mode at 100.9 % of full scale — clipping at the stated
+  ceiling.** R<sub>top</sub> dropped 100 k → 10 k (loading 20 % → 2 %, and the CMRR budget
+  improves in the same move) and both ranges now target 95 % FS. Final: **line 95.3 %, speaker
+  94.0 %, Z<sub>in,diff</sub> = 38 kΩ** against the ≥ 20 kΩ decree.
+- **The PCF8574's `SDA` and `INT` were swapped, and the F28 assertion passed anyway.** Coverage
+  proves every pin has a net, never that it is the *right* net — **M6, stated before it was
+  checked and then demonstrated within the hour.** Caught by reading the parent symbol's map.
+
+**Two more of the extends-alias family** (PCF8574T, ULN2003A) — fifth and sixth instances, now
+handled **generically** in `extract()` rather than per part, and both built as project symbols
+because the rename otherwise produces a `lib_symbol_mismatch`. **`VDD18` was typed `power_in`**
+on the AK5574 while T1 already recorded it as an internal-LDO *output*; retyped `power_out`,
+which is what cleared the last `power_pin_not_driven`.
+
 **Sheet plan** — mirrors the architecture, not the BOM, so that a [HARD] section maps to one sheet:
 
 | Page | File | Contents |

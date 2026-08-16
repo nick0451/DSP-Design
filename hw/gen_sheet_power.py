@@ -119,7 +119,6 @@ PLACE = [
         "7": "+3V3_D", "1": "+3V3_D", "2": "FB_1V2", "3": GND, "5": GND,
         "6": "SW_1V2", "8": "PG_1V2", "4": None}),
     lt3045("U6", 150, 100, "+6V2_A", "+5V_A"),
-    lt3045("U7", 150, 160, "+6V2_A", "+3V3_A"),
     lt3045("U8", 260, 40,  "+6V2_A", "+3V3_CLK"),
     # +3V3_PLL -- F33/F34. EN gated from PG_3V3_D via the R2/R3/R4 network.
     lt3045("U9", 260, 100, "+6V2_A", "+3V3_PLL", en="EN_3V3_PLL"),
@@ -131,7 +130,7 @@ PLACE = [
     ("U11", "Analog_ADC:ADS1015IDGS", 370, 40, "ADS1015IDGS", {
         "8": "+3V3_D", "3": GND, "1": GND, "9": "I2C0_SDA", "10": "I2C0_SCL",
         "2": "RAILMON_ALERT", "4": "MON_VBATT", "5": "MON_P13V5", "6": "MON_N13V5",
-        "7": "MON_3V3_A"}),
+        "7": "MON_5V_A"}),
     # TMP461  1 V+ 2 D+ 3 D- 4 THERM 5 A0 6 GND 7 ALERT/THERM2 8 SDA 9 SCL 10 A1
     ("U12", "Sensor_Temperature:TMP461xxRUN", 370, 120, "TMP461-Q1", {
         "1": "+3V3_D", "6": GND, "2": "DSP_THD_P", "3": "DSP_THD_M",
@@ -172,8 +171,9 @@ PLACE = [
 # PG_3V3_D is the open-drain pull-down onto the same node
 PLACE.append(("R4", "Device:R", 400, 200, "0R", {"1": "PG_3V3_D", "2": "EN_3V3_PLL"}))
 
+# +3V3_A deleted 2026-08-16 (F46) -- see the tombstone in REQUIREMENTS S7.1.
 TESTPOINTS = ["VBATT_PROT", "+5V_D", "+3V3_D", "+6V2_A", "+1V2_CORE", "+5V_A",
-              "+3V3_A", "+3V3_CLK", "+3V3_PLL", "+3V6_BT",
+              "+3V3_CLK", "+3V3_PLL", "+3V6_BT",
               "+15V5_A", "-15V5_A", "+13V5_A", "-13V5_A"]
 
 # ---------------------------------------------------------------- passive pass
@@ -294,7 +294,6 @@ PASSIVES += [
 ]
 # --- five LT3045: Cin, Cout, Rset, Cset, Rilim ---
 for ref, vout, vin, rail, py in (("U6", 5.0, "+6V2_A", "+5V_A", 410),
-                                 ("U7", 3.3, "+6V2_A", "+3V3_A", 430),
                                  ("U8", 3.3, "+6V2_A", "+3V3_CLK", 450),
                                  ("U9", 3.3, "+6V2_A", "+3V3_PLL", 470)):
     (rs, rs_t), vact = lt_set(vout)

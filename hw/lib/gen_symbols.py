@@ -13,6 +13,7 @@ VER = "20251024"   # verified from share/kicad/symbols/Device.kicad_sym
 DEST = r"c:\Users\nick\Documents\Claude Project\DSP Design\hw\lib\ODSP12.kicad_sym"
 
 P = "power_in"; I = "input"; O = "output"; B = "bidirectional"; PA = "passive"
+OC = "open_collector"; PO = "power_out"
 
 ADAU1466 = [
     (1,"DGND",P,1),(17,"DGND",P,1),(19,"DGND",P,1),(25,"DGND",P,1),(36,"DGND",P,1),
@@ -62,7 +63,11 @@ AK5574 = [
     (35,"SLOW",I,2),(36,"SD",I,2),(37,"DIF0",I,2),(38,"DIF1",I,2),
     (39,"TDM0",I,2),(40,"TDM1",I,2),(43,"DP",I,2),(44,"HPFE",I,2),
     (45,"LDOE",I,2),(46,"ODP",I,2),
-    (17,"TVDD",P,2),(18,"DVSS",P,2),(19,"VDD18",P,2),
+    (17,"TVDD",P,2),(18,"DVSS",P,2),
+    # VDD18 is the INTERNAL LDO's OUTPUT, not a supply input (T1 + the F28 do-not-load note).
+    # Typed power_in it reads as a rail nobody drives, and ERC says so correctly. power_out is
+    # what it is: the part supplies this pin, the board only decouples it.
+    (19,"VDD18",PO,2),
 ]
 
 AK4458 = [
@@ -111,8 +116,6 @@ BM83 = [
     (38,"P0_3*",B,2),(39,"P2_7*",B,2),(40,"P0_5*",B,2),(41,"P1_6/PWM1",B,2),
     (42,"P2_3",B,2),(44,"P0_1*",B,2),(45,"P0_7",B,2),
 ]
-
-OC = "open_collector"; PO = "power_out"
 
 # LM61460-Q1, 14-pin VQFN-HR (RJR). TI SNVSB70F, Table 7-1 p.4.
 # "Do not float" pins per the datasheet: FB (4), RT (6), EN/SYNC (7) -- F28 dispositions required.
@@ -185,6 +188,25 @@ USBLC6 = [
     (2,"GND",P,1),(5,"VBUS",P,1),
 ]
 
+# PCF8574T and ULN2003A -- project symbols for the SAME reason as LT3094 / AP2127K-ADJ /
+# USBLC6-2SC6: KiCad's are (extends ...) aliases, and renaming the parent's children yields a
+# lib_symbols cache ERC rejects as lib_symbol_mismatch. Fifth and sixth instances; the pattern
+# is now "any stock symbol whose package variant is an alias needs a project symbol."
+# Maps read from the parent symbols and cross-checked against the standard pinouts.
+PCF8574 = [
+    (1,"A0",I,1),(2,"A1",I,1),(3,"A2",I,1),(8,"GND",P,1),(16,"VDD",P,1),
+    (4,"P0",B,1),(5,"P1",B,1),(6,"P2",B,1),(7,"P3",B,1),
+    (9,"P4",B,1),(10,"P5",B,1),(11,"P6",B,1),(12,"P7",B,1),
+    (13,"~{INT}",OC,1),(14,"SCL",I,1),(15,"SDA",B,1),
+]
+ULN2003 = [
+    (1,"I1",I,1),(2,"I2",I,1),(3,"I3",I,1),(4,"I4",I,1),
+    (5,"I5",I,1),(6,"I6",I,1),(7,"I7",I,1),(8,"GND",P,1),
+    (9,"COM",P,1),
+    (10,"O7",OC,1),(11,"O6",OC,1),(12,"O5",OC,1),(13,"O4",OC,1),
+    (14,"O3",OC,1),(15,"O2",OC,1),(16,"O1",OC,1),
+]
+
 # INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
 INA1650 = [
     (1,"VCC",P,1),(14,"VEE",P,1),
@@ -246,6 +268,14 @@ PARTS = {
         fp="Package_TO_SOT_SMD:SOT-23-6",
         desc="2-line ESD array for USB2.0, VBUS clamp. PIN MAP T2 -- see V-30",
         ds="ST USBLC6-2SC6 (NOT HELD -- V-30)"),
+    "PCF8574T": dict(pins=PCF8574, n=16, ep=False, units=1,
+        value="PCF8574T", mfr="NXP", fp="Package_SO:SO-16_3.9x9.9mm_P1.27mm",
+        desc="8-bit I2C GPIO expander, addr 0x20 with A2:A0=000",
+        ds="NXP PCF8574"),
+    "ULN2003A": dict(pins=ULN2003, n=16, ep=False, units=1,
+        value="ULN2003A", mfr="Texas Instruments", fp="Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+        desc="7ch Darlington sink array with internal freewheel diodes (COM)",
+        ds="TI ULN2003A"),
     "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
         value="INA1650PW", mfr="Texas Instruments",
         fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
