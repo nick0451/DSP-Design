@@ -51,6 +51,8 @@ SRC = {
     "ODSP12:LM5156-Q1":  (PROJ_LIB, "LM5156-Q1"),
     "ODSP12:LMK1C1104":  (PROJ_LIB, "LMK1C1104"),
     "ODSP12:LT3094":     (PROJ_LIB, "LT3094"),
+    "ODSP12:AP2127K-ADJ":(PROJ_LIB, "AP2127K-ADJ"),
+    "power:PWR_FLAG":    (STOCK_DIR + "/power.kicad_sym", "PWR_FLAG"),
     "Transistor_FET:Q_NMOS_DGS":       (STOCK_DIR + "/Transistor_FET.kicad_sym", "Q_NMOS_DGS"),
     "Transistor_FET:Q_PMOS_DGS":       (STOCK_DIR + "/Transistor_FET.kicad_sym", "Q_PMOS_DGS"),
     "Device:Fuse":                     (STOCK_DIR + "/Device.kicad_sym", "Fuse"),
@@ -121,9 +123,10 @@ PLACE = [
     lt3045("U8", 260, 40,  "+6V2_A", "+3V3_CLK"),
     # +3V3_PLL -- F33/F34. EN gated from PG_3V3_D via the R2/R3/R4 network.
     lt3045("U9", 260, 100, "+6V2_A", "+3V3_PLL", en="EN_3V3_PLL"),
-    # +3V6_BT -- F36: MIC5504 is fixed-voltage with no 3.6 V option, so an adjustable part
-    # stands in provisionally. Flagged, not silently substituted.
-    lt3045("U10", 260, 160, "+5V_D", "+3V6_BT"),
+    # +3V6_BT -- F36 CLOSES. The PROVISIONAL LT3045 comes off entirely now that V-23 is
+    # settled: AP2127K-ADJ, VREF = 0.8 V +/-2 %, divider below. 1 VIN 2 GND 3 EN 4 ADJ 5 VOUT.
+    ("U10", "ODSP12:AP2127K-ADJ", 260, 160, "AP2127K-ADJTRG1", {
+        "1": "+5V_D", "2": GND, "3": "+5V_D", "4": "FB_3V6_BT", "5": "+3V6_BT"}),
     # Rail monitor: ADS1015  1 ADDR 2 ALERT/RDY 3 GND 4 AIN0 5 AIN1 6 AIN2 7 AIN3 8 VDD 9 SDA 10 SCL
     ("U11", "Analog_ADC:ADS1015IDGS", 370, 40, "ADS1015IDGS", {
         "8": "+3V3_D", "3": GND, "1": GND, "9": "I2C0_SDA", "10": "I2C0_SCL",
@@ -225,15 +228,51 @@ def passive(kind, x, y, val, na, nb):
     libid = {"C": "Device:C", "L": "Device:L", "R": "Device:R"}[kind]
     return (ref, libid, x, y, val, {"1": na, "2": nb})
 
+VIN_MAX = 16.0          # max operating battery; sizing worst case for ripple is MAX Vin
+FSW = 2.2e6             # both the LM61460s (RT 5.76k, V-25) and the TPS62823 (T1-93)
+
+# Stocked inductor values are E12, not arbitrary. Emitting 10.4 uH or 1.98 uH is the same
+# defect as specifying a 135k resistor and calling it E96: a number that does not exist as a
+# part. So SNAP FIRST, then RE-DERIVE the consequence at the snapped value -- the ripple a
+# 2.2 uH part gives is not the ripple the 1.98 uH calculation asked for.
+E12 = [1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2]
+
+def snap_L(h_uh):
+    import math
+    best = None
+    for dec in range(-1, 4):
+        for m in E12:
+            v = m * (10 ** dec)
+            if best is None or abs(math.log(v / h_uh)) < abs(math.log(best / h_uh)):
+                best = v
+    return best
+
+def buck_L(vout, iout, ripple=0.30, vin=VIN_MAX):
+    """(L_snapped_uH, Isat_min, ripple_A_at_snapped_L) for a buck.
+    Ripple is worst at MAX Vin, so the inductance is sized there."""
+    di_target = ripple * iout
+    L_calc = vout * (vin - vout) / (vin * FSW * di_target) * 1e6      # uH
+    L = snap_L(L_calc)
+    di = vout * (vin - vout) / (vin * FSW * L * 1e-6)                 # actual ripple at snapped L
+    return L, iout + di / 2.0, di
+
+def L_txt(h_uh):
+    return f"{h_uh:g}uH"
+
 PASSIVES = []
 # --- three LM61460 bucks: L, Cin, Cout, boot network, RT, VCC/BIAS bypass, FB divider ---
-for ref, vout, vin, bx, by in (("U2", 5.0, "VBATT_PROT", 40, 250),
-                               ("U3", 3.3, "VBATT_PROT", 40, 290),
-                               ("U4", 6.2, "VBATT_PROT", 40, 330)):
+# Load currents: +3V3_D is DECREED at 2 A (S7.1 note 2). +5V_D is "modest" -- 0.5 A design
+# point, dominated by the +3V6_BT LDO at ~100 mA. +6V2_A is sized at V-17, WHICH IS STILL OPEN,
+# so its 0.25 A is an assumption carrying that tag, not a derivation.
+for ref, vout, vin, bx, by, iout, ripple in (("U2", 5.0, "VBATT_PROT", 40, 250, 0.50, 0.30),
+                                             ("U3", 3.3, "VBATT_PROT", 40, 290, 2.00, 0.30),
+                                             ("U4", 6.2, "VBATT_PROT", 40, 330, 0.25, 0.50)):
     rail = {"U2": "+5V_D", "U3": "+3V3_D", "U4": "+6V2_A"}[ref]
     (rt, rt_t), (rb, rb_t), vact = lm_divider(vout)
+    Lh, isat, dI = buck_L(vout, iout, ripple)
     PASSIVES += [
-        passive("L", bx,      by, "10uH",  f"SW_{rail[1:]}" if False else f"SW_{rail.strip('+')}", rail),
+        passive("L", bx,      by, f"{L_txt(Lh)} Isat>={isat*1.6:.1f}A",
+                f"SW_{rail.strip('+')}", rail),
         passive("C", bx + 20, by, "10uF",  vin, GND),
         passive("C", bx + 40, by, "22uF",  rail, GND),
         passive("C", bx + 60, by, "100nF", f"SW_{rail.strip('+')}", f"{ref}_CBOOT"),
@@ -243,9 +282,11 @@ for ref, vout, vin, bx, by in (("U2", 5.0, "VBATT_PROT", 40, 250),
         passive("R", bx + 140, by, rt_t,   rail, f"FB_{rail.strip('+')}"),
         passive("R", bx + 160, by, rb_t,   f"FB_{rail.strip('+')}", GND),
     ]
-# --- TPS62823: L, Cin, Cout; FB divider deferred to V-24 ---
+# --- TPS62823: L, Cin, Cout. f_sw = 2.2 MHz (T1-93), core 495 mA max (T1-20), Vin = +3V3_D ---
+_Lh1V2, _Isat1V2, _ = buck_L(1.2, 0.495, 0.30, 3.3)
+_L1V2 = f"{L_txt(_Lh1V2)} Isat>={_Isat1V2*1.6:.1f}A"
 PASSIVES += [
-    passive("L", 40, 370, "1uH",   "SW_1V2", "+1V2_CORE"),
+    passive("L", 40, 370, _L1V2, "SW_1V2", "+1V2_CORE"),
     passive("C", 60, 370, "10uF",  "+3V3_D", GND),
     passive("C", 80, 370, "22uF",  "+1V2_CORE", GND),
     passive("R", 100, 370, "100k", "+1V2_CORE", "FB_1V2"),   # VFB=0.6V (V-24): Rt=Rb -> 1.2 V
@@ -255,8 +296,7 @@ PASSIVES += [
 for ref, vout, vin, rail, py in (("U6", 5.0, "+6V2_A", "+5V_A", 410),
                                  ("U7", 3.3, "+6V2_A", "+3V3_A", 430),
                                  ("U8", 3.3, "+6V2_A", "+3V3_CLK", 450),
-                                 ("U9", 3.3, "+6V2_A", "+3V3_PLL", 470),
-                                 ("U10", 3.6, "+5V_D", "+3V6_BT", 490)):
+                                 ("U9", 3.3, "+6V2_A", "+3V3_PLL", 470)):
     (rs, rs_t), vact = lt_set(vout)
     PASSIVES += [
         passive("C", 40,  py, "10uF",  vin, GND),
@@ -312,6 +352,14 @@ PASSIVES += [
     passive("R", 250, 640, RB15_T,      "FB_N15V5_A", "-15V5_A"),
     passive("R", 280, 640, "100k",      "+15V5_A", "EN_N15V5"),  # self-enable from its own input
     passive("R", 310, 640, "13.7k",     "EN_N15V5", "-15V5_A"),
+    # --- +3V6_BT, AP2127K-ADJ (V-23 closed) ---
+    # Vout = VREF * (1 + R1/R2), VREF = 0.8 V. 3.6/0.8 = 4.5 -> R1/R2 = 3.5.
+    # R2 = 10k, R1 = 34.8k (E96) -> 3.584 V, -0.44 %.
+    passive("R", 40,  520, "34.8k", "+3V6_BT", "FB_3V6_BT"),
+    passive("R", 70,  520, "10k",   "FB_3V6_BT", GND),
+    passive("C", 100, 520, "560p",  "+3V6_BT", "FB_3V6_BT"),   # Cff, datasheet-recommended
+    passive("C", 130, 520, "1uF",   "+5V_D", GND),
+    passive("C", 160, 520, "2.2uF", "+3V6_BT", GND),
     # --- post-regulators ---
     passive("C", 40,  680, "10uF/25V",  "+15V5_A", GND),
     passive("C", 70,  680, "22uF/25V",  "+13V5_A", GND),
@@ -359,7 +407,7 @@ PASSIVES += [
         {"1": "VBATT_FUSED", "2": "VBATT_GATE", "3": "VBATT_REV"}),
     ("D3", "Device:D_Zener", 160, 780, "15V", {"1": "VBATT_GATE", "2": "VBATT_REV"}),
     passive("R", 200, 780, "100k",   "VBATT_GATE", GND),
-    passive("L", 240, 780, "4.7uH 5A PROVISIONAL", "VBATT_REV", "VBATT_PROT"),
+    passive("L", 240, 780, "4.7uH Isat>=5A", "VBATT_REV", "VBATT_PROT"),   # Middlebrook-sized, see NOTE6 s4
     passive("C", 280, 780, "22uF/50V", "VBATT_PROT", GND),
     # Damping branch -- NOT optional, and not a bulk cap. See NOTE6.
     passive("R", 320, 780, "0.68R",  "VBATT_PROT", "VBATT_DAMP"),
@@ -372,7 +420,21 @@ PASSIVES += [
 PLACE.append(("L1", "Device:L_Coupled", 70, 600, "10uH coupled, Isat >= 4A (F38)",
               {"1": "VBATT_PROT", "2": "SEPIC_A", "3": "SEPIC_B", "4": GND}))
 # IBB inductor: SW to SYSTEM ground, because system ground is this converter's output node.
-PASSIVES.append(passive("L", 340, 640, "10uH PROVISIONAL", "SW_N15V5", GND))
+# IBB (U14): the regulated "output" is 15.41 V from a 30.8 V effective input, D = 0.5, so the
+# INDUCTOR current is Iout/(1-D) = 2x the load -- 0.50 A for a 0.25 A rail. Sizing at 50 % ripple.
+_Lb, _isat, _ = buck_L(15.41, 0.50, 0.50, 30.82)
+PASSIVES.append(passive("L", 340, 640, f"{L_txt(_Lb)} Isat>={_isat*1.6:.1f}A", "SW_N15V5", GND))
+# ---------------------------------------------------------------- PWR_FLAG pass
+# ERC's power_pin_not_driven fires when a power_in pin sees no power_out on its net. Every
+# switcher rail here is formed AFTER an inductor or diode -- both passive -- so no power_out
+# exists anywhere on those nets, and the same is true of GND and the battery input. That is a
+# modelling gap, not a design defect, and PWR_FLAG is KiCad's declaration of exactly that.
+# Placed ONLY on nets with no active source: the LDO rails already have a power_out (OUT pin)
+# and adding flags there would suppress a check that is doing real work.
+for i, _net in enumerate(["GND", "VBATT_IN", "VBATT_PROT", "+5V_D", "+3V3_D",
+                          "+6V2_A", "+1V2_CORE", "+15V5_A", "-15V5_A"]):
+    PLACE.append((f"#FLG{i:02d}", "power:PWR_FLAG", 640, 240 + i * 14, "PWR_FLAG", {"1": _net}))
+
 PLACE += PASSIVES
 
 # Every global label this sheet emits, keyed by (x, y). Connectivity here is BY LABEL at a
@@ -491,6 +553,34 @@ NOTE3 = (
     "  regulated output node is SYSTEM GROUND. Its input caps therefore span the full 31 V,\\n"
     "  not 15.5 V -- 50 V parts, and the DC-bias derating trap applies with force here.\\n"
     "  BIAS -> -15V5_A is the datasheet's instruction for outputs above 12 V, not a shortcut."
+)
+NOTE7 = (
+    "MAGNETICS AND CERAMICS -- the sizing pass. Values here are DERIVED and SNAPPED, not typed.\n"
+    "\n"
+    "INDUCTORS. L = Vout(Vin-Vout)/(Vin*fsw*dI), sized at MAX Vin because that is where ripple\n"
+    "is worst, then SNAPPED TO E12 and the ripple RE-DERIVED at the snapped value -- a 2.2 uH\n"
+    "part does not give the ripple a 1.98 uH calculation asked for. Emitting the raw number\n"
+    "would be the 135k-resistor defect in a different component class.\n"
+    "  Isat is quoted at 1.6x the peak OPERATING current (Iout + dI/2), NOT at the converter's\n"
+    "  current limit. Note the gap deliberately: the LM61460 can push ~7 A into a fault, which\n"
+    "  saturates every inductor on this sheet. That is accepted -- saturation during a fault is\n"
+    "  bounded by the part's own cycle-by-cycle limit and thermal shutdown, and sizing four\n"
+    "  inductors for a fault case would cost area on every rail to buy nothing in normal use.\n"
+    "  IT IS A CHOICE, not an oversight, and it is the line to revisit if a rail ever runs hot.\n"
+    "  +6V2_A's 0.25 A load is an ASSUMPTION pending V-17, and its inductor inherits that tag.\n"
+    "\n"
+    "CERAMICS -- USE EFFECTIVE CAPACITANCE AT THE WORKING VOLTAGE, NOT THE PRINTED VALUE.\n"
+    "X5R/X7R lose most of their capacitance under DC bias; a 22 uF 25 V X7R 1210 at 15 V is\n"
+    "commonly 8-10 uF. Rule applied on this sheet: RATED VOLTAGE >= 2x WORKING VOLTAGE, and\n"
+    "where a number is load-bearing the EFFECTIVE value is what the calculation uses.\n"
+    "  Two places it is already load-bearing:\n"
+    "  1. The VBATT_PROT filter: NOTE6 s4's Middlebrook margin uses C = 10 uF EFFECTIVE from a\n"
+    "     22 uF part. Substituting a 22 uF 25 V part and believing the label moves Z0 and Q.\n"
+    "  2. U14's input caps span the FULL 31 V (Vin to IC ground). A 50 V part at 31 V is deep\n"
+    "     into its derating curve -- this is the worst-biased ceramic on the board.\n"
+    "  DO NOT substitute a physically smaller case for the same printed value: derating gets\n"
+    "  worse as the case shrinks, so an 0805 22 uF and a 1210 22 uF are different components\n"
+    "  for this purpose even though the BOM line looks identical."
 )
 NOTE4 = (
     "F40 -- CORRECTION APPLIED THIS PASS, recorded because the value looked plausible.\\n"
@@ -643,7 +733,8 @@ for i, r in enumerate(TESTPOINTS):
     body.append("\n".join(emit_label(r, x, y, 0, "left", u("tp" + r))))
 for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2),
                                    (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4),
-                                   (560.0, 760.0, NOTE5), (40.0, 820.0, NOTE6)]):
+                                   (560.0, 760.0, NOTE5), (40.0, 820.0, NOTE6),
+                                   (560.0, 900.0, NOTE7)]):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')

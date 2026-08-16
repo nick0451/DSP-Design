@@ -178,9 +178,29 @@ against a −4.05 Ω load — violated by 21 dB**; with R<sub>d</sub> = 0.68 Ω 
 SMBJ24A misses the load-dump energy by 40–165×, and the board currently makes that scope claim
 silently.
 
-**Still open on this sheet:** AP2127K-ADJ divider (**V-23**), **V-29** (multi-pulse derating —
-bounded, not closed, and the vendor does not publish the curve), and two of
-the three traps — **inductor saturation current** (the spec that matters, not RMS
+**THE POWER SHEET'S OPEN LIST IS EMPTY.** The three mechanical items ran 2026-08-16:
+
+- **PWR_FLAG pass** — 9 flags on the nets whose source is a passive (every switcher rail formed
+  after an inductor or diode, plus GND and the battery input). **`power_pin_not_driven` 8 → 0.**
+  Flags were placed *only* where no active source exists; the LDO rails already carry a
+  `power_out`, and flagging those would suppress a check still doing work. It surfaced one real
+  modelling defect: `VDRIVE` was typed `output` while the datasheet directs grounding it, so an
+  Output met the GND flag's Power output. **Retyped `passive`** — a pin the datasheet tells you
+  to tie to a rail is a terminated node, not a driver. **`pin_to_pin` 1 → 0**, without an ERC
+  exclusion, which §4 forbids anyway.
+- **Saturation / DC-bias sweep** — every inductor **derived, snapped to E12, then re-derived at
+  the snapped value**, because the ripple a 2.2 µH part gives is not the ripple a 1.98 µH
+  calculation asked for. Emitting the raw number would have been **the 135 kΩ defect in another
+  component class.** Results: +5V_D 10 µH · +3V3_D 1.8 µH · +6V2_A 15 µH · +1V2_CORE 2.2 µH ·
+  IBB 15 µH · SEPIC 10 µH coupled. `Isat` quoted at 1.6× peak *operating* current with the gap
+  to the converter's ~7 A fault limit **named as a choice, not left as an oversight**. The
+  ceramic rule — rated ≥ 2× working, effective capacitance where a number is load-bearing — is
+  on the sheet with its two live cases.
+- **V-23 closed** — AP2127 **V<sub>REF</sub> = 0.8 V ±2 %**; 34.8 k / 10 k → **3.584 V**, inside
+  `BAT_IN`'s 3.2–4.2 V across the full stack, with the datasheet-recommended feed-forward cap.
+  **F36 closes with it**: the PROVISIONAL LT3045 is off the sheet and U10 is an AP2127K-ADJ.
+
+**Still open on this sheet:** nothing. Remaining traps — **inductor saturation current** (the spec that matters, not RMS
 heating; the 10 µH values on this sheet are **placeholders marked PROVISIONAL**, not derivations)
 and **ceramic DC-bias derating** (sheet values must be *effective* capacitance at working voltage,
 and the IBB's input caps span the full 31 V). **ERC 87**, in four enumerated classes:
@@ -631,6 +651,15 @@ before it becomes an ask on someone else's time.
 extractable** — `/URI (...)` entries, including inside compressed streams — so a datasheet that
 cross-references other documents hands you their doc numbers directly. That is how doc **98647**
 was located after the NRND banner text turned out not to be a link.
+
+**M13 — A PDF's cross-reference graph is machine-readable navigation, not decoration.**
+Embedded `/URI` entries — including inside compressed streams — turn "hunt the successor
+document" into a parse. Doc **98647** was found this way after the NRND banner's *text* turned
+out not to be a link while the "Related Documents" icon was. **This pays on every vendor whose
+site search is worse than their own documents, which is most of them**, and it is strictly better
+than guessing doc numbers or trusting a distributor's link. *Companion to M11:* when a document
+points at a successor, the pointer is usually **in** the file, so the redirect boundary M11 warns
+about is normally crossable without leaving the archive.
 
 **M12 — An elimination carries its evidence and its scope, exactly like a promotion.** *(operator,
 2026-08-16.)* The project already tagged every T1 with how it was verified; **eliminations had no
@@ -1182,7 +1211,8 @@ citation** — part number, document revision, and section.
 | ID | Item | Src | Status |
 |---|---|---|---|
 | V-28 | ~~The SM8S24 HM3 datasheet~~ | F42/F44/F45 | **CLOSED 2026-08-16 → T1-90/T1-91.** Found by extracting the PDF's own embedded hyperlinks (doc **98647**); the NRND banner text is not a link, but the "Related Documents" icon is. **Results: all four sub-questions answered and none of them moved a conclusion.** The successor is electrically identical, so §12's table stands as written; the **6600/5200 pair is two waveforms of one unidirectional part**, settling the three-way reading against the uni-vs-bi interpretation; the **43 V/153 A distributor figure is a mis-mapped field**; and the package changed **AB → AC with an identical land pattern**. *The pre-fired chain was never needed — which is the point of firing it.* |
-| V-29 | **Multi-pulse derating — and doc 98647 does NOT close it** | F42 | **Open, with the gap now precisely located.** The HM3 datasheet carries the same single-pulse figure set as its predecessor (Fig. 1 P<sub>PPM</sub> vs pulse width; Fig. 3 load-dump power for a **10 ms exponential**) and **publishes no M-suffix/S-suffix multi-pulse curves** — those appear in the EDN article for the *SM5S* family, not here. So ISO 16750-2's **10 pulses in 10 minutes** remains uncharacterised for this part. **Bound, not closed:** P<sub>D</sub> = 8 W steady-state sets the recovery rate between pulses, and at 1-minute intervals the junction fully recovers, so the binding case is per-pulse rather than cumulative heating — **but that is reasoning, not the vendor's curve.** Route: Vishay applications, or accept it as consumption of the suppressed row's 3–5× margin and say so in G7 |
+| V-29 | ~~Multi-pulse derating~~ | F42 | **CLOSED BY ANALYSIS 2026-08-16**, using §12's own v0.1 escape clause — *"or documented protection analysis if untested"* — because Vishay publishes no multi-pulse curve for this part. **Per pulse:** 95 W × 400 ms × R<sub>θJM</sub> 0.30 °C/W = **ΔT<sub>J</sub> 28.5 °C** → 113.5 °C even from an 85 °C mount, against 175 °C. **Between pulses:** 0.67 % duty → **0.63 W average against an 8 W steady-state rating, 13× headroom**, so heating does not accumulate and the 10-pulse case reduces to the per-pulse case. **Assumptions are ours and tagged:** R<sub>θJM</sub> read off the transient curve at 0.4 s, and a mount temperature that depends on the Block E copper. *Original text below.* |
+| ~~V-29-open~~ | | | **The gap, as located before closure.** The HM3 datasheet carries the same single-pulse figure set as its predecessor (Fig. 1 P<sub>PPM</sub> vs pulse width; Fig. 3 load-dump power for a **10 ms exponential**) and **publishes no M-suffix/S-suffix multi-pulse curves** — those appear in the EDN article for the *SM5S* family, not here. So ISO 16750-2's **10 pulses in 10 minutes** remains uncharacterised for this part. **Bound, not closed:** P<sub>D</sub> = 8 W steady-state sets the recovery rate between pulses, and at 1-minute intervals the junction fully recovers, so the binding case is per-pulse rather than cumulative heating — **but that is reasoning, not the vendor's curve.** Route: Vishay applications, or accept it as consumption of the suppressed row's 3–5× margin and say so in G7 |
 | ~~V-29-orig~~ | | | **Open.** ISO **16750-2** superseded the load-dump test between the power sheet and full T1.** Read at figure level: **(1)** the **6600 W / 5200 W** pair, which now has **three competing readings and no T1** — mine-and-operator's-original (uni vs bi, supported by the distributor pattern of uni at 6.6 kW and bi at 5200 W), mine-second (two waveform ratings of one part, 10/1000 µs vs 10/10 000 µs, which is what the NRND table literally shows), and the possibility that **both are true at different levels** — family-wide polarity split *and* a waveform pair within each. **(2)** The clamp endpoints: held document says **38.9 V at 170 A**, an HM3-era distributor listing says **43 V at 153 A**. **(3)** The **M-suffix (multi-pulse, ISO 16750-2) vs S-suffix (single-pulse, ISO 7637-2)** capability curves. **(4)** The CA member's curves, which settle F45's direction decision. **Pre-fired, so the read cannot surprise us:** the consequence chain was run against *both* clamp endpoints — with 43 V/153 A, r<sub>d</sub> becomes 97 mΩ, Q1 sits at **73 %** of its 80 V rating (58 % on the realistic 48 A clamp), and **every §12 verdict row is unchanged** (93 / 364 / 739 / 3717 W against the same thresholds). **The pending read can refine numbers; it cannot move a conclusion.** That is criterion 5 and M7 doing exactly the job they were installed for |
 | V-29 | **Multi-pulse derating: §12's table is a SINGLE-pulse analysis** | F42 | **Open.** ISO **16750-2** superseded the load-dump test with **10 pulses in 10 minutes**, and Vishay's own article states that *"10 continuous pulses affected the surge suppressing capability of the load dump TVS."* Our §12 rows compute one pulse. **The 3–5× margin on the suppressed row is the buffer this has to come out of**, and it is probably sufficient, but it is not yet evidenced. Settles from the HM3 M-suffix curves in the same read as V-28 |
 | V-26 | ~~LM5156-Q1 spread-spectrum deviation percentage~~ | F39 | **CLOSED by decree, 2026-08-16 — not by finding the number, but by removing the dependency.** `DITHOFF` is fitted as a stuffing pair with the **populated leg to VCC: dither OFF**. The fundamental then sits deterministically at 2.2 MHz with an RT-tolerance floor of 1980 kHz — **15.8 % above the AM band on specified numbers only**, where the dithered case rested on 4 % of margin against a parameter the datasheet declines to state (the F37 shape). The decorrelation argument is untouched: beat suppression needs only one party spread, and both LM61460s carry ±2 % SS on their pinned PNs. A DNP leg to GND re-enables dither if EMI measurement ever asks. **Second use this round of "close it by making the number irrelevant"** — see V-27 |

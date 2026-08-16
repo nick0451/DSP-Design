@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.4 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.5 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,14 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.5 - 2026-08-16.** V-28, V-29 and V-23 closed. The power sheet's open list is empty.
+
+| Finding | Change | Section |
+|---|---|---|
+| V-28 | HM3 successor read (Vishay doc 98647). `SM8S24AHM3` **electrically identical** to the part already analysed, so §12 stands unchanged. BOM line settles to the **unidirectional** part | §7.1, §12 |
+| V-29 | **Multi-pulse closed BY ANALYSIS**, using §12's own v0.1 escape clause. Per-pulse ΔT<sub>J</sub> = 28.5 °C; 0.67 % duty against an 8 W steady-state rating gives 13× recovery headroom, so the 10-pulse case reduces to the per-pulse case | §12 |
+| V-23 | **AP2127 V<sub>REF</sub> = 0.8 V ±2 %.** +3V6_BT divider 34.8 k / 10 k → **3.584 V**, inside `BAT_IN`'s 3.2–4.2 V with the full tolerance stack. **F36 closes** — the PROVISIONAL LT3045 comes off the sheet | §7.1 |
 
 **v1.4 - 2026-08-16.** F42 closed; F44 raised. Input protection is now a bounded, evidenced claim.
 
@@ -429,7 +437,7 @@ table entirely — do not merge it with the original.*
 |---|---|---|---|
 | **VBATT_PROT** | **5 A fuse + SM8S24 TVS (`AHM3` vs `CAHM3` pending V-28) + reverse P-FET + damped LC** *(v1.4, F42/F45)* — ~~SMBJ24A~~ | everything below | ISO 7637-2 **[HARD]**, bounded per §12 |
 | **+5V_D** | **LM61460-Q1 buck from VBATT_PROT** | USB, **+3V6_BT LDO** — ~~BM83~~ moved *(v1.0, F31)* | modest — see note 1 |
-| **+3V6_BT** *(v1.0, F31)* | **LDO from +5V_D** (AP2112/MIC5504-class at 3.6 V; TPS7A if its PSRR earns the price) | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
+| **+3V6_BT** *(v1.0, F31; part settled v1.5)* | **AP2127K-ADJ from +5V_D**, divider-set — V<sub>REF</sub> 0.8 V ±2 %, 34.8 k / 10 k → **3.584 V** | BM83SM1 `BAT_IN` **only** | ~140 mW at 100 mA — see note 8 |
 | **+3V3_D** | **LM61460-Q1 buck from VBATT_PROT** *(v0.5 — "or LDO" struck)* | ESP32-S3, DSP IOVDD, converter digital sides, +1V2_CORE buck input | **2 A continuous design point** |
 | **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
 | **+15V5_A** *(v1.3, F39)* | **SEPIC from VBATT_PROT**, LM5156-Q1 + external FET, 2.2 MHz, dither **off** | +13V5_A LDO **and** the −15V5_A stage — see note 11 | ~544 mA, ≈ 8.5 W |
@@ -814,8 +822,20 @@ Practical consequences for layout and capture:
       | Unsuppressed, 79 V, R<sub>i</sub> 2 Ω | 24.7 A | 29.7 V | 732 W | **exceeded** |
       | Unsuppressed, 87 V, R<sub>i</sub> 0.5 Ω | 105 A | 34.7 V | 3631 W | **exceeded 7–12×** |
 
+      **Multi-pulse (ISO 16750-2) closed by analysis — V-29** *(v1.5)*. The vendor publishes no
+      multi-pulse curve for this part, so this closure uses **§12's own escape clause, written at
+      v0.1: "or documented protection analysis if untested."** The assumptions are ours, tagged as
+      such. **Per pulse**, the suppressed row is 95 W × 400 ms into R<sub>θJM</sub> ≈ 0.30 °C/W →
+      **ΔT<sub>J</sub> = 28.5 °C**, i.e. T<sub>J</sub> = 53.5 °C from a 25 °C mount and 113.5 °C
+      from 85 °C, against a 175 °C limit. **Between pulses**, 10 pulses at 1-minute intervals is a
+      **0.67 % duty cycle → 0.63 W average against the part's 8 W steady-state rating, 13×
+      headroom**, so the junction returns to baseline and heating does not accumulate. **The
+      10-pulse case therefore reduces to the per-pulse case, which passes with 60 °C of margin.**
+      *Assumptions carried:* R<sub>θJM</sub> read off the transient-impedance curve at 0.4 s, and
+      a mount temperature that depends on the copper poured under the tab — see (ii).
+
       **Two caveats travel with this table and must not be dropped from it:**
-      **(i) it is a SINGLE-pulse analysis.** ISO **16750-2** superseded the load-dump test with
+      **(i) the multi-pulse result above is ANALYSIS, not a vendor curve.** ISO **16750-2** superseded the load-dump test with
       **10 pulses in 10 minutes**, and repeated clamping measurably degrades capability. The 3–5×
       margin on the suppressed row is where that has to come from — likely sufficient, not yet
       evidenced (**V-29**). **(ii) The numbers assume the recommended pad.** Vishay ties these

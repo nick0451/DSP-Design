@@ -20,7 +20,14 @@ ADAU1466 = [
     (6,"AGND",P,1),(14,"PGND",P,1),
     (2,"IOVDD",P,1),(18,"IOVDD",P,1),(38,"IOVDD",P,1),(56,"IOVDD",P,1),
     (20,"DVDD",P,1),(35,"DVDD",P,1),(53,"DVDD",P,1),(71,"DVDD",P,1),
-    (7,"AVDD",P,1),(15,"PVDD",P,1),(16,"PLLFILT",PA,1),(3,"VDRIVE",O,1),("EP","EP",P,1),
+    (7,"AVDD",P,1),(15,"PVDD",P,1),(16,"PLLFILT",PA,1),("EP","EP",P,1),
+    # VDRIVE typed PASSIVE, not output. It is the base drive for an external PNP we do not
+    # fit, and ADI directs "connect the VDRIVE pin to ground" when DVDD is supplied externally
+    # (T1-41); grounded, it merely sinks ~100 uA from IOVDD (T1-62). Typed as an output it
+    # collides with the GND net's PWR_FLAG -- an Output driving a Power output -- and ERC is
+    # right about that: a pin the datasheet tells you to tie to a rail is a terminated node,
+    # not a driver. The pin NAME still says VDRIVE, so nothing is hidden by the retype.
+    (3,"VDRIVE",PA,1),
     (59,"SDATA_IN0",I,2),(57,"BCLK_IN0",B,2),(58,"LRCLK_IN0/MP10",B,2),
     (62,"SDATA_IN1",I,2),(60,"BCLK_IN1",B,2),(61,"LRCLK_IN1/MP11",B,2),
     (67,"SDATA_IN2",I,2),(65,"BCLK_IN2",B,2),(66,"LRCLK_IN2/MP12",B,2),
@@ -154,6 +161,15 @@ LT3094 = [
 ]                                      # passive. Typing both power_out makes ERC read them
                                        # as two supplies shorted together (pin_to_pin).
 
+# AP2127K-ADJ, SOT-23-5. Diodes Inc AP2127 datasheet, Pin Descriptions p.4 (SOT-23-5 column).
+# Project symbol rather than stock for the LT3094 reason: KiCad's AP2127K-ADJ is an
+# (extends "AP2204K-ADJ") alias, so its pins live under a different basename.
+# V_REF = 0.8 V +/-2 % (0.784 / 0.800 / 0.816) -- V-23. ADJ is an FB pin inside the loop,
+# NOT a reference input: the F36 distinction, and the reason a divider here is correct.
+AP2127 = [
+    (1,"VIN",P,1),(2,"GND",P,1),(3,"EN",I,1),(4,"ADJ",I,1),(5,"VOUT",PO,1),
+]
+
 # INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
 INA1650 = [
     (1,"VCC",P,1),(14,"VEE",P,1),
@@ -205,6 +221,11 @@ PARTS = {
         fp="ODSP12:ADI_DFN-12-1EP_3x3mm_P0.45mm_EP_IS_IN",
         desc="-20 V, 500 mA ultralow-noise negative LDO. EXPOSED PAD IS IN, NOT GND",
         ds="ADI LT3094 Rev. B"),
+    "AP2127K-ADJ": dict(pins=AP2127, n=5, ep=False, units=1,
+        value="AP2127K-ADJTRG1", mfr="Diodes Incorporated",
+        fp="Package_TO_SOT_SMD:SOT-23-5",
+        desc="300 mA low-noise adjustable LDO, VREF 0.8 V +/-2 %",
+        ds="Diodes AP2127"),
     "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
         value="INA1650PW", mfr="Texas Instruments",
         fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
