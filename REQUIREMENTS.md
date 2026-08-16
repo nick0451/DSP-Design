@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.7 — architecture baseline for schematic capture *(capture begun)*
+**Doc status:** v0.8 — architecture baseline for schematic capture *(capture begun)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -76,7 +76,16 @@ without a budget.** The power section is now stable pending V-17.
 `+3V3_CLK`, with a cross-reference planted in §3 so the rail's reason travels with the tree it
 protects. Capture begins.
 
-Unchanged and still open at v0.7: F4 (impedance targets), F12, F13, F21 (accepted, lands at
+**v0.8 — 2026-08-16.** V-19 passed on all three conditions; F26, F25 and F27 dispositioned.
+**Two parts deleted.**
+
+| Finding | Change | Section |
+|---|---|---|
+| F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
+| F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
+| F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+Unchanged and still open at v0.8: F4 (impedance targets), F12, F13, F21 (accepted, lands at
 capture).
 
 ---
@@ -118,8 +127,8 @@ Single-board automotive DSP processor:
 | BT audio | Microchip BM83SM1 module | Certified module | A2DP sink, aptX/aptX-HD/AAC, I2S out, transparent UART data channel |
 | ADC | AKM AK5574 | 4ch, 121 dB, TDM | Single-chip 4ch differential input |
 | DAC | 2× AKM AK4458 | 8ch each, 115 dB, TDM8 | 6+6 channel split (see §4) |
-| SPDIF RX | AKM AK4118A | 8-input mux | Coax input; spare inputs allow future optical |
-| SPDIF TX (optional) | WM8804 | | Stuffing option only — DNP on v1 unless requested |
+| ~~SPDIF RX~~ | ~~AKM AK4118A~~ | **DELETED v0.8 (F26)** | superseded by the ADAU1466's integrated S/PDIF receiver |
+| ~~SPDIF TX~~ | ~~WM8804~~ | **DELETED v0.8 (F26)** | superseded by the ADAU1466's integrated S/PDIF transmitter |
 | Diff line RX | **2× INA1650** *(v0.2)* | 2ch/pkg → 4 channels for 4 diff inputs | High CMRR speaker/line-level front end |
 | Output buffers | **OPA1656** *(v0.2 — OPA1612 alternate dropped)* | 2ch/pkg, 12 pkgs min | Diff-to-SE conversion + reconstruction filter. JFET input; high Zin relaxes the filter network. Filter values computed against OPA1656 only |
 | Master clock | 24.576 MHz low-jitter XO (e.g., SiTime SiT8208 or Crystek CCHD-575 class) | 3.3 V CMOS | Single clock master, see §3 |
@@ -129,6 +138,27 @@ Single-board automotive DSP processor:
 **[VERIFY]** AKM part availability/lifecycle status at time of capture; PCM1865 (ADC) and
 PCM1690 (DAC, AEC-Q100) are the approved TI substitutes if AKM lead times are bad.
 Substitution changes TDM formats — flag if exercised.
+
+### Why the external S/PDIF receiver existed, and why it left *(v0.8, F26 — recorded so a future revision does not relitigate it)*
+
+The AK4118A was specified before it was established that the ADAU1466 carries an **integrated
+S/PDIF receiver and transmitter** (pins 4 and 5). Its stated rationale was an 8-input mux —
+"spare inputs allow future optical".
+
+That rationale did not survive scrutiny. **The mux only ever rode free.** While an external
+receiver was being bought anyway, its extra inputs cost nothing; standing alone they had to
+justify the whole part, and they cannot — a **TORX-class optical module outputs logic-level
+S/PDIF directly**, so a future optical input is one 3.3 V receiver module plus a 2:1 mux or a
+stuffing-option jumper into the same RX pin. The expansion path survives at roughly a tenth of the
+cost, on the day it is actually wanted.
+
+What the deletion recovered: a part, a serial input port, board area, **I2C address 0x13**, and
+the whole verification tail that had not yet been spent — symbol, footprint, an eyeball slot in
+the DL-14 set, control-port bring-up, and its share of the datasheet table reads.
+
+**If a future revision wants multiplexed digital inputs, that is the reason to reopen this — not
+"the DSP receiver looked marginal."** It is not: 18 kHz to 192 kHz lock range, fully digital
+clock recovery, ASRC-coupled on-die.
 
 ---
 
@@ -140,13 +170,17 @@ Single clock domain, one master, ASRCs isolate everything foreign.
 - ADAU1466 is clock master on the **synchronous** serial ports. It generates BCLK/LRCLK for:
   AK5574 (slave), both AK4458 (slave), BM83 I2S port (BM83 configured as I2S slave).
   *(v0.2 — AK4118A removed from this list, see below.)*
-- **AK4118A is clock master on SDATA_IN2** *(v0.2)*. It recovers the source rate with its internal
-  PLL and has no internal SRC, so it cannot be slaved to our 48 kHz BCLK without slipping samples
-  upstream of — and therefore invisibly to — the ASRC. ADAU1466 SDATA_IN2 is configured as a clock
-  **consumer of that link only**; the ASRC performs the rate conversion.
-- AK4118A recovered clock never touches the system clock tree. It terminates at the ASRC boundary
-  on SDATA_IN2 and goes no further. *(Intent unchanged from v0.1; the configuration above is what
-  actually achieves it.)*
+- **S/PDIF is entirely on-die** *(v0.8, F26 — supersedes the v0.2 AK4118A arrangement)*. The
+  ADAU1466's integrated receiver takes the coax stream on `SPDIFIN` (pin 4) and, per the
+  datasheet, *"because the S/PDIF input data is most likely asynchronous to the DSP core, it must
+  be routed through an ASRC."* Clock recovery is **completely digital**.
+  **The recovered clock never leaves the die**, which satisfies the original §3 intent more
+  completely than the external arrangement did — there is no serial port in clock-consumer mode,
+  no external recovered-clock net, and nothing for the system clock tree to be contaminated by.
+  Lock range **18 kHz to 192 kHz**, covering every rate in §12 with wide margin.
+  *(Historical note: v0.2 corrected a v0.1 error that had the AK4118A slaved to our BCLK. That
+  correction was right, and F26 has now removed the part it applied to. The principle it
+  established — **ASRC in the path, no exceptions** — is unchanged and still governs the BM83.)*
 - BM83 I2S also routes through an ASRC even though it's slaved — BT audio arrives at the source's
   rate regardless of our BCLK. **[VERIFY]** BM83 I2S slave mode + our clocking scheme against the
   BM83 datasheet; if BM83 must be I2S master in the chosen firmware config, land it on its own DSP
@@ -171,11 +205,11 @@ fs = 48 kHz system-wide. 32-bit slots.
 |---|---|---|---|---|
 | SDATA_IN0 | in | AK5574 | TDM4, 32-bit slots | 4 (analog in 1–4) |
 | SDATA_IN1 | in | BM83 | I2S stereo | 2 (BT L/R) → ASRC |
-| SDATA_IN2 | in | AK4118A | I2S stereo | 2 (SPDIF L/R) → ASRC |
+| SDATA_IN2 | in | **— spare —** *(v0.8, F26)* | | header/testpoints only. SPDIF is now **on-die**: `SPDIFIN` pin 4 → internal ASRC, no serial port consumed |
 | SDATA_IN3 | in | — spare — | | header/testpoints only |
 | SDATA_OUT0 | out | AK4458 #1 | TDM8 | ch 1–6 used, 7–8 reserved |
 | SDATA_OUT1 | out | AK4458 #2 | TDM8 | ch 7–12 used (slots 1–6), 7–8 reserved |
-| SDATA_OUT2 | out | WM8804 (DNP) | I2S stereo | digital out option |
+| SDATA_OUT2 | out | **— spare —** *(v0.8, F26)* | | digital out is now **on-die**: `SPDIFOUT` pin 5, fed directly from the core at core rate, **costs zero serial ports** |
 | SDATA_OUT3 | out | — spare — | | header/testpoints only |
 
 - Spare ports OUT3/IN3 to 0.1" test headers with ground pins between signals.
@@ -192,7 +226,7 @@ ESP32-S3 is the single owner of all device state.
 |---|---|---|---|
 | SPI0 (ESP32) | ESP32-S3 | ADAU1466 slave port | Slave boot at power-up; runtime parameter writes via safeload mechanism. Target ≥10 MHz SCLK. **[VERIFY]** 1466 slave-port max SCLK. |
 | UART1 | ESP32-S3 | BM83 | Command/control + transparent data channel (legacy SPP tunnel if ever needed) |
-| I2C0 | ESP32-S3 | AK4118A, AK5574, 2× AK4458, temp sensor, **ADS1015-class rail-monitor ADC** *(v0.3)* | 400 kHz. **[VERIFY]** each AKM part's control-port mode strapping (some are I2C/SPI selectable — strap consistently to I2C). |
+| I2C0 | ESP32-S3 | AK5574, 2× AK4458, **TMP461-class remote-diode temp sensor** *(v0.8, F27)*, **ADS1015-class rail-monitor ADC** *(v0.3)* — ~~AK4118A~~ deleted *(v0.8, F26)* | 400 kHz. **[VERIFY]** each AKM part's control-port mode strapping (some are I2C/SPI selectable — strap consistently to I2C). |
 | GPIO/ADC | ESP32-S3 | signal-sense comparators (×4), remote-in sense, rail dividers, mute relay/FET driver, remote-out high-side driver, BM83 MFB/reset, DSP reset | See sequencing §7 |
 
 Firmware responsibilities (out of scope for PCB, listed so pin budget is right): BLE GATT
@@ -478,7 +512,11 @@ Practical consequences for layout and capture:
 
 - 4× RCA in + speaker-level strip terminal (shared front end, §6.1)
 - 12× RCA out
-- SPDIF coax RCA in (transformer-coupled), optional out (DNP)
+- SPDIF coax RCA in, transformer-coupled, **direct to `SPDIFIN` (pin 4)** *(v0.8, F26)*. The
+  receiver input is a comparator centred at IOVDD/2 needing **≥200 mV p-p**, and **an AC coupling
+  capacitor on the pin is required**; it accepts both TTL and bipolar signals. A 75 Ω-terminated,
+  transformer-coupled coax source clears 200 mV p-p comfortably. Optional coax out from
+  `SPDIFOUT` (pin 5) as a stuffing option — no external transceiver either way
 - Power: keyed automotive connector — BATT, GND, REM-IN, REM-OUT minimum
 - USB-C (ESP32-S3 native USB): debug/flash/console
 - BT antennas: BM83SM1 onboard antenna — enforce module keepout **[HARD]**; ESP32-S3-WROOM-1
@@ -497,7 +535,12 @@ Practical consequences for layout and capture:
   −13V5 is brought into range by a divider referenced to a positive rail rather than to ground —
   one resistor network, no op-amp, provided the reference is chosen correctly. Moving these four
   channels off the SoC also returns GPIO to the §5 pin budget, which helps F13.
-- Board temp sensor on I2C (TMP102 class) near output stage
+- **TMP461-class remote-diode temp sensor on I2C** *(v0.8, F27 — replaces TMP102)*. Local channel
+  near the output stage as before, **plus its remote channel wired to the ADAU1466's thermal diode
+  on pins 63/64 (`THD_M`/`THD_P`)**. The DSP junction temperature is the thing §9's thermal
+  protection exists to guard, and a local-only sensor measures the air near it instead.
+  **[VERIFY]** the chosen variant's address straps against the `STATE.md` §9 bus map — the 0x48
+  range already holds the ADS1015, and two parts have already default-collided there once
 - All resets and mute states MCU-readable
 - One status RGB LED, MCU-driven
 
@@ -541,7 +584,10 @@ Practical consequences for layout and capture:
 - [ ] Output noise floor ≤ −105 dBV A-weighted, muted
 - [ ] No audible pop on power-up/down (scope-verified < 10 mV transient at outputs)
 - [ ] BT A2DP stream glitch-free ≥ 1 hr (ASRC path validation)
-- [ ] SPDIF lock across 32/44.1/48/96 kHz sources (ASRC path validation)
+- [ ] SPDIF lock across 32/44.1/48/96 kHz sources (ASRC path validation). *(v0.8: the DSP exposes
+      `SPDIF_LOCK_DET` 0xF600, `SPDIF_LOSS_OF_LOCK` 0xF605 and `ASRC_LOCK` 0xF580, so this becomes
+      a **register poll** rather than a bench inference — M3, guarantee by construction then test
+      that the construction holds. Receiver lock range is 18 kHz–192 kHz)*
 - [ ] Slave-boot + safeload parameter writes verified over SPI at target clock
 - [ ] Survives ISO 7637-2 test pulses (or documented protection analysis if untested)
 - [ ] All four analog inputs pass CMRR ≥ 60 dB @ 1 kHz in speaker-level mode
