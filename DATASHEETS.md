@@ -32,8 +32,24 @@ Retrieved 2026-08-15.
 | **ADAU1462/ADAU1466** DSP | `adau1462-1466.pdf` | 202 | `C473F6316A5D3F95` | analog.com **Rev. C** — operator-supplied |
 | **LT3045** LDO | `LT3045.pdf` | 32 | `9132E595759A58A0` | analog.com **Rev. D** — operator-supplied |
 | **TPS62823** buck | `TPS62823_TI.pdf` | 32 | *(see repo)* | ti.com **Rev. C** — closes V-24 |
+| **LM5156-Q1** boost/SEPIC ctrl | `LM5156-Q1_TI.pdf` | 50 | `D04AD7C9CC97EA5D` | ti.com SNVSBI7B **Rev. B** — ±13V5_A SEPIC |
+| **LM5155-Q1** boost/SEPIC ctrl | `LM5155-Q1_TI.pdf` | 51 | `4E9C3E37EE320EBA` | ti.com SNVSAY4F **Rev. F** — *held for the elimination* |
+| **LM5157-Q1** integrated-switch | `LM5157-Q1_TI.pdf` | 48 | `28B681FF944763E5` | ti.com SNVSBK8B **Rev. B** — *held for the elimination* |
+| **LM5175-Q1** 4-switch buck-boost | `LM5175-Q1_TI.pdf` | 38 | `7F53B15F7B5D0F8D` | ti.com — *held for the elimination* |
+| **TPS55340-Q1** boost/SEPIC | `TPS55340-Q1_TI.pdf` | 40 | `1C9A8605568C0ED3` | ti.com **Rev. C** — *held for the elimination* |
+| **SNVA856** *(app note)* | `SNVA856_TI_InvertingBuckBoost.pdf` | 20 | `806345F00EA5D4BD` | ti.com **Rev. B** — "Working With Inverting Buck-Boost Converters" |
 
-All fourteen are manufacturer-published documents, not aggregator copies.
+All twenty-one are manufacturer-published documents, not aggregator copies.
+
+**Four of these are held for their eliminations, not their selections.** LM5155-Q1, LM5157-Q1,
+LM5175-Q1 and TPS55340-Q1 were each excluded from the ±13V5_A block by a number in their own
+datasheet (F39). A discarded candidate's datasheet is the evidence that the discard was reasoned;
+without it the exclusion decays into "we picked the other one." Keep them.
+
+**SNVA856 is an application note, not a datasheet, and it is load-bearing anyway.** None of the
+five wide-V<sub>IN</sub> switching datasheets above documents an inverting configuration. The
+negative rail is drawn from SNVA856's schematics, not from first principles — CLAUDE.md §8 rule 9
+applies to topology exactly as it applies to pin numbers.
 
 ## Missing
 
