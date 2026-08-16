@@ -1,0 +1,13 @@
+{
+  "board": {"design_settings": {"defaults": {}}},
+  "meta": {"filename": "ODSP12-MB.kicad_pro", "version": 3},
+  "net_settings": {
+    "classes": [
+      {"name": "Default", "clearance": 0.2, "track_width": 0.25, "via_diameter": 0.6, "via_drill": 0.3}
+    ],
+    "meta": {"version": 4}
+  },
+  "schematic": {"legacy_lib_list": [], "legacy_lib_dir": ""},
+  "sheets": [],
+  "text_variables": {}
+}

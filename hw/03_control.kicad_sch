@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "a7b3bc54-7502-5072-8392-2bc1c501476e")
+	(paper "A3")
+	(title_block
+		(title "ODSP-12 :: ESP32-S3 Control Plane")
+		(date "2026-08-15")
+		(rev "A")
+		(comment 1 "ODSP12-MB-A")
+	)
+	(lib_symbols)
+	(embedded_fonts no)
+)

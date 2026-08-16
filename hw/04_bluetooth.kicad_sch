@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "374f430d-a844-5e13-9313-d3f7c1ad567c")
+	(paper "A3")
+	(title_block
+		(title "ODSP-12 :: Bluetooth BM83SM1")
+		(date "2026-08-15")
+		(rev "A")
+		(comment 1 "ODSP12-MB-A")
+	)
+	(lib_symbols)
+	(embedded_fonts no)
+)

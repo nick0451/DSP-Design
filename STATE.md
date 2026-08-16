@@ -12,11 +12,36 @@ Last updated: 2026-08-15
 
 ## 0. Where we are
 
-**Phase:** Post-intake-v0.2, pre-capture. Electrical architecture specified and eight findings
-dispositioned; tooling verified; mechanical and fabrication unspecified.
+**Phase:** **Capture begun** (2026-08-15). Architecture specified at `REQUIREMENTS.md` v0.7,
+governance closed, tooling verified. Mechanical and fabrication still unspecified — layout remains
+blocked, capture does not.
 
-**Board state:** No design files exist. Nothing captured, nothing placed, nothing routed, no
-ERC/DRC has ever been run.
+**Board state:** KiCad project `hw/ODSP12-MB.kicad_pro` exists with a **10-page hierarchy**
+(index + 9 sheets), all empty of components. **ERC: 0 violations.** PDF export renders 10 pages,
+which is the proof KiCad *traverses* the hierarchy rather than merely parsing the root. Nothing
+placed, nothing routed.
+
+**Sheet plan** — mirrors the architecture, not the BOM, so that a [HARD] section maps to one sheet:
+
+| Page | File | Contents |
+|---|---|---|
+| 1 | `ODSP12-MB.kicad_sch` | Index |
+| 2 | `01_power.kicad_sch` | §7 rails, sequencing, monitor. **9 rails incl. +6V2_A and +3V3_CLK** |
+| 3 | `02_dsp.kicad_sch` | ADAU1466, XO, MCLK fanout, PLL — the [HARD] §3 tree in one place |
+| 4 | `03_control.kicad_sch` | ESP32-S3, USB-C, I2C0, GPIO |
+| 5 | `04_bluetooth.kicad_sch` | BM83SM1 |
+| 6 | `05_spdif.kicad_sch` | AK4118A, transformer-coupled coax, WM8804 DNP |
+| 7 | `06_analog_in.kicad_sch` | 4× front end → AK5574 |
+| 8 | `07_dac_a.kicad_sch` | AK4458 #1 + AOUT1-6 |
+| 9 | `08_dac_b.kicad_sch` | AK4458 #2 + AOUT7-12 |
+| 10 | `09_io.kicad_sch` | RCA field, power connector, test headers |
+
+The 6+6 output split gets **two sheets rather than one instantiated twice** — §10's [HARD]
+no-remapping rule wants the channel numbers written literally, not derived from an instance path.
+
+**Tool-verified format facts:** native schematic version is **20260306** (from `sch upgrade`, not
+memory — DL-13). Sheet UUIDs are `uuid5` from a fixed namespace, so regeneration is stable rather
+than randomised.
 
 **Gate status:** G0-S **open, and now blocked only on datasheets** — Blocks A–C and F closed
 except Q2 (channel policy) and Q4 (board name/PN/rev), neither of which blocks drawing.
@@ -31,6 +56,9 @@ approved, per the new `CLAUDE.md` §4 rail-architecture rule.
 
 **Governance is closed.** Q2 and Q4 both settled; no ⬜ UNSET remains in the constitution's
 decision layer. The open set is purely technical.
+
+**Zero-slack note for a future ODSP-16:** a third AK4458 has no address to live at — the
+0b00100 prefix is full at four devices. I2C1 comes out of reserve at that point, not before.
 
 **Datasheets:** 14 held and verified (`DATASHEETS.md`). ADAU1466 Rev. C and LT3045 Rev. D supplied
 by the operator 2026-08-15; analog.com remains unreachable from here for anything further.
@@ -268,6 +296,31 @@ Rows are **BLOCKING** unless marked. Closed rows are struck and promoted to §1.
 cannot quietly return.
 
 Format: the wrong belief → the correction → **the tell** that catches it.
+
+### Method rules — promoted from specific entries because they generalise
+
+**M1 — Confidence attaches to the method, not the claim.** When a method is known-ragged, *every*
+claim it produced inherits the raggedness, **including the ones later verification happens to
+bless.** The T1-28 retraction and the `00100`-prefix suspicion came from one careless grep in one
+pass; one was false and one was true, and nothing in the output distinguished them. The response
+to a broken claim is therefore to **re-derive everything the method touched with the better
+method**, not just the claim that broke.
+
+**M2 — A T1 promotion records the method that produced it.** Provenance is part of the fact, so a
+later reader can see "ragged grep" in the citation and discount accordingly. `STATE.md` §1's
+"Verified by" column is that field; it is not decoration. Load-bearing claims get a figure-level
+read *before* T1 status, not after something downstream breaks.
+
+**M3 — Guarantee by construction, then test that the construction holds.** Acceptance tests are
+for what design cannot guarantee. Anything guaranteeable by construction should be, and then
+checked cheaply — the F15 cross-DAC alignment rule is one register comparison at boot, not a
+bench measurement. Cheaper, and it fails loudly instead of subtly.
+
+**M4 — A decree can be right for reasons its author did not know.** §5's "strap consistently to
+I2C" was written for control-plane coherence; it also happened to dodge the AK5574's
+I2C-block-active-during-3-wire drive-conflict hazard (T1-33), which neither party knew about when
+the decree was written. **Route around a decree and you may be discarding reasons nobody has
+articulated yet.** This is why the escalation ladder exists rather than a judgement call.
 
 ### Caught on this project
 
@@ -606,7 +659,7 @@ citation** — part number, document revision, and section.
 | V-13 | ADAU1466 per-port serial master/slave configurability | §3 v0.2 / F1 | **CLOSED → T1-18.** Per-port `SERIAL_BYTE_x_0` registers with `LRCLK_MODE` / `BCLK_MODE` bits, plus per-port pin-table wording. **The F1 disposition is confirmed against the document**, and the operator's T2 was correct. The fallback (dedicated ASRC pair) is not needed |
 | V-14 | **Series photoMOS** (TLP3475-class): Ron, off-state Coff, voltage rating vs ±6.4 V peak plus rail-collapse excursion, LED drive current | §6.4 v0.4 | Open — **restated at v0.4.** No longer a constrained optimisation: Ron 1–2 Ω against ≥10 kΩ is inaudible and off-isolation is the easy half of the pair |
 | V-15 | **Shunt depletion FET pair**: Ron (100–500 Ω is ample), off-state Coff **and its nonlinearity**, Vgs(off) against the −13V5-derived bias | §6.4 v0.4 | Open — **restated at v0.4.** Small-die part; Coff is now the only tight number and it is tight against T1-D42, not against mute depth |
-| V-17 | **AVDD currents for AK5574 and AK4458** from their electrical tables — sizes the new +6V2_A buck and both LT3045 stages | §7.1 v0.6 / F24 | Open — **new at v0.6.** Read alongside V-04's ADC side, same tables |
+| V-17 | **AVDD currents for AK5574 and AK4458** — sizes the +6V2_A buck and **all three** LT3045 stages | §7.1 v0.7 / F24 | Open. Read alongside V-04's ADC side, same tables. **Sizing note:** the +6V2_A budget is the sum of +5V_A, +3V3_A **and the newly approved +3V3_CLK fanout load** — the escalation changed this buck's budget on the same turn it was raised |
 | V-18 | **ADAU1466 core-supply ripple tolerance** from the electrical table — designs the +1V2_CORE buck's output filter against a number rather than vibes | §7.1 v0.5 / F18 | Open — **new at v0.5**, rides with the F18 disposition |
 | V-16 | Disorderly-path transient, modelled as the **full stack**: DAC brown-out residual × mute attenuation × amp gain × amp remote-mute latency | §7.4 v0.4 | Open — bench, first board. **Bounded, not indefinite:** remote-out is fail-safe and drops first, so the window is the amp's own mute latency (tens to ~200 ms), and the source is a resetting DAC well under −20 dBFS, not programme material. Use a pessimistic latency — it belongs to someone else's amplifier |
 | V-12 | BM83SM1 and ESP32-S3-WROOM-1 antenna keepout dimensions and board-edge requirements | §8 | **Partially closed → T1-31.** Both mandates confirmed: BM83 needs no copper, no component **and no ground plane** under the antenna; WROOM-1 has a keepout zone. **Dimensions live in figures** and need a `pdftoppm` render — fold into the DL-14 footprint pass, where the operator already eyeballs the BM83 keepout. **Escape hatch noted:** the **-1U** variant has no keepout because it takes an external antenna — the answer if T1-D20's antenna-separation requirement fights the outline |

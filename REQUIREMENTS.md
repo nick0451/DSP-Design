@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v0.6 — architecture baseline for schematic capture
+**Doc status:** v0.7 — architecture baseline for schematic capture *(capture begun)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -72,7 +72,11 @@ without a budget.** The power section is now stable pending V-17.
 | F15 | Cross-DAC alignment reduces to a firmware rule — see §5 firmware note | §5 |
 | — | *Escalated, not applied:* a third LT3045 dedicated to the MCLK fanout buffer | §7.1 note 6 |
 
-Unchanged and still open at v0.6: F4 (impedance targets), F12, F13, F21 (accepted, lands at
+**v0.7 — 2026-08-15.** Escalation approved: **the MCLK fanout buffer gets its own LT3045**, rail
+`+3V3_CLK`, with a cross-reference planted in §3 so the rail's reason travels with the tree it
+protects. Capture begins.
+
+Unchanged and still open at v0.7: F4 (impedance targets), F12, F13, F21 (accepted, lands at
 capture).
 
 ---
@@ -150,7 +154,10 @@ Single clock domain, one master, ASRCs isolate everything foreign.
   no exceptions.
 - DAC/ADC MCLK: distribute from the XO through a low-additive-jitter fanout buffer
   (e.g., LMK1C110x class) rather than daisy-chaining. **[VERIFY]** AK5574/AK4458 MCLK ratio
-  requirements at 48 kHz TDM.
+  requirements at 48 kHz TDM. *(v0.6: AK4458 accepts 512fs at 48 kHz — our 24.576 MHz XO exactly.)*
+- *(v0.7)* **The fanout buffer runs from its own LDO, `+3V3_CLK`** (§7.1 note 7). Its supply noise
+  converts directly into jitter on every converter at once, so it does not share a rail with the
+  converters' signal-dependent AVDD current. **The rail exists for this tree; do not repurpose it.**
 - No spread-spectrum anywhere in the audio clock tree. SS is fine on the ESP32 side; keep it off
   this net.
 
@@ -334,7 +341,8 @@ table entirely — do not merge it with the original.*
 | **+1V2_CORE** | **dedicated buck from +3V3_D** (TPS62823-class, ≥750 mA) *(v0.5 — was "LDO from 3V3")* | ADAU1466 DVDD only | 220 mA typ, **495 mA max** |
 | **±13V5_A** | SEPIC/flyback or dual-boost | op-amp stages | **200 mA cont., 250 mA peak, per rail** |
 | **+6V2_A** *(v0.6, F24)* | **small Q1-rated buck from VBATT_PROT**, spread-spectrum permitted | pre-regulator for the analog LDOs only | sized at V-17 |
-| **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies **and the MCLK fanout buffer** *(v0.5, F22)* | **1.2 V headroom → ~200 mW class** |
+| **+5V_A / +3V3_A** | **LT3045-class LDOs from +6V2_A** *(v0.6)* | ADC/DAC analog supplies | **1.2 V headroom → ~200 mW class** |
+| **+3V3_CLK** *(v0.7)* | **dedicated LT3045 from +6V2_A** | **MCLK fanout buffer only** — see §3 | small; sized with V-17 |
 
 **Note 1 — two bucks from the battery, not a cascade.** +3V3_D is taken directly from VBATT_PROT
 rather than from +5V_D. This avoids compounding conversion loss at the largest step, stops an
@@ -369,12 +377,12 @@ its own.** Cascading (+6V2 → +5V_A → +3V3_A) would multiply PSRR, but it put
 signal-dependent AVDD current upstream of the clock buffer's supply** — a modulation path that
 does not need to exist. Parallel LDOs decouple them.
 
-**Escalated, not decided** *(`CLAUDE.md` §4 — rail architecture is respin-class)*: the
-recommendation is a **third LT3045 dedicated to the MCLK fanout buffer**, separate from the
-converters' +3V3_A. The buffer is the most jitter-critical device in the [HARD] §3 tree and its
-7.5 fs additive-jitter figure assumes a quiet supply; a dedicated LDO removes the last
-signal-correlated modulation path into the clock tree, for the price of one part. **Awaiting
-operator approval — not fitted until then.**
+**Note 7 — the MCLK fanout buffer has its own LDO: `+3V3_CLK`** *(v0.7, approved)*. A third
+LT3045 from +6V2_A, feeding **only** the fanout buffer. It is the one device whose supply noise
+converts directly into jitter on **every converter simultaneously**; sharing an LDO with the
+converters' AVDDs would create a signal-correlated modulation path into the [HARD] §3 clock tree.
+This is note 6's parallel-not-cascaded reasoning applied one level down, for the price of one part
+and a few cm².
 
 **Note 5 — the MCLK fanout buffer moves to a clean rail.** The LMK1C110x is a 1.8/2.5/3.3 V part
 and was never a 5 V load, so the v0.1 placement on +5V_D was wrong on its face (F22). More

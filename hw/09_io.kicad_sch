@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "0b4901c3-1b22-5c2e-96f4-17ec10b4bb07")
+	(paper "A3")
+	(title_block
+		(title "ODSP-12 :: Connectors and Test")
+		(date "2026-08-15")
+		(rev "A")
+		(comment 1 "ODSP12-MB-A")
+	)
+	(lib_symbols)
+	(embedded_fonts no)
+)

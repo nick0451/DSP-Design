@@ -1,0 +1,244 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "0d5f1a00-0000-4000-8000-000000000001")
+	(paper "A3")
+	(title_block
+		(title "ODSP-12 Car Audio DSP :: Index")
+		(date "2026-08-15")
+		(rev "A")
+		(comment 1 "ODSP12-MB-A")
+		(comment 2 "Governed by CLAUDE.md / REQUIREMENTS.md v0.7")
+	)
+	(lib_symbols)
+	(sheet
+		(at 30.0 35.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "1243d9cb-8a3c-5ada-8b57-ee4ac6238a28")
+		(property "Sheetname" "Power and Sequencing"
+			(at 30.0 34.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "01_power.kicad_sch"
+			(at 30.0 58.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "2"))
+			)
+		)
+	)
+	(sheet
+		(at 30.0 67.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "6d78cb6b-a40b-51cb-91d0-d524f0be15d1")
+		(property "Sheetname" "DSP and Clock Tree"
+			(at 30.0 66.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "02_dsp.kicad_sch"
+			(at 30.0 90.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "3"))
+			)
+		)
+	)
+	(sheet
+		(at 30.0 99.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "05af3593-2e55-58ab-a1fd-78a3ca2eeba7")
+		(property "Sheetname" "ESP32-S3 Control Plane"
+			(at 30.0 98.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "03_control.kicad_sch"
+			(at 30.0 122.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "4"))
+			)
+		)
+	)
+	(sheet
+		(at 30.0 131.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "15e4ade2-9fc8-596e-b221-980f13d47f19")
+		(property "Sheetname" "Bluetooth BM83SM1"
+			(at 30.0 130.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "04_bluetooth.kicad_sch"
+			(at 30.0 154.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "5"))
+			)
+		)
+	)
+	(sheet
+		(at 30.0 163.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "acb85cc5-a17c-5aec-9d64-695897ca5440")
+		(property "Sheetname" "SPDIF Receive"
+			(at 30.0 162.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "05_spdif.kicad_sch"
+			(at 30.0 186.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "6"))
+			)
+		)
+	)
+	(sheet
+		(at 135.0 35.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "73205b74-b9a0-569b-a7e6-12356b295440")
+		(property "Sheetname" "Analog Input x4"
+			(at 135.0 34.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "06_analog_in.kicad_sch"
+			(at 135.0 58.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "7"))
+			)
+		)
+	)
+	(sheet
+		(at 135.0 67.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "9a5181df-9e9d-5016-8eb8-ea528061b9aa")
+		(property "Sheetname" "DAC A and AOUT1-6"
+			(at 135.0 66.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "07_dac_a.kicad_sch"
+			(at 135.0 90.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "8"))
+			)
+		)
+	)
+	(sheet
+		(at 135.0 99.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "cfa206ec-543b-5d87-abf1-a644004912fc")
+		(property "Sheetname" "DAC B and AOUT7-12"
+			(at 135.0 98.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "08_dac_b.kicad_sch"
+			(at 135.0 122.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "9"))
+			)
+		)
+	)
+	(sheet
+		(at 135.0 131.0)
+		(size 80.0 22.0)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke (width 0.1524) (type solid))
+		(fill (color 0 0 0 0.0000))
+		(uuid "f0284b1c-b2b6-5144-bbfb-dbeb40147f7c")
+		(property "Sheetname" "Connectors and Test"
+			(at 135.0 130.3 0)
+			(effects (font (size 1.27 1.27)) (justify left bottom))
+		)
+		(property "Sheetfile" "09_io.kicad_sch"
+			(at 135.0 154.0 0)
+			(effects (font (size 1.27 1.27)) (justify left top))
+		)
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001" (page "10"))
+			)
+		)
+	)
+	(sheet_instances
+		(path "/" (page "1"))
+	)
+	(embedded_fonts no)
+)

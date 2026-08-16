@@ -13,9 +13,10 @@ fp-info-cache
 
 # Generated output — regenerated from the design files, never edited by hand.
 # Delivered fab packages are committed deliberately under tags/, not tracked here.
-/out/
-/gerbers/
-/reports/
+# Non-anchored: these appear under hw/ as well as at the root.
+out/
+gerbers/
+reports/
 
 # Safety copies taken before batch edits (CLAUDE.md §7). Path + SHA256 go in
 # STATE.md §0; the blobs themselves stay out of history.
