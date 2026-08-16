@@ -91,10 +91,27 @@ and the F34 divider arithmetic written on the sheet where a BOM cost-pass will t
 `PVDD`; `DSP_THD_P`/`_M` join the TMP461's remote channel to the DSP's thermal diode;
 `PG_3V3_D` → R4 → `EN_3V3_PLL` → U9 `EN/UV` is the complete F34 chain.
 
-**Scope of this pass, stated on the sheet:** active devices and nets. **Inductors, bulk/bypass
-caps and feedback dividers are the next pass** — so the rails are *defined but not yet driven*,
-which is why ERC rose to 118 rather than falling. That number drops when the passives land, not
-before. **G1b remains unmet and unclaimed.**
+**Passive pass done — 69 devices, and ERC fell 118 → 82** as predicted: the rails are now *driven*
+through their inductors, with feedback dividers closing each loop.
+
+**Divider values computed from datasheet references, not assumed** (M2) and snapped to E96 —
+LM61460 `VREF = 1.0 V`, LT3045 `ISET = 100 µA ±1 %`:
+
+| Rail | Network | Actual | Err |
+|---|---|---|---|
+| +5V_D | Rt 40.2k / Rb 10k | 5.020 V | +0.40 % |
+| +3V3_D | Rt 23.2k / Rb 10k | 3.320 V | +0.61 % |
+| +6V2_A | Rt 52.3k / Rb 10k | 6.230 V | +0.48 % |
+| +5V_A | Rset 49.9k | 4.990 V | −0.20 % |
+| +3V3_A / _CLK / _PLL | Rset 33.2k | 3.320 V | +0.61 % |
+| +3V6_BT | Rset 35.7k | 3.570 V | −0.83 % |
+
+**Still open on this sheet:** TPS62823 FB divider (**V-24** — its reference voltage; datasheet not
+in the archive), AP2127K-ADJ divider (**V-23**), the ±13V5_A supply, VBATT_PROT's protection
+front end, and the three traps flagged for review — **inductor saturation current** (the spec that
+matters, not RMS heating), **ceramic DC-bias derating** (values on the sheet must be *effective*
+capacitance at working voltage), and the `RT` frequency choice against Q37's spread-spectrum
+permission. **G1b remains unmet and unclaimed.**
 
 ### Session boundary — read this before reconstructing anything
 
@@ -419,6 +436,21 @@ cannot quietly return.
 Format: the wrong belief → the correction → **the tell** that catches it.
 
 ### Method rules — promoted from specific entries because they generalise
+
+**M5 — "Nothing is missing" needs "and there were N things."** A check passes **vacuously** when
+its input is empty. Every completeness assertion needs a companion assertion that the input was
+non-empty **and plausibly sized against an independent expectation**. Four instances now: ERC on
+an empty sheet, `file` reporting 10 pages, HTTP 200 on the wrong PDF, and a pin-set assertion over
+an empty pin map. Stating the rule is what stops the fifth from needing to be caught by luck.
+
+**M6 — Ask of any passing check: "what failure would this not have caught?"** A check is only
+sensitive to the failure modes it was designed around. **Completeness checks see omission, never
+misassignment** — a pin-set assertion cannot see a permutation, so a symbol with every net wrong
+and nothing missing passes it cleanly. **The general shape of the bug is extracting correlated
+fields in separate passes and zipping them**; it recurs in every scraping context, not just
+symbols. The countermeasure is structural: extract correlated fields **as pairs from a single
+match**, so a dropped entry loses one whole record instead of shifting every record after it —
+and verify the pairs against a figure-level read, not the sets.
 
 **M1 — Confidence attaches to the method, not the claim.** When a method is known-ragged, *every*
 claim it produced inherits the raggedness, **including the ones later verification happens to
@@ -781,7 +813,8 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
-| **F36** | ⚠ | **NEW. The decreed part class for `+3V6_BT` cannot reach 3.6 V.** MIC5504 is **fixed-output only** — stock variants run 1.2 / 1.8 / 2.5 / 2.8 / **3.3 V max**, with no 3.6 V option. The F31 decree named "AP2112/MIC5504-class at 3.6 V", and that combination does not exist in the MIC5504 line. **An LT3045 stands in provisionally on the sheet** (adjustable via `SET`, already in the BOM three times, and its transient behaviour suits a radio) — **marked PROVISIONAL in the Value field, not silently substituted.** | Operator's call: an **adjustable** small LDO (TLV757P / AP7361 class), a different fixed-3.6 V part, or accept the LT3045 on BOM-consolidation grounds. Worth noting the near-miss alternative: MIC5504-3.3 at ±2 % gives 3.234-3.366 V, which **does** clear BAT_IN's 3.2 V floor — but on tolerance alone, with no margin, which is the kind of "it fits" that F31 already rejected once |
+| **F36** | ✅ | **CLOSED — adjustable LDO, divider-set to 3.6 V.** The F31 intent was *small, cheap, transient-friendly, ~140 mW*, and that intent picks the replacement rather than the named part. **`AP2127K-ADJ` is the target** (stock symbol exists, correct economy class); the LT3045 stays on the sheet marked **PROVISIONAL only until the divider is computed**, then comes off entirely. **The LT3045 is the wrong *grade*, not merely the wrong price:** `BAT_IN` feeds the BM83's own internal regulation, so reference-grade PSRR here buys quiet the module immediately re-regulates away. **[VERIFY] V-23:** AP2127K-ADJ's FB reference and tolerance, stacked with divider tolerance, landing inside 3.2-4.2 V — trivially true across a 1 V window, but the arithmetic goes on the sheet where the inequality lives. **Sheet annotation required:** a divider on an **FB** pin is correct and designed-for; this must not be misgeneralised from the INA1650 **REF** rule. *The distinction: FB is a feedback input inside a loop that regulates it; REF is a reference input that believes whatever it sees.* | — |
+| ~~**F36-orig**~~ | | **The MIC5504-3.3 near-miss, rejected properly.** ±2 % is the **initial accuracy term only**. Stack line regulation, load regulation, temperature drift and trace drop, and the real minimum at the BM83's pin sits **meaningfully below 3.234 V** — so it does not reliably clear the 3.2 V floor at all once the error budget is honest. "Clears on tolerance alone" was the right rejection; this is the version that survives scrutiny. *Original:* **the decreed part class cannot reach 3.6 V.** MIC5504 is **fixed-output only** — stock variants run 1.2 / 1.8 / 2.5 / 2.8 / **3.3 V max**, with no 3.6 V option. The F31 decree named "AP2112/MIC5504-class at 3.6 V", and that combination does not exist in the MIC5504 line. **An LT3045 stands in provisionally on the sheet** (adjustable via `SET`, already in the BOM three times, and its transient behaviour suits a radio) — **marked PROVISIONAL in the Value field, not silently substituted.** | Operator's call: an **adjustable** small LDO (TLV757P / AP7361 class), a different fixed-3.6 V part, or accept the LT3045 on BOM-consolidation grounds. Worth noting the near-miss alternative: MIC5504-3.3 at ±2 % gives 3.234-3.366 V, which **does** clear BAT_IN's 3.2 V floor — but on tolerance alone, with no margin, which is the kind of "it fits" that F31 already rejected once |
 | **F35** | ✅ | **CLOSED — split kept. XO→DSP direct, three buffer outputs, `Y3` spare.** The equalisation argument dissolves on inspection: the converters care about BCLK/LRCLK skew **relative to each other**, and those are regenerated by the DSP's serial ports from the PLL — not from MCLK's arrival time. Matching the DSP's MCLK path equalises a delay **nothing downstream can perceive**. The cost side is asymmetric and real: the PLL reference is the root of every clock on the board, so jitter there multiplies through the PLL into everything, while the same jitter on a converter leg touches one device. **When one side of a trade is "no benefit", the error bar on the other side is irrelevant.** `Y3` disposition per datasheet: **"Unused outputs can be left floating"** — annotated as *datasheet-sanctioned*, explicitly not a convenient future tap. *Original text below.* | — |
 | ~~**F35-orig**~~ | | *Original:* **observation. The clock buffer has exactly one more output than §3 currently uses.** T1-66: the LMK1C1104 has **four** outputs. §3 routes the XO **directly** to the ADAU1466's MCLK and puts only the three converters behind the buffer — which leaves `Y3` spare and gives the DSP a *different* path from every device it clocks. Driving all four from the buffer (`Y0`→DSP, `Y1`→ADC, `Y2`→DAC1, `Y3`→DAC2) equalises loading and propagation delay across the whole tree and still satisfies §3's "distribute from the XO through a buffer, not daisy-chained". | **Escalated, not applied** — §3 is [HARD] and this is clock-tree topology. Counter-consideration: it inserts the buffer's additive jitter (7.5 fs) into the DSP's PLL reference, where today the DSP sees the XO raw. That is almost certainly below the PLL's own contribution, but it is the operator's call, not an obvious win |
 | **F34** | ⛔ | **NEW, and it is a direct consequence of F33's own fix — stop-the-line.** The ADAU1466 requires **`IOVDD` first**: *"IOVDD… is the reference for the ESD protection diodes situated inside the input and output pins, must be applied first to avoid stressing these diodes."* F33 moves `PVDD` onto the **+6V2_A branch**, a different limb of the tree from `IOVDD` (+3V3_D) — so nothing guarantees their order, and if the analog branch wins the race **PVDD precedes IOVDD and stresses the ESD diodes on every single power-up.** Raised **before** drawing 01_power because it changes the sheet's enable topology, and drawing first would have been work invalidated in flight. | **Gate the PVDD LDO's enable from +3V3_D** (rail or power-good). The shared ancestor becomes a *logic* signal, never a current path, so **F33's noise isolation survives intact — sequencing and noise isolation are separable, and are separated deliberately.** `AVDD` (shares +3V3_D) and `DVDD` (from the +1V2_CORE buck fed by +3V3_D) are safe by construction; **re-parenting either re-opens this** |
