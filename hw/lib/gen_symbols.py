@@ -78,6 +78,33 @@ AK4458 = [
     (44,"LDOE",I,2),(45,"TVDD",P,2),(46,"DVSS",P,2),(47,"VDD18",P,2),
 ]
 
+# BM83SM1. Pin names below are the HOST-MODE / our-config function.
+# The module ships pre-configured in EMBEDDED mode (datasheet p.15 note), so several
+# pin meanings differ from this symbol until the module is configured -- pins whose
+# function is config-dependent carry a "*" suffix in the name so the schematic shows it.
+BM83 = [
+    # unit 1: power + audio
+    (23,"BAT_IN",P,1),(22,"ADAP_IN",P,1),(24,"SYS_PWR*NC",P,1),(25,"VDD_IO*NC",P,1),
+    (15,"MICBIAS",P,1),(16,"GND",P,1),(50,"GND",P,1),
+    (5,"MCLK1",O,1),(3,"SCLK1",B,1),(2,"RFS1",B,1),(1,"DR1",I,1),(4,"DT1",O,1),
+    (8,"AOHPL",O,1),(6,"AOHPR",O,1),(7,"AOHPM",O,1),
+    (12,"AIL",I,1),(11,"AIR",I,1),
+    (14,"MICP1",I,1),(13,"MICN1",I,1),(10,"MICP2",I,1),(9,"MICN2",I,1),
+    (17,"DMIC_CLK",O,1),(18,"DMIC1_R",I,1),(19,"DMIC1_L",I,1),
+    # unit 2: host interface + GPIO
+    (43,"RST_N",I,2),(26,"PWR_MFB",I,2),
+    (29,"P8_6/UART_RXD",B,2),(30,"P8_5/UART_TXD",B,2),
+    (48,"P3_7/UART_CTS",B,2),(31,"P3_4/UART_RTS*CFG",B,2),
+    (49,"P0_0/UART_TX_IND*",B,2),
+    (46,"P1_2/TDI_CPU/SCL",B,2),(47,"P1_3/TCK_CPU/SDA",B,2),
+    (37,"DP",B,2),(36,"DM",B,2),
+    (32,"LED1",I,2),(34,"LED2",I,2),
+    (27,"SK1_AMB_DET",I,2),(28,"SK2_KEY_AD",I,2),
+    (20,"P3_2*",B,2),(21,"P2_6",B,2),(33,"P0_2*",B,2),(35,"P0_6",B,2),
+    (38,"P0_3*",B,2),(39,"P2_7*",B,2),(40,"P0_5*",B,2),(41,"P1_6/PWM1",B,2),
+    (42,"P2_3",B,2),(44,"P0_1*",B,2),(45,"P0_7",B,2),
+]
+
 PARTS = {
     "ADAU1466": dict(pins=ADAU1466, n=72, ep=True, units=3,
         value="ADAU1466WBCPZ300", mfr="Analog Devices",
@@ -94,6 +121,11 @@ PARTS = {
         fp="ODSP12:AKM_LQFP-48_7x7mm_P0.5mm",
         desc="8ch 32-bit DAC, 115 dB, TDM8",
         ds="AK4458 014011794-E-02"),
+    "BM83SM1": dict(pins=BM83, n=50, ep=False, units=2,
+        value="BM83SM1", mfr="Microchip",
+        fp="ODSP12:Microchip_BM83SM1_Module",
+        desc="Bluetooth 5.0 stereo audio module, A2DP sink, aptX-HD/AAC",
+        ds="BM83 DS70005402G"),
 }
 
 for name, d in PARTS.items():
