@@ -42,6 +42,7 @@ Retrieved 2026-08-15.
 | **SM8S10A–43A** TVS *(NRND)* | `sm8s.pdf` | 6 | `A627B4D5C5CD6D17` | vishay.com doc 88387 **Rev. 06-Feb-2026** — operator-supplied |
 | **TVS for automotive** *(app note)* | `tvs.pdf` | 4 | `4A8C122BEFD46EBC` | vishay.com doc 88490 — carries the ISO 7637-2 pulse-5 test table |
 | **Load dump: old vs new ISO** *(article)* | `49748.pdf` | 5 | `028F83CE47A98FF4` | vishay.com doc 49748, EDN reprint — **an article, not a specification** |
+| **SM8S10AHM3–85AHM3** TVS | `SM8S_AHM3_Vishay.pdf` | 6 | `A9B581CFDF743398` | vishay.com **doc 98647, rev. 14-Oct-2025** — the successor. **Closes V-28** |
 
 All twenty-four are manufacturer-published documents, not aggregator copies — but note the last
 row is an **EDN article reprinted by Vishay**, which is context, not a specification, and must not
@@ -70,7 +71,8 @@ applies to topology exactly as it applies to pin numbers.
 | Part | Why it matters | Status |
 |---|---|---|
 | ~~**SMBJ24A** TVS~~ | ~~ISO 7637-2 input protection~~ | **Superseded — the part is gone from the design.** F42: a 600 W SMB misses the load-dump energy by 40–165×. Replaced by the SM8S24A class |
-| **SM8S24AHM3 _or_ CAHM3** TVS | **The actual BOM line, and the direction decision rides on it (F45).** The held `sm8s.pdf` covers SM8S10A–43A, which is **NRND**; the AHM3 series is its named successor and every figure on the power sheet inherits a re-verification against it | **Needed — manual fetch.** vishay.com refused this environment (as did st.com), so it joins the LT3094 route. **F44** |
+| ~~**SM8S24AHM3**~~ | ~~successor datasheet~~ | **HELD — fetched 2026-08-16, doc 98647. V-28 closed** |
+| **SM8S24CAHM3** *(bidirectional)* | **Optional improvement, not a blocker (F45).** Would restore seamless reverse and retire the F43 polarity hazard. Doc 98647 covers the **unidirectional** series only, so a CA series lives under a different doc number — **unverified, not disproven** (M12) | Open. Same land pattern either way, so the swap is a value change rather than a respin |
 | **PNP pass transistor** | **New requirement** — the ADAU1466's internal regulator drives an external PNP (T1-21). Dissipates ~1 W at max program | Part not selected; needed only if F18 goes the internal-regulator way |
 | **24.576 MHz XO** | T1-D03 clock master | Part not finalised (SiT8208 vs CCHD-575 class) — fetch once chosen |
 | **TLP3475** photoMOS | **V-14**, mute series element | Candidate only; fetch with the part decision |
@@ -80,6 +82,13 @@ applies to topology exactly as it applies to pin numbers.
 **analog.com remains unreachable from this environment** (T1-15) — it refused every automated
 fetch path tried, while a browser session worked first time, so it reads as bot/UA filtering
 rather than a routing failure. **Any further ADI part will need the same manual step.**
+
+**vishay.com IS reachable — an earlier claim to the contrary is RETRACTED** (T1-92). It was
+generalised from one failed fetch of `docs/88361/smbj.pdf`, and it became a reason to ask the
+operator for files that could have been fetched here. **Use the shortlink form
+`https://www.vishay.com/doc?NNNNN`**, which resolves server-side to the current revision.
+**And when a datasheet cross-references others, extract its embedded `/URI` hyperlinks** — that is
+how doc 98647 was located, since the NRND banner text is not itself a link.
 
 ---
 

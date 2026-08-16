@@ -354,7 +354,7 @@ PASSIVES += [
     # Polarity above is written for the UNIDIRECTIONAL member. If V-28 selects the CA, the part
     # has no orientation and the symbol should change with it -- do not leave a K/A symbol on a
     # bidirectional part either, for the same reason F43 rejected the reverse mistake.
-    ("D2", "Device:D_Zener", 80, 780, "SM8S24 A/CA HM3 - V-28", {"1": "VBATT_FUSED", "2": GND}),
+    ("D2", "Device:D_Zener", 80, 780, "SM8S24AHM3", {"1": "VBATT_FUSED", "2": GND}),
     ("Q2", "Transistor_FET:Q_PMOS_DGS", 120, 780, "60V P-FET (F38)",
         {"1": "VBATT_FUSED", "2": "VBATT_GATE", "3": "VBATT_REV"}),
     ("D3", "Device:D_Zener", 160, 780, "15V", {"1": "VBATT_GATE", "2": "VBATT_REV"}),
@@ -608,17 +608,23 @@ NOTE6 = (
     "   ordering table: A = +/-5 % and unidirectional, H = AEC-Q101 (absent = industry grade).\\n"
     "   THE H IS LOAD-BEARING -- this part faces the harness, so S7.0 requires the Q-grade,\\n"
     "   and dropping the suffix silently buys an unqualified part. Same shape as F37.\\n"
-    "   A-vs-CA IS OPEN (V-28). The NRND document says 'unidirectional polarity only', but that\\n"
-    "   sentence is scoped to the family it describes; the HM3 catalogue carries a parallel\\n"
-    "   BIDIRECTIONAL series SM8S10CA-85CA. A superseded datasheet is authoritative about the\\n"
-    "   past, not about its redirect target (M11). If the CA's capability holds on the\\n"
-    "   suppressed row, reverse battery stops clearing F1 and SEAMLESS RECOVERY RETURNS for a\\n"
-    "   one-letter change -- and s3's fuse-clearing paragraph is then obsolete, so re-read it.\\n"
-    "   s3's THERMAL elimination of D2-behind-Q2 is NOT affected by polarity and stays dead.\\n"
-    "   PRE-FIRED so the read cannot surprise us: at the alternative endpoints a distributor\\n"
-    "   lists for the HM3 uni part (43 V at 153 A, r_d = 97 mohm), EVERY verdict row in s2 is\\n"
-    "   unchanged -- 93 / 364 / 739 / 3717 W -- and Q1 moves 68 % -> 73 % of its 80 V rating.\\n"
-    "   The pending read can refine numbers; it cannot move a conclusion.\\n"
+    "   V-28 CLOSED against Vishay doc 98647 rev. 14-Oct-2025 -- the HM3 successor datasheet.\\n"
+    "   SM8S24AHM3 is IDENTICAL to the NRND part on every figure this sheet uses: Vwm 24.0 V,\\n"
+    "   Vbr 26.7/28.1/29.5 V, Ippm 170 A, Vc 38.9 V, aT 0.087 %/degC. Every number in s2 and\\n"
+    "   s5 stands as read. The pre-fired alternative endpoint (43 V at 153 A, from a\\n"
+    "   distributor) is NOT REPRODUCIBLE from the table: 43 V is the STANDOFF of SM8S43AHM3,\\n"
+    "   i.e. a mis-mapped field. Distributor parametrics are transcription, not specification.\\n"
+    "   PACKAGE CHANGED DO-218AB -> DO-218AC, BUT THE LAND PATTERN DID NOT: 15.30 x 10.70 mm,\\n"
+    "   main pad 9.80 x 10.70, lead pad 2.15 x 2.60, gap 3.35 -- the same drawing. AC adds a\\n"
+    "   0.10 mm nominal standoff. No footprint rework; s7's numbers stand.\\n"
+    "   6600 W vs 5200 W IS SETTLED: both appear in the SAME unidirectional part's ratings\\n"
+    "   table, as the 10/1000 us and 10/10 000 us waveforms. It was never a uni-vs-bi split.\\n"
+    "   A-vs-CA is now an IMPROVEMENT, NOT A BLOCKER. The uni part is fully evidenced and\\n"
+    "   passes. A bidirectional SM8S..CA would additionally give seamless reverse and retire\\n"
+    "   the F43 polarity hazard, but it is a SEPARATE document that is not held, so its\\n"
+    "   capability is unpriced. Fitting the uni now costs nothing later -- same land pattern,\\n"
+    "   so that swap is a VALUE change, not a respin.\\n"
+    "   s3's THERMAL elimination of D2-behind-Q2 is polarity-independent and stays dead.\\n"
     "\\n"
     "7. FOOTPRINT: DO-218AB. Land pattern 15.30 x 10.70 mm overall (main pad 9.80 x 10.70,\\n"
     "   lead pad 2.15 x 2.60, gap 3.35), body 13.3-13.7 x 8.3-8.7 mm, height 5.0 mm max.\\n"
