@@ -182,7 +182,7 @@ for ref, vout, vin, bx, by in (("U2", 5.0, "VBATT_PROT", 40, 250),
         passive("C", bx + 40, by, "22uF",  rail, GND),
         passive("C", bx + 60, by, "100nF", f"SW_{rail.strip('+')}", f"{ref}_CBOOT"),
         passive("R", bx + 80, by, "0R",    f"{ref}_CBOOT", f"{ref}_RBOOT"),
-        passive("R", bx + 100, by, "36.5k", f"RT_{ref}", GND),          # ~2.1 MHz, see note
+        passive("R", bx + 100, by, "5.76k", f"RT_{ref}", GND),   # 2.2 MHz typ -- DATASHEET POINT, see note
         passive("C", bx + 120, by, "1uF",  f"{ref}_VCC", GND),
         passive("R", bx + 140, by, rt_t,   rail, f"FB_{rail.strip('+')}"),
         passive("R", bx + 160, by, rb_t,   f"FB_{rail.strip('+')}", GND),
@@ -192,6 +192,8 @@ PASSIVES += [
     passive("L", 40, 370, "1uH",   "SW_1V2", "+1V2_CORE"),
     passive("C", 60, 370, "10uF",  "+3V3_D", GND),
     passive("C", 80, 370, "22uF",  "+1V2_CORE", GND),
+    passive("R", 100, 370, "100k", "+1V2_CORE", "FB_1V2"),   # VFB=0.6V (V-24): Rt=Rb -> 1.2 V
+    passive("R", 120, 370, "100k", "FB_1V2", GND),
 ]
 # --- five LT3045: Cin, Cout, Rset, Cset, Rilim ---
 for ref, vout, vin, rail, py in (("U6", 5.0, "+6V2_A", "+5V_A", 410),

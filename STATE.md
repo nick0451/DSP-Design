@@ -106,12 +106,30 @@ LM61460 `VREF = 1.0 V`, LT3045 `ISET = 100 µA ±1 %`:
 | +3V3_A / _CLK / _PLL | Rset 33.2k | 3.320 V | +0.61 % |
 | +3V6_BT | Rset 35.7k | 3.570 V | −0.83 % |
 
-**Still open on this sheet:** TPS62823 FB divider (**V-24** — its reference voltage; datasheet not
-in the archive), AP2127K-ADJ divider (**V-23**), the ±13V5_A supply, VBATT_PROT's protection
-front end, and the three traps flagged for review — **inductor saturation current** (the spec that
-matters, not RMS heating), **ceramic DC-bias derating** (values on the sheet must be *effective*
-capacitance at working voltage), and the `RT` frequency choice against Q37's spread-spectrum
-permission. **G1b remains unmet and unclaimed.**
+**Err column is E96-snap error only** — the full stack is snap + resistor ±1 % on both legs +
+reference tolerance. Every rail here has a wide window and clears comfortably, but **the caveat
+travels with the format** so a future tight-window rail reusing this table inherits it. +3V6_BT at
+−0.83 % is the loosest fit and still holds ~28 % of its window as margin; it is recomputed for the
+AP2127K-ADJ under V-23 anyway, where the FB reference tolerance joins the stack.
+
+**Closed since:** **V-24** — TPS62823 `VFB = 0.6 V`, so +1V2_CORE takes equal legs, 100k/100k,
+exactly 1.2 V; datasheet fetched into the archive (32 pp, Rev. C). **V-25** — LM61460 spread
+deviation is **±2 %**, so at 2.2 MHz typ the worst-case instantaneous fundamental is
+1.98 × 0.98 = **1.94 MHz, clear of the AM band's 1710 kHz top.** `RT = 5.76 kΩ` is **decided**,
+and it is a datasheet point rather than an interpolation.
+
+**Deliberate non-action, logged so it is not re-proposed:** the two battery-side bucks could be
+synchronised via `EN/SYNC` to a common clock to avoid beat products. **Do not.** Beyond the pin and
+net cost, the datasheet is explicit that *"a valid synchronization signal overrides spread
+spectrum, turning it off"* — **syncing would disable the very mechanism that decorrelates them**,
+and the beat between two spread carriers is itself spread. The non-action is now supported by the
+part's own behaviour, not only by economy.
+
+**Still open on this sheet:** AP2127K-ADJ divider (**V-23**), the **±13V5_A supply** (topology
+still carrying its "designer's call" tag since v0.1), **VBATT_PROT**'s ISO 7637-2 front end, and
+two of the three traps — **inductor saturation current** (the spec that matters, not RMS heating)
+and **ceramic DC-bias derating** (sheet values must be *effective* capacitance at working
+voltage). **G1b remains unmet and unclaimed.**
 
 ### Session boundary — read this before reconstructing anything
 
@@ -552,6 +570,21 @@ follow-up.
 *The tell:* content edits and the version header living in **different edits**. If a change is
 worth a revision row, the row goes in before the content does, not after.
 
+**"A plausible-looking component value is in the right ballpark"** — assistant, 2026-08-16
+*Correction:* I placed **`RT = 36.5 kΩ` as "a ~2.1 MHz starting point."** The LM61460's RT-to-
+frequency relation is **inverse**: 5.76 kΩ → 2.2 MHz, 33.2 kΩ → 0.4 MHz, 66.5 kΩ → 0.2 MHz.
+36.5 kΩ gives roughly **360 kHz — inside the AM broadcast band**, on a **car audio** board whose
+antenna is feet away. Off by ~6×, in the one direction that matters.
+*The tell:* **a value stated with a frequency next to it that was never derived from the
+datasheet's own table.** "Starting point" is not a tier — it is an untagged T4 wearing a number,
+and `CLAUDE.md` §5 says speculation never enters a document untagged.
+*What caught it:* being asked to **apply the reasoning to the number**. The operator's AM-band
+argument existed already; running it against the placed value is what exposed the error. **A
+design rationale is also a test** — every constraint written down is a check that can be executed
+against the artefact, and executing them is not the same as having written them.
+*Now:* `RT = 5.76 kΩ`, a **datasheet-specified point** (2.2 MHz typ, 1.98-2.42 MHz) rather than an
+interpolation. Worst case under ±2 % spread: 1.98 × 0.98 = **1.94 MHz, still clear of 1710 kHz.**
+
 **"The completeness assertion passed, so the part is fully connected"** — assistant, 2026-08-16
 *Correction:* the F28 assertion is `set(pin_geometry) - set(assigned_nets)`. My pin-extraction
 regex required a newline that **this project's own compact symbol format never emits**, so
@@ -813,6 +846,7 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 | **F13** | ⚠ | **ESP32-S3-WROOM-1 N8R2 GPIO availability.** The 22–24 GPIO budget (T2-07) assumes the module's exposed pins are all usable. Flash/PSRAM variants consume internal GPIOs and several exposed pins are strapping pins with boot-time level constraints. | **Still open, but now scoped to three specific checks** (operator input, 2026-08-15) — do them against the **module** datasheet, not the SoC datasheet: **(a) GPIO35/36/37** — consumed by octal PSRAM on R8-suffix modules; the specified **N8R2 is quad PSRAM so they should be free, verify**. **(b) GPIO0/45/46** — strapping pins, usable but constrained at boot; hang nothing on them that drives during reset. **(c) GPIO19/20** — already reserved for USB per §5. T2-07's budget dropped to ~21 after F16 moved rail sensing to I2C, which buys margin here. |
 | **F14** | ✅ | **CLOSED — OPA1656, decided; alternate dropped from v0.2 §2 and §6.2** → T1-D29. *Original:* **"OPA1656 (or OPA1612)" is not a substitution.** JFET vs bipolar input: different noise optima, different source-impedance sweet spots, different bias-current behaviour through the filter network. Same package is not the same design. | Q33. Pick one before capture; the filter resistor values follow from it. |
 | **F15** | ▫ | **MCLK and BCLK/LRCLK reach the converters by different paths** — MCLK direct from the XO fanout, BCLK/LRCLK through the ADAU1466 PLL. Frequency-coherent (T2-09), but AKM parts in TDM slave mode have specific MCLK/LRCK synchronisation requirements. | Sharpens the doc's own [VERIFY] (V-04). If the parts require phase-locked MCLK, the fanout topology may need to change. |
+| **F37** | ⛔ | **NEW. Spread-spectrum on the LM61460 is a FACTORY OPTION, not a universal feature.** *"Spread spectrum is a factory option. To find which devices have spread spectrum enabled, see Section 6."* The entire Q37/F35 emissions posture — SS permitted on the power stages, SS decorrelating the two bucks, SS smearing harmonics — **assumes SS is present.** Order the wrong orderable part number and every one of those arguments silently evaporates while the board still works on the bench. | **The orderable PN must be chosen from the SS-enabled variants and pinned in the BOM with a note saying why.** This is not a preference; three separate design arguments rest on it |
 | **F36** | ✅ | **CLOSED — adjustable LDO, divider-set to 3.6 V.** The F31 intent was *small, cheap, transient-friendly, ~140 mW*, and that intent picks the replacement rather than the named part. **`AP2127K-ADJ` is the target** (stock symbol exists, correct economy class); the LT3045 stays on the sheet marked **PROVISIONAL only until the divider is computed**, then comes off entirely. **The LT3045 is the wrong *grade*, not merely the wrong price:** `BAT_IN` feeds the BM83's own internal regulation, so reference-grade PSRR here buys quiet the module immediately re-regulates away. **[VERIFY] V-23:** AP2127K-ADJ's FB reference and tolerance, stacked with divider tolerance, landing inside 3.2-4.2 V — trivially true across a 1 V window, but the arithmetic goes on the sheet where the inequality lives. **Sheet annotation required:** a divider on an **FB** pin is correct and designed-for; this must not be misgeneralised from the INA1650 **REF** rule. *The distinction: FB is a feedback input inside a loop that regulates it; REF is a reference input that believes whatever it sees.* | — |
 | ~~**F36-orig**~~ | | **The MIC5504-3.3 near-miss, rejected properly.** ±2 % is the **initial accuracy term only**. Stack line regulation, load regulation, temperature drift and trace drop, and the real minimum at the BM83's pin sits **meaningfully below 3.234 V** — so it does not reliably clear the 3.2 V floor at all once the error budget is honest. "Clears on tolerance alone" was the right rejection; this is the version that survives scrutiny. *Original:* **the decreed part class cannot reach 3.6 V.** MIC5504 is **fixed-output only** — stock variants run 1.2 / 1.8 / 2.5 / 2.8 / **3.3 V max**, with no 3.6 V option. The F31 decree named "AP2112/MIC5504-class at 3.6 V", and that combination does not exist in the MIC5504 line. **An LT3045 stands in provisionally on the sheet** (adjustable via `SET`, already in the BOM three times, and its transient behaviour suits a radio) — **marked PROVISIONAL in the Value field, not silently substituted.** | Operator's call: an **adjustable** small LDO (TLV757P / AP7361 class), a different fixed-3.6 V part, or accept the LT3045 on BOM-consolidation grounds. Worth noting the near-miss alternative: MIC5504-3.3 at ±2 % gives 3.234-3.366 V, which **does** clear BAT_IN's 3.2 V floor — but on tolerance alone, with no margin, which is the kind of "it fits" that F31 already rejected once |
 | **F35** | ✅ | **CLOSED — split kept. XO→DSP direct, three buffer outputs, `Y3` spare.** The equalisation argument dissolves on inspection: the converters care about BCLK/LRCLK skew **relative to each other**, and those are regenerated by the DSP's serial ports from the PLL — not from MCLK's arrival time. Matching the DSP's MCLK path equalises a delay **nothing downstream can perceive**. The cost side is asymmetric and real: the PLL reference is the root of every clock on the board, so jitter there multiplies through the PLL into everything, while the same jitter on a converter leg touches one device. **When one side of a trade is "no benefit", the error bar on the other side is irrelevant.** `Y3` disposition per datasheet: **"Unused outputs can be left floating"** — annotated as *datasheet-sanctioned*, explicitly not a convenient future tap. *Original text below.* | — |

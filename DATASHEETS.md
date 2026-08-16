@@ -31,6 +31,7 @@ Retrieved 2026-08-15.
 | **25AA1024** EEPROM *(DNP)* | `25AA1024_Microchip.pdf` | 32 | `3262F74248BF2698` | microchip.com (official) |
 | **ADAU1462/ADAU1466** DSP | `adau1462-1466.pdf` | 202 | `C473F6316A5D3F95` | analog.com **Rev. C** — operator-supplied |
 | **LT3045** LDO | `LT3045.pdf` | 32 | `9132E595759A58A0` | analog.com **Rev. D** — operator-supplied |
+| **TPS62823** buck | `TPS62823_TI.pdf` | 32 | *(see repo)* | ti.com **Rev. C** — closes V-24 |
 
 All fourteen are manufacturer-published documents, not aggregator copies.
 
