@@ -170,6 +170,21 @@ AP2127 = [
     (1,"VIN",P,1),(2,"GND",P,1),(3,"EN",I,1),(4,"ADJ",I,1),(5,"VOUT",PO,1),
 ]
 
+# USBLC6-2SC6, SOT-23-6. THIRD instance of the extends-alias problem (after LT3094 and
+# AP2127K-ADJ), and the first one ERC caught rather than the netlist: renaming the parent's
+# children produced a lib_symbols cache that disagreed with the library, which KiCad reports
+# as lib_symbol_mismatch. Aliasing to the parent instead would have put the parent's package
+# (SOT-666) in the BOM. A project symbol has neither failure mode.
+#
+# *** PIN MAP IS T2 -- taken from KiCad's USBLC6-2P6 parent symbol, NOT from ST's datasheet,
+# *** which st.com would not serve to this environment. Tracked as V-30. Low risk (the part is
+# *** symmetric on I/O1 / I/O2 and only GND and VBUS are orientation-bearing) but NOT verified,
+# *** and CLAUDE.md s8 rule 9 does not have a low-risk exemption.
+USBLC6 = [
+    (1,"I/O1",PA,1),(6,"I/O1",PA,1),(3,"I/O2",PA,1),(4,"I/O2",PA,1),
+    (2,"GND",P,1),(5,"VBUS",P,1),
+]
+
 # INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
 INA1650 = [
     (1,"VCC",P,1),(14,"VEE",P,1),
@@ -226,6 +241,11 @@ PARTS = {
         fp="Package_TO_SOT_SMD:SOT-23-5",
         desc="300 mA low-noise adjustable LDO, VREF 0.8 V +/-2 %",
         ds="Diodes AP2127"),
+    "USBLC6-2SC6": dict(pins=USBLC6, n=6, ep=False, units=1,
+        value="USBLC6-2SC6", mfr="STMicroelectronics",
+        fp="Package_TO_SOT_SMD:SOT-23-6",
+        desc="2-line ESD array for USB2.0, VBUS clamp. PIN MAP T2 -- see V-30",
+        ds="ST USBLC6-2SC6 (NOT HELD -- V-30)"),
     "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
         value="INA1650PW", mfr="Texas Instruments",
         fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
