@@ -20,7 +20,7 @@ Everything needed is **in the repo**; nothing load-bearing lives only in convers
 |---|---|---|
 | 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules |
 | 2 | **`STATE.md` §0** (here) | Position, next action, session boundary |
-| 3 | `STATE.md` §5 | **The ledger. Read M1–M18 before any datasheet or file work** |
+| 3 | `STATE.md` §5 | **The ledger. Read M1–M19 before any datasheet or file work. M19 governs review-agent findings** |
 | 4 | `REQUIREMENTS.md` **v1.7** | The authority. Cite by section **and** version |
 | 5 | `hw/README.md` | Tool paths, build/verify commands, KiCad-10 format traps |
 | 6 | `STATE.md` §7 / §8 / §9 | Findings (F1–F53), [VERIFY] (V-01…V-30), I2C bus map |
@@ -48,6 +48,11 @@ found a real defect in committed work:
    starts. Three times this session they caught committed or staged work (F40's ILIM, F41's
    collision, F48's abs-max). It works because the criteria arrive before the momentum does.
 5. **Stop before a block, never partway through.** Used three times, correctly each time.
+
+**A REVIEW AGENT IS IN THE LOOP as of 2026-08-16.** Its findings are **T2 on arrival** and are
+validated against the artefact before they are accepted *or* dismissed — **M19**, read it before
+answering one. It may request context and will reason from what it has; where it has less than the
+repo does, its assumptions are the first thing to check, not its conclusion.
 
 **Closing rituals — run BOTH at every sheet close:**
 - **M6a:** one end-to-end walk of every control/I2C net, driver to receiver. *Coverage assertions
@@ -902,6 +907,50 @@ site search is worse than their own documents, which is most of them**, and it i
 than guessing doc numbers or trusting a distributor's link. *Companion to M11:* when a document
 points at a successor, the pointer is usually **in** the file, so the redirect boundary M11 warns
 about is normally crossable without leaving the archive.
+
+**M19 — AN ADVERSARIAL REVIEWER'S FINDING IS EVIDENCE, NOT A VERDICT. The tier rules apply to it
+completely unchanged.** *(Operator, 2026-08-16, on the arrival of a review agent.)*
+
+A finding arrives at **T2 at best** and rises only on evidence — the file, the netlist, the
+datasheet. Never on the reviewer's confidence, never on repetition, never because it was
+uncomfortable to hear. `CLAUDE.md` §5 already names the failure mode: **a wrong number accepted
+politely becomes a T1 that is not true.** A reviewer is a new inlet for exactly that, and an
+adversarial one is *designed* to produce claims faster than they can be checked.
+
+**Handle by direction, asymmetrically — the two directions are not equally informative:**
+- **"This is wrong"** → reproduce it as a command against the artefact *before agreeing and
+  before disagreeing*. Agreement is as expensive as dismissal when it is unearned.
+- **"This is fine", or silence** → **closes nothing.** *Absence of a finding is not a passed
+  check.* No gate closes on a reviewer's approval; §2's gates close on tool output or the
+  operator's own glance, and that list has not changed.
+
+**Check the finding's ASSUMPTIONS before its conclusion** — §5's upstream-first rule, which bites
+harder here than anywhere, because a reviewer working from the artefact must **reconstruct intent**
+and this board is unusually full of things that look wrong and are logged as deliberate: R<sub>BP</sub>
+at 10 MΩ · R<sub>B</sub> returning to `GND` rather than `AGND_REF` · no clamps at the ADC pins ·
+the relay's fail direction · `U6/U8/U9_PG` disabled by the PGFB→OUT disposition · testpoints in
+their own column · `VDD18` typed `power_out`. **Each has a written reason. A finding that names one
+is answered by citing the reason — but only after confirming the copper still matches it.**
+
+**And that caveat is the more expensive half, because it has already happened here three times.**
+"It is in the notes" does **not** mean the file agrees with the notes. F40 (every LT3045 programmed
+to 7.5 mA), both AK4458s answering at 0x11, and testpoints that were labels rather than components
+were all cases where the written intent was correct and **the artefact was not**. So: **a finding
+against a documented decision is checked against the FILE, not against the document.** A reviewer
+who cannot see the reason may still have found a real defect in the thing the reason describes.
+
+**Two classes a reviewer cannot resolve, and must not be allowed to:**
+- **⬜ UNSET slots.** An outside proposal to fill one is not a resolution — it is precisely the
+  inference §0 forbids, arriving with more authority than usual because it is framed as a review.
+- **[HARD] decrees.** A well-argued objection is an **escalation to the operator**, never an edit.
+
+**Give them the source, not my summary.** `CLAUDE.md` §3 already classes my own digests as
+advisory-only; that applies with more force when someone else will act on them. Answer context
+requests with file and section so the reviewer reads the thing itself.
+
+**Every finding lands in §7 with its verdict and the evidence — including the refuted ones.**
+A refutation that is not written down gets re-raised, and the second time it is harder to argue
+against because it now looks like independent confirmation.
 
 **M18 — A DECLARED CONTAINER IS NOT A CHECKED ONE, AND EESCHEMA DRAWS OUTSIDE ITS OWN FRAME.**
 Every sheet declared `(paper "A3")` — 420 × 297 mm — while seven of nine ran content to as much as
