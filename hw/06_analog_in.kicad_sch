@@ -1664,7 +1664,7 @@
 			(at 0 0 0)
 			(effects (font (size 1.27 1.27)))
 		)
-		(property "Value" "PLACEHOLDER F52"
+		(property "Value" "OPA2320AIDR"
 			(at 0 -2.54 0)
 			(effects (font (size 1.27 1.27)))
 		)
@@ -1673,22 +1673,22 @@
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "Datasheet" "F52 -- gate is on 06_analog_in: en, VCM and IQ, all three stated as inequalities"
+		(property "Datasheet" "TI SBOS513F"
 			(at 0 -7.62 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "Description" "Dual single-supply op-amp, ADC level-shift + single-ended-to-differential"
+		(property "Description" "Dual RRIO CMOS op-amp, 8.5 nV/rtHz at 1 kHz, ADC level-shift + SE-to-differential"
 			(at 0 -10.16 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "MFR" "TBD"
+		(property "MFR" "Texas Instruments"
 			(at 0 -12.7 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "MPN" "PLACEHOLDER F52"
+		(property "MPN" "OPA2320AIDR"
 			(at 0 -15.24 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
@@ -3172,7 +3172,7 @@
 		(dnp no)
 		(uuid "35fc7392-e143-52cb-ac6b-8e8a7c1ba0c7")
 		(property "Reference" "U45" (at 320.04 517.75 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 520.75 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 520.75 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U45") (unit 1))
@@ -3210,7 +3210,7 @@
 		(dnp no)
 		(uuid "35f23e17-4e82-5da1-bd25-8fcb8cfb8f53")
 		(property "Reference" "U45" (at 320.04 538.07 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 541.07 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 541.07 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U45") (unit 2))
@@ -3248,7 +3248,7 @@
 		(dnp no)
 		(uuid "b04dbcd4-ff34-5709-9762-1f52a410ff27")
 		(property "Reference" "U45" (at 320.04 558.39 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 561.39 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 561.39 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U45") (unit 3))
@@ -3355,7 +3355,7 @@
 		(dnp no)
 		(uuid "e06f97d7-ea9d-5c25-9120-5777bae71c90")
 		(property "Reference" "U46" (at 320.04 618.08 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 621.08 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 621.08 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U46") (unit 1))
@@ -3393,7 +3393,7 @@
 		(dnp no)
 		(uuid "7377c67c-e8fd-5d46-99e4-ebd147319783")
 		(property "Reference" "U46" (at 320.04 638.4 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 641.4 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 641.4 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U46") (unit 2))
@@ -3431,7 +3431,7 @@
 		(dnp no)
 		(uuid "353c1643-d2c7-5426-af4b-939cd25e1dbb")
 		(property "Reference" "U46" (at 320.04 657.45 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 660.45 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 660.45 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U46") (unit 3))
@@ -3538,7 +3538,7 @@
 		(dnp no)
 		(uuid "0f806b0a-45b8-51ea-ad87-bb463a93c9a7")
 		(property "Reference" "U47" (at 320.04 718.41 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 721.41 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 721.41 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U47") (unit 1))
@@ -3576,7 +3576,7 @@
 		(dnp no)
 		(uuid "148f4c7f-7ce6-5092-a6b1-92fdfa0189c7")
 		(property "Reference" "U47" (at 320.04 737.46 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 740.46 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 740.46 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U47") (unit 2))
@@ -3614,7 +3614,7 @@
 		(dnp no)
 		(uuid "1e4fc1e7-539a-55f8-b73d-399a1d132068")
 		(property "Reference" "U47" (at 320.04 757.78 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 760.78 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 760.78 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U47") (unit 3))
@@ -3721,7 +3721,7 @@
 		(dnp no)
 		(uuid "79bb6515-eba1-52a3-bb41-e3af55b16458")
 		(property "Reference" "U48" (at 320.04 817.47 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 820.47 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 820.47 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U48") (unit 1))
@@ -3759,7 +3759,7 @@
 		(dnp no)
 		(uuid "5e47cc71-ff40-594d-9b3e-87007f3e6805")
 		(property "Reference" "U48" (at 320.04 837.79 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 840.79 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 840.79 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U48") (unit 2))
@@ -3797,7 +3797,7 @@
 		(dnp no)
 		(uuid "042f6191-b2ec-5571-afc7-4d7b5028d850")
 		(property "Reference" "U48" (at 320.04 858.11 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "PLACEHOLDER F52" (at 320.04 861.11 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "OPA2320AIDR" (at 320.04 861.11 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "U48") (unit 3))

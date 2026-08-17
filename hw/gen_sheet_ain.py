@@ -373,11 +373,11 @@ for n in CH:
     ref = f"U{44 + n}"
     OA1, OA2, OA3 = (geometry(gs.OPAMP_ADCDRV, i) for i in (1, 2, 3))
     assert set(OA1) | set(OA2) | set(OA3) == set(PINGEO["ODSP12:OPAMP_ADCDRV"]), "opamp units"
-    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb, "PLACEHOLDER F52",
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb, "OPA2320AIDR",
                   {"1": no, "2": ni, "3": BIAS}, 1, OA1))
-    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 20, "PLACEHOLDER F52",
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 20, "OPA2320AIDR",
                   {"7": po, "6": po, "5": pi}, 2, OA2))
-    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 40, "PLACEHOLDER F52",
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 40, "OPA2320AIDR",
                   {"8": "+5V_A", "4": GND}, 3, OA3))
     P += [passive("C", 380, yb + 40, "100n", "+5V_A", GND)]
     # AKM's own ADC-pin network, values verbatim. C0G rather than the figure's "film" note:

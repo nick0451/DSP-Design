@@ -1947,7 +1947,7 @@
 			(at 0 0 0)
 			(effects (font (size 1.27 1.27)))
 		)
-		(property "Value" "PLACEHOLDER F52"
+		(property "Value" "OPA2320AIDR"
 			(at 0 -2.54 0)
 			(effects (font (size 1.27 1.27)))
 		)
@@ -1956,22 +1956,22 @@
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "Datasheet" "F52 -- gate is on 06_analog_in: en, VCM and IQ, all three stated as inequalities"
+		(property "Datasheet" "TI SBOS513F"
 			(at 0 -7.62 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "Description" "Dual single-supply op-amp, ADC level-shift + single-ended-to-differential"
+		(property "Description" "Dual RRIO CMOS op-amp, 8.5 nV/rtHz at 1 kHz, ADC level-shift + SE-to-differential"
 			(at 0 -10.16 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "MFR" "TBD"
+		(property "MFR" "Texas Instruments"
 			(at 0 -12.7 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
 		)
-		(property "MPN" "PLACEHOLDER F52"
+		(property "MPN" "OPA2320AIDR"
 			(at 0 -15.24 0)
 			(effects (font (size 1.27 1.27))
 				(hide yes))
