@@ -325,6 +325,17 @@ I_5VA      = 146e-3                             # V-17, T1
 IQ_GATE    = (250e-3 - 186e-3) / (2 * len(CH))  # V-17 headroom on +6V2_A / 8 amplifiers
 
 SE_PK  = V_LINE * math.sqrt(2)                  # single-ended peak at the INA1650 output
+# --- F54's stack. TWO terms, and they MULTIPLY (T1-111). The device column is spread at a
+# given reference; Note 9's formula scales the TYP with VREFH. VREFH1-2 are tied to +5V_A on
+# this board, so the reference tolerance IS the rail tolerance -- named here because Note 8
+# caps VREFH at AVDD+0.1 V, so it is not a free variable.
+RAIL_TOL  = 0.01                                # +5V_A setpoint accuracy (LT3045 + Rset)
+FS_WORST  = FS_MIN * (1 - RAIL_TOL)
+# --- B2: leg-gain mismatch is a SECOND ratio node, distinct from the bias divider.
+# leg N gain = R_F/R_IN  -> two parts at +/-t, worst-case ratio error +/-2t
+# leg P gain = R_B/(R_A+R_B) -> a divider, error (1-ratio)*2t = +/-t
+def cm_resid(t):  return 0.5 * (0.5 * 2 * t + 0.5 * t) * SE_PK   # CM residual, volts pk
+def gain_err(t):  return 1.5 * t                                  # differential gain error
 Z_BIAS = 1.0 / (1 / (RB_TOP * RB_BOT / (RB_TOP + RB_BOT)) + 2 * math.pi * 20 * 10e-6)
 def xtalk_dB(rbp):
     """Bias-node crosstalk, worst case: 4 correlated channels, leg-N noise gain, 20 Hz."""
@@ -559,11 +570,24 @@ NOTE5 = (
     "F50 COPPER -- AND WHY IT IS DIFFERENTIAL RATHER THAN THE UNITY BUFFER THAT WAS PLANNED.\\n"
     "\\n"
     "THE LOAD-BEARING REASON IS T1, FIGURE-LEVEL, AND DOES NOT DEPEND ON PARSING A SENTENCE:\\n"
-    "AKM's own reference circuit for this exact part -- Figure 76, the SAME figure this whole\\n"
-    "stage is copied from -- DRIVES BOTH ADC PINS ANTIPHASE, from two inverting legs with Bias\\n"
-    "on both non-inverting inputs. Their published DR = 121 dB and S/(N+D) = 112 dB are measured\\n"
-    "with that circuit. Departing from a converter vendor's reference INPUT circuit is exactly\\n"
-    "the class of decision that has cost this project before, and the topology is theirs.\\n"
+    "AKM's own reference circuit for this exact part -- Figure 76 -- DRIVES BOTH ADC PINS\\n"
+    "ANTIPHASE, from legs with Bias on their non-inverting inputs. Their published DR = 121 dB\\n"
+    "and S/(N+D) = 112 dB are measured with that circuit. Departing from a converter vendor's\\n"
+    "reference INPUT circuit is the class of decision that has cost this project before.\\n"
+    "\\n"
+    "BUT THIS IS NOT FIGURE 76'S TOPOLOGY, AND AN EARLIER DRAFT OF THIS NOTE WRONGLY SAID IT WAS.\\n"
+    "Figure 76 does the single-ended-to-differential conversion UPSTREAM AND AT UNITY -- an\\n"
+    "NJM5534 inverting 4.7k/4.7k stage on +/-15 V makes Vin-, a direct wire through JP2 makes\\n"
+    "Vin+ -- and only then feeds TWO IDENTICAL inverting attenuators (3.3k in, 620R || 1n fb).\\n"
+    "AKM's two Bias-referenced legs are MATCHED TO EACH OTHER. Ours are not: leg N is an ACTIVE\\n"
+    "inverter at -0.5, leg P a PASSIVE /2 into a follower.\\n"
+    "  WHY NOT COPY THEM EXACTLY: their upstream inverter needs the +/-rail domain, and ours is\\n"
+    "  already spent -- the INA1650 IS our +/-13V5_A stage. Reproducing Figure 76 literally means\\n"
+    "  a THIRD amplifier per channel (12 rather than 8) and one more stage of noise and\\n"
+    "  distortion ahead of the split, to buy leg matching that NOTE11 shows we do not need.\\n"
+    "  THE PROPERTY WE TRANSFERRED IS REAL -- Bias arriving only at high-impedance inputs, no\\n"
+    "  signal current in the shared node. THE PROPERTY WE DID NOT is leg symmetry, and its\\n"
+    "  consequence is quantified in NOTE11 rather than left as a resemblance claim.\\n"
     "\\n"
     "A SECOND, INDEPENDENT REASON: driving differentially HALVES the per-pin swing, to\\n"
     "%.3f..%.3f V instead of %.3f..%.3f V on a 5 V rail. That is what makes RAIL-TO-RAIL\\n"
@@ -614,12 +638,26 @@ NOTE5 = (
     "      against a %s source and is divided by %.0e. So a COMMON-MODE disturbance on the bias\\n"
     "      node lands DIFFERENTIALLY at the ADC, and the ADC cannot reject it.\\n"
     "        crosstalk = (N_ch x NG_N / 2) x Z_bias / R_BP\\n"
+    "      THE /2 IS NOT A FUDGE AND IT IS WORTH 6.0 dB, SO IT GETS NAMED: the INJECTING node is\\n"
+    "      leg P's (+) input, which carries the /2-divided signal (%.0f mV pk), while the VICTIM's\\n"
+    "      reference is its full differential swing (%.3f V pk). Exactly a factor of two. N_ch is\\n"
+    "      COHERENT summing -- four channels driven by the same mono source, which is the worst\\n"
+    "      case; audio crosstalk is conventionally specified with ONE channel driven, and that\\n"
+    "      case is 12 dB quieter. Stated because coherent and uncorrelated summing differ by 6 dB\\n"
+    "      and a reader cannot tell which was assumed from the constant alone.\\n"
     "      R_BP = %s  ->  %.1f dB        R_BP = 100k  ->  %.1f dB, which is audible\\n"
     "    The four channels together draw only %.2f uA at %s. AKM never meets any of this because\\n"
     "    BOTH their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\\n"
     "    Our leg P is a follower, so the problem is ours and the fix has to be ours.\\n"
     "    NOTE THE COUPLING TO NOTE8: R_BP is also NOISELESS only because the /2 divider shunts\\n"
     "    it -- %s || %s = %.0f Ohm. Raise the divider and R_BP stops being free in BOTH budgets.\\n"
+    "    AND R_BP HAS A THIRD REASON, WHICH IS THE COUPLING CAP IT BUYS. C2's corner is set\\n"
+    "    against R_BP, not against the divider: %s gives %.2f Hz with a %s FILM part. At 100k the\\n"
+    "    same corner needs ~2.2 uF -- an electrolytic or a large film part IN THE SIGNAL PATH,\\n"
+    "    which is exactly what forced AKM's 68 uF. So this resistor buys crosstalk margin AND a\\n"
+    "    small cheap low-distortion coupling cap. RECORDED AS THREE REASONS DELIBERATELY: a\\n"
+    "    single-reason component is one cost pass away from being halved; a three-reason one is\\n"
+    "    not, and the cost pass can see all three without re-deriving them.\\n"
     "  * THE TWO LEGS ARE PARALLEL, NOT CASCADED. Taking leg P as an inverter of leg N's\\n"
     "    output is one part cheaper and wrong: leg N's distortion would then appear at BOTH\\n"
     "    pins with opposite sign and DOUBLE differentially, where in parallel the two legs'\\n"
@@ -636,9 +674,11 @@ NOTE5 = (
      V_LINE / 2 / R_B * 1e6, rtxt(R_BP),
      RB_TOP * RB_BOT / (RB_TOP + RB_BOT), 1 / (2 * math.pi * 20 * 10e-6), Z_BIAS,
      NG_N, rtxt(RA_PAR), RA_PAR / R_BP,
+     SE_PK / 2 * 1e3, SE_PK,
      rtxt(R_BP), xtalk_dB(R_BP), xtalk_dB(100e3),
      len(CH) * V_LINE / 2 / R_BP * 1e6, rtxt(R_BP),
-     rtxt(R_BP), rtxt(RA_PAR), 1 / (1 / R_BP + 1 / RA_PAR))
+     rtxt(R_BP), rtxt(RA_PAR), 1 / (1 / R_BP + 1 / RA_PAR),
+     rtxt(R_BP), FC_P, "22n")
 
 NOTE6 = (
     "THE BIAS DIVIDER IS A RATIO SPEC, AND THE E96-PLUS-TOLERANCE CONVENTION WAS BUILT FOR\\n"
@@ -844,11 +884,73 @@ NOTE10 = (
     "The general form, for the ledger: A PART NUMBER NAMES A DESIGN, NOT A REVISION OF IT."
 ) % (rtxt(RB_TOP), rtxt(RB_BOT), rtxt(RB_BOT))
 
-NOTES = [(650.0, 40.0, NOTE1), (650.0, 170.0, NOTE2),
-         (650.0, 330.0, NOTE3), (650.0, 500.0, NOTE4),
-         (650.0, 660.0, NOTE5), (650.0, 830.0, NOTE6),
-         (1050.0, 40.0, NOTE7), (1050.0, 200.0, NOTE8),
-         (1050.0, 480.0, NOTE9), (1050.0, 640.0, NOTE10)]
+NOTE11 = (
+    "LEG MATCHING IS A SECOND RATIO NODE, AND UNTIL NOW IT HAD NO INEQUALITY ANYWHERE.\n"
+    "Criterion 1 covered the BIAS DIVIDER. This is a different set of four resistors doing a\n"
+    "different job, and NOTE5's departure from Figure 76 is what created it: AKM's two legs are\n"
+    "identical, so their gains track by construction. Ours are an active inverter against a\n"
+    "passive divider, and nothing makes them track except tolerance.\n"
+    "\n"
+    "THE RESIDUAL, WHICH IS THE NUMBER THAT BELONGS ON A SHEET -- an ACCEPTANCE TEST saying the\n"
+    "design lands INSIDE the window, not a violation ratio saying the rejected alternative lands\n"
+    "outside it. It also does not care whether AKM's window is DC or instantaneous (NOTE5), which\n"
+    "is the property that makes it survive the datasheet re-read:\n"
+    "\n"
+    "    AINn = V_B - g_N.V ,   AINp = V_B + g_P.V     =>     CM residual = 1/2 (g_P - g_N).V\n"
+    "\n"
+    "  g_N = R_F/R_IN  -- TWO parts, so worst-case ratio error is +/-2t\n"
+    "  g_P = R_B/(R_A+R_B) -- a DIVIDER, so its error is (1-ratio).2t = +/-t\n"
+    "  The two legs are therefore NOT equally sensitive, which is why the budget is asymmetric:\n"
+    "        |g_P - g_N|max = 1.5t        CM residual = 0.75 . t . V_pk,  V_pk = %.3f V\n"
+    "\n"
+    "     t = 1 %%    ->  %.1f mV residual   vs the +/-%.0f mV window  ->  clears %.1fx\n"
+    "     t = 0.1 %%  ->  %.2f mV residual                             ->  clears %.0fx\n"
+    "\n"
+    "  THE SAME FOUR PARTS ALSO SET CHANNEL GAIN, which is the half that is easy to miss because\n"
+    "  it is not a distortion mechanism: differential gain is (g_P + g_N), nominal 1.000, with a\n"
+    "  worst-case error of +/-1.5t -- %.2f dB at 1 %%, %.3f dB at 0.1 %%. On a 12-channel active\n"
+    "  crossover, INTER-CHANNEL gain matching is a product property, not a nicety.\n"
+    "\n"
+    "  BOM CONSEQUENCE, in F9's currency and for F9's reason: R_A/R_B are EQUAL VALUES and want a\n"
+    "  MATCHED PAIR (an array element pair, ideal case); R_IN/R_F are a 2:1 RATIO and want a\n"
+    "  ratio-matched pair or 0.1 %% discretes. As with F9 the specification is MATCHING AND\n"
+    "  TRACKING, not absolute tolerance -- and tracking is again the half discretes cannot buy at\n"
+    "  any price across the -20..+70 degC decree.\n"
+    "\n"
+    "  1 %% PARTS ARE LEGAL HERE (%.1fx) and this is not an argument that they are not. It is an\n"
+    "  argument that the number exists, is %.1f mV, and moves if anyone re-values these four."
+) % (SE_PK, cm_resid(0.01) * 1e3, WIN_HALFWIDTH * 1e3, WIN_HALFWIDTH / cm_resid(0.01),
+     cm_resid(0.001) * 1e3, WIN_HALFWIDTH / cm_resid(0.001),
+     20 * math.log10(1 + gain_err(0.01)), 20 * math.log10(1 + gain_err(0.001)),
+     WIN_HALFWIDTH / cm_resid(0.01), cm_resid(0.01) * 1e3)
+
+_NOTE_ORDER = [NOTE1, NOTE2, NOTE3, NOTE4, NOTE5, NOTE6,
+               NOTE7, NOTE8, NOTE9, NOTE10, NOTE11]
+
+
+
+def note_extent(txt):
+    """Measured extent of a note. Splits on the LITERAL escape, which is what the file holds."""
+    lines = txt.split(ESC)
+    return max(len(l) for l in lines) * 0.85, len(lines) * 1.9    # 1.27 mm font, measured
+ESC = chr(92) + "n"          # the literal two-character escape KiCad text fields carry
+# A note authored with real newlines would break the s-expression AND measure as one huge
+# line, silently blowing the page. Normalise once, here, rather than relying on every note
+# being escaped identically by hand -- that assumption already failed once.
+_NOTE_ORDER = [t.replace(chr(10), ESC) for t in _NOTE_ORDER]
+# NOTES ARE STACKED, NOT PLACED. Hard-coded y positions are the same defect as a hard-coded
+# page size (F53) one level down: NOTE5 grew while answering a review, silently overran NOTE6,
+# and the overlap showed up only as text going missing from the PDF. Height is measured and
+# the next note starts below it -- a note can now grow freely and the column follows.
+def _stack(notes, x0, y0, gap=12.0, hmax=1000.0):
+    out, x, y = [], x0, y0
+    for t in notes:
+        w, h = note_extent(t)
+        if y + h > hmax and y > y0:            # start a new column rather than run off
+            x, y = x + w + 30.0, y0
+        out.append((x, y, t)); y += h + gap
+    return out
+NOTES = _stack(_NOTE_ORDER, 650.0, 40.0)
 
 body  = [place(*p) for p in PLACE]
 for i, (nx, ny, txt) in enumerate(NOTES):
@@ -864,9 +966,6 @@ for i, (nx, ny, txt) in enumerate(NOTES):
 # traversal and was read as if it tested content.
 # The fix is not a bigger constant -- it is that the page is DERIVED FROM THE CONTENT and asserted,
 # so a sheet can never again outgrow its paper without the build stopping.
-def note_extent(txt):
-    lines = txt.split("\\n")
-    return max(len(l) for l in lines) * 0.85, len(lines) * 1.9    # 1.27 mm font, measured
 _X = [lx for lx, _ in LABELS] + [p[2] for p in PLACE]
 _Y = [ly for _, ly in LABELS] + [p[3] for p in PLACE]
 for _nx, _ny, _t in NOTES:
