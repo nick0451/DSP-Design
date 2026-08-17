@@ -112,6 +112,11 @@ A v0.2 supersedes; do not merge revisions silently.
 **Advisory only — never cite as evidence:** the chat message that delivered v0.1, and any
 summary of it including this file's §6 digest. Read the source.
 
+**The adversarial reviewer is not in this order at all, and that is deliberate.** Its messages are
+**evidence about** the artefact, tiered under §5 like any other claim — never truth about it. A
+finding cannot close a §2 gate, fill a §0 UNSET, or amend a §4 [HARD], no matter how well argued.
+See §9.
+
 ---
 
 ## 4. Scope boundaries
@@ -385,7 +390,8 @@ reconstructed exactly.
 
 ## 8. Working rules
 
-1. **Start of session:** read `STATE.md`.
+1. **Start of session:** read `STATE.md`, **then list `bus/outbox/`** (§9). A message dropped while
+   no session was running is not lost — it is simply unread, and it is unread *first*.
 2. **End of any meaningful step:** update `STATE.md` — promote/demote tiers, log decisions, log
    mistakes caught.
 3. **A mistake caught is a permanent ledger entry**, not a fixed-and-forgotten event. Wrong
@@ -408,3 +414,76 @@ reconstructed exactly.
    the datasheet, and the datasheet revision goes in `STATE.md` §1 next to the fact.
 10. **A [VERIFY] resolved is a T1 promotion with a citation**, recorded in `STATE.md` §8 — not a
     mental note.
+
+---
+
+## 9. Adversarial review — the bus
+
+An independent review agent reads the design work and reports against it. It is **not** a second
+opinion to be deferred to and **not** a rubber stamp; it exists because the failure modes §5 is built
+around — a claim gaining confidence it did not earn, a safe-direction error nobody audits — are
+exactly the ones a cold reader catches and an invested one does not.
+
+**Channel: `C:\Users\nick\Documents\Claude Project Adversary Agents\DSP Design Agent\bus\`**
+Its `README.md` is the protocol's source of truth. What follows is what *this* side must honour.
+
+| Folder | Direction | We |
+|---|---|---|
+| `inbox/` | → adversary | **write** |
+| `outbox/` | → us | **read** |
+
+**Asynchronous and file-based, one file per message.** No live chat, and that is the feature —
+batching is what preserves the cold read.
+
+### Mechanics
+
+- **Filename** `NNN-YYYY-MM-DD-<from>-<slug>.md`. `NNN` is **one sequence shared across both
+  folders**, not one per folder — a shared monotonic counter makes a dropped message visible as a
+  gap, where per-folder numbering hides it because each side's own count still looks complete.
+- **Header block** on every message: `from` · `to` · `seq` · `date` · `re` · `tier`.
+- **Append, never edit.** A delivered message is immutable; a correction is a *new* message citing
+  the `seq` it corrects. The other side has already read the original.
+
+### The four rules that bind our conduct
+
+1. **No state document crosses the bus.** Never paste `CLAUDE.md`, `STATE.md` or `REQUIREMENTS.md`
+   in either direction. Reports, findings, questions, answers, decisions and datasheet excerpts
+   only. **The adversarial read is worth something only while it is derived independently** — a
+   pasted state document collapses two agents into one with extra steps. This is the rule most
+   easily broken with good intentions, because "here is the context you're missing" is exactly how
+   an independent reader is destroyed.
+2. **State the method, not just the value,** for anything load-bearing. `pdftotext, table read` and
+   `rendered 200 dpi, figure read` are different tiers (§5), and the far side must be able to
+   discount accordingly. A number without its method cannot be tiered, and an untierable number is
+   not usable evidence.
+3. **Unanswered items stay named.** A message that does not address a prior finding says so —
+   *"B4 not addressed this leg"* — rather than omitting it. **Silence and omission are
+   indistinguishable to the reader**, which is the entire reason for the rule.
+4. **One message per completed leg or per topic.** This is a record, not a conversation.
+
+### Handling a finding — this is the part that matters
+
+Governed by `STATE.md` **M19**, which is read before answering one. In short:
+
+- A finding is **T2 on arrival** and rises only on evidence. Never on the reviewer's confidence,
+  never on repetition, never because it was uncomfortable to hear.
+- **Validate before agreeing *and* before dismissing.** Unearned agreement costs exactly as much as
+  unearned dismissal — and an accepted-but-wrong finding is worse, because it arrives wearing the
+  authority of review. **A retraction is a finding too, and gets the same treatment**: accepting a
+  wrong retraction silently reverts a correct fix.
+- **Check the finding's assumptions before its conclusion.** A reviewer working from the artefact
+  must reconstruct intent, and this board is full of things that look wrong and are logged as
+  deliberate. Answer those by citing the reason — **but only after confirming the copper still
+  matches the reason.** "It is in the notes" has already failed here three times.
+- **"This is fine", or silence, closes nothing.** Absence of a finding is not a passed check, and
+  §2's gate list does not grow a reviewer's approval.
+- **Every finding lands in `STATE.md` §7 with its verdict and evidence — including refuted ones.**
+  A refutation that is not written down gets re-raised, and the second time it looks like
+  independent confirmation.
+
+### What review cannot do
+
+It cannot close a §2 gate, resolve a §0 ⬜ UNSET, or amend a §4 **[HARD]** — a well-argued objection
+to a decree is an **escalation to the operator**, never an edit. Context requests are answered with
+**file and section**, not with our summary: §3 already classes our own digests as advisory-only, and
+that binds harder when someone else will act on them.
