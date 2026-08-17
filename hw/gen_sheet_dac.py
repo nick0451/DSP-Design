@@ -264,6 +264,20 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
         "  DOWNSTREAM OF THE OUTPUT PIN, so no mute transient reaches an input. The one exposed\\n"
         "  pin is OUT, and its abs max is 'output short-circuit: continuous'.\\n"
         "\\n"
+        "*** THE [HARD] FLOOR IS DEFENDED JOINTLY BY THREE INDEPENDENTLY-OWNED VALUES. ***\n"
+        "S12 measures at the RCA, AFTER the mute series element, so the Zout divider eats from\n"
+        "the same margin the gain provides. The inequality, and it must be re-fired if ANY of\n"
+        "the three moves:\n"
+        "      Vout(RCA) = gain x FS x  RL / (RL + Zout)   >=  4.5 Vrms,  RL = 10 kOhm (S12)\n"
+        "  Owners:  (1) Rf's E96 step      (2) the build-out resistor     (3) Ron's ceiling\n"
+        "  At Zout = 100 Ohm (S6.2's own ceiling): 4.524 Vrms -> +0.046 dB. CLEARS, BARELY.\n"
+        "  The floor alone would tolerate Zout <= 153 Ohm; S6.2's 100 Ohm is the BINDING limit.\n"
+        "  Real photoMOS Ron is 1-2 Ohm, so the LIKELY number is Zout ~ 11 Ohm -> +0.123 dB.\n"
+        "  BUT THE DESIGN MUST CLEAR AT THE CEILING, NOT AT THE LIKELY VALUE.\n"
+        "  THIS IS THE LINE THAT CATCHES the future 'optimise Rf back to 10k, it is within\n"
+        "  tolerance' pass: at Rf = 10k the RCA sees 4.435 Vrms and the [HARD] line FAILS --\n"
+        "  by arithmetic here, rather than by a failed acceptance run months later.\n"
+        "\n"
         "FILTER: 150 pF across Rf gives a pole at %.0f kHz -- far above the 19+20 kHz CCIF\\n"
         "twin-tone pair S12 tests this stage with, so the criterion measures the STAGE, not the\\n"
         "filter's skirt. A pole placed for 'niceness' near 20 kHz would corrupt that measurement."
@@ -356,5 +370,9 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
 
 print(f"gain: Rin {rtxt(RIN)} / Rf {rtxt(RF)} -> {GAIN_ACT:.3f}x = {20*math.log10(GAIN_ACT):.2f} dB")
 print(f"      {FS_RMS:.4f} Vrms in -> {VOUT_ACT:.3f} Vrms out (target 4.5, {20*math.log10(VOUT_ACT/4.5):+.2f} dB)")
-build("07_dac_a.kicad_sch", "ODSP-12 :: DAC A -- AK4458 #1, AOUT1-6", 1, 1, "TDM_OUT0", (GND, GND))
-build("08_dac_b.kicad_sch", "ODSP-12 :: DAC B -- AK4458 #2, AOUT7-12", 2, 7, "TDM_OUT1", ("+3V3_D", GND))
+build("07_dac_a.kicad_sch", "ODSP-12 :: DAC A -- AK4458 #1, AOUT1-6", 1, 1, "TDM_OUT0", ("+3V3_D", GND))
+# CAD0 / CAD1. #1 = (0,0) -> 0x11 ... no: CAD1:CAD0 = 0:1 -> 0x11 and 1:0 -> 0x12.
+# The re-emitted S9 map caught this: BOTH devices were originally handed the same strap
+# pair, so #2 also answered at 0x11 -- two DACs replying together, which presents as
+# "the second DAC ignores its filter config" and is a bus fault, not a config bug.
+build("08_dac_b.kicad_sch", "ODSP-12 :: DAC B -- AK4458 #2, AOUT7-12", 2, 7, "TDM_OUT1", (GND, "+3V3_D"))

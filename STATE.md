@@ -88,6 +88,19 @@ because the rename otherwise produces a `lib_symbol_mismatch`. **`VDD18` was typ
 on the AK5574 while T1 already recorded it as an internal-LDO *output*; retyped `power_out`,
 which is what cleared the last `power_pin_not_driven`.
 
+**ALL TEN SHEETS ARE DRAWN** (2026-08-16). `05_spdif` and `09_io` closed the set; **ERC is 41 and
+the number is now ABSOLUTE** — no violation is waiting on an undrawn counterpart. It is a punch
+list:
+
+| Class | n | What it actually is |
+|---|---|---|
+| `isolated_pin_label` | 28 | **Real gaps + genuine spares.** Gaps: `U13_COMP` (the SEPIC's compensation network is not drawn), the four `MON_*` rail-monitor dividers (§9 requires them), `MCLK_DSP`/`MCLK_ADC`/`CLKOUT_DSP` (**the 24.576 MHz XO and the LMK1C1104 fanout are not placed**). Spares by design: the four unused TDM ports, `U6/U8/U9_PG` (PG disabled by the PGFB→OUT disposition — should become no-connects), `TP_SPDIF_TX`, `TEMP_THERM_N` |
+| `pin_not_driven` | 13 | The same gaps seen from the pin side: ADS1015 `AIN0-3`, DSP `XTALIN/MCLK`, both converters' `MCLK`. Plus `AIN{n}_N` on the ADC — **the INA1650 is single-ended-out, so the ADC's N inputs need a reference, which is not yet drawn** |
+
+**The biggest single omission is the clock tree**: §3's [HARD] XO → fanout → converters exists as
+net names on `02_dsp` and as nothing else. That is the next block, and it is the one place where
+the [HARD] section with the most consequences has the least copper.
+
 **Sheet plan** — mirrors the architecture, not the BOM, so that a [HARD] section maps to one sheet:
 
 | Page | File | Contents |
@@ -763,6 +776,15 @@ than guessing doc numbers or trusting a distributor's link. *Companion to M11:* 
 points at a successor, the pointer is usually **in** the file, so the redirect boundary M11 warns
 about is normally crossable without leaving the archive.
 
+**M17 — Reference-designator uniqueness is an unstated assumption that every downstream
+artefact relies on, and generated sheets bypass the annotator that normally enforces it.**
+`Q1` was both the SEPIC FET and a mute shunt; `K1` was both a range relay and a mute photoMOS.
+**It would have survived every electrical check and detonated at assembly** — a BOM with two `Q1`
+rows is resolved by whoever is loading the pick-and-place, silently and in their favour. ERC does
+not check it, the netlist does not care, and the schematic looks correct on every sheet
+individually. **Countermeasure: a hierarchy-wide refdes audit as a closing ritual**, beside M6a's
+end-to-end net walk. 438 instance refs, zero duplicates, and the check takes one command.
+
 **M16 — Stock symbols carry vetted GEOMETRY, not vetted electrical TYPES.** DL-14's stock-first
 ordering was a *drawing* economy and it never certified pin types. Four instances now prove the
 stock library's types are drawn from idiom rather than from pin-function tables: `D_TVS`
@@ -1312,35 +1334,33 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 
 ## 9. I2C0 bus map
 
-Logged per the F23 disposition, because **a bus with zero spare slots in a family prefix is a
-constraint the next revision needs to see coming.** Every device, every strap, every resulting
-address. 400 kHz, single bus — the ESP32-S3's second I2C controller stays unused and in reserve.
+**Re-emitted complete, 2026-08-16, as the gate on `09_io`'s close** — named debt twice is a
+ledger; three times is a pattern.
 
-| Device | 7-bit | Strap | Slack |
+| Device | Addr | Strap | Sheet |
 |---|---|---|---|
-| AK5574 (ADC) | **0x10** | CAD1 = 0, CAD0 = 0 | |
-| AK4458 #1 (AOUT1-6) | **0x11** | CAD1 = 0, CAD0 = 1 | |
-| AK4458 #2 (AOUT7-12) | **0x12** | CAD1 = 1, CAD0 = 0 | |
-| ~~AK4118A~~ | ~~0x13~~ | **part deleted (F26)** | **0x13 returned to the pool** |
-| ADS1015 (rail monitor) | **0x48** | ADDR → GND | |
-| TMP461-class (temp, F27) | **0x49** | strap TBD — **V-20** | 0x4A, 0x4B spare |
+| **AK5574** ADC | **0x10** | `CAD1`=0 (pin 34→GND), `CAD0`=0 (pin 32→GND) | 06 |
+| **AK4458 #1** (AOUT1–6) | **0x11** | `CAD1`=0 (pin 12→GND), `CAD0`=1 (pin 15→+3V3_D) | 07 |
+| **AK4458 #2** (AOUT7–12) | **0x12** | `CAD1`=0, `CAD0`=1 — *see note* | 08 |
+| ~~0x13~~ | — | **freed by F26** when the AK4118A was deleted | — |
+| **PCF8574T** GPIO expander | **0x20** | `A2:A1:A0` = 0,0,0 (pins 3,2,1 → GND) | 06 |
+| **ADS1015** rail monitor | **0x48** | `ADDR`→GND | 01 |
+| **TMP461** temp | **0x49** | `A0`→+3V3_D, `A1`→GND | 01 |
 
-**Zero-slack note amended 2026-08-16.** F26's deletion of the AK4118A **frees 0x13**, so the
-0b00100 prefix now holds three devices in four slots with **one spare**. A future ODSP-16's third
-AK4458 therefore *does* have an address to live at, and I2C1 stays in reserve. This reverses the
-constraint logged one round earlier — recorded rather than silently overwritten, because the
-earlier note may already have been read.
+**⛔ The re-emission found a defect, which is the argument for the ritual.** The generator hands
+**both** AK4458s the same strap pair `(+3V3_D, GND)` — the `i2c_addr_strap` parameter differs
+between the two `build()` calls, but only in the value I passed, and **I passed the same one
+twice**. Device #2 therefore also strapped to **0x11**, which is an address collision: two DACs
+answering together, presenting as "the second DAC ignores its filter config" — F30's symptom,
+different cause. **Fixed:** #2 takes `CAD1`=1 (pin 12 → +3V3_D), `CAD0`=0 → **0x12**.
 
-**Two separate contention zones, and the second nearly bit us too.** The AKM parts occupy
-0x10–0x13 with no room left. Independently, **ADS1015 and TMP102 both default to the 0x48–0x4B
-range** and would collide at 0x48 if both were left at their default strap — assignments above
-separate them and leave two spare.
+**Two structural facts worth keeping:** the `0b00100` prefix holds exactly four AKM devices, so a
+future ODSP-16's third AK4458 has nowhere to live and I2C1 comes out of reserve at that point,
+not before. And 0x20 sits clear of both the AKM block (0x10–0x13) and the monitor pair
+(0x48/0x49), so the expander was free to add.
 
-**Mode straps that must accompany the addresses** (T1-27): `I2C`/`IIC` pin = **H** on all four
-AKM parts, and the AK4458s additionally need **`PS` = L** — `PS` = H selects *parallel* mode, not
-I2C. Per the F21 ledger entry, all of these get their idle level annotated in the schematic.
-
----
+**Pull-ups: 2.2 kΩ on SDA and SCL, on `03_control`, ONCE.** A second pair at the far end is a
+rise-time bug that measures fine on a bench and fails at temperature.
 
 ## 8. [VERIFY] checklist
 

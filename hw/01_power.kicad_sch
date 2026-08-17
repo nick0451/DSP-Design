@@ -3548,6 +3548,129 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "Connector:TestPoint"
+		(pin_numbers
+			(hide yes)
+		)
+		(pin_names
+			(offset 0.762)
+			(hide yes)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "TP"
+			(at 0 6.858 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 0 5.08 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 5.08 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 5.08 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "test point"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "test point tp"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "Pin* Test*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TestPoint_0_1"
+			(circle
+				(center 0 3.302)
+				(radius 0.762)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "TestPoint_1_1"
+			(pin passive line
+				(at 0 0 90)
+				(length 2.54)
+				(name "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "Device:C"
 		(pin_numbers
 			(hide yes)
@@ -8776,96 +8899,317 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "c09ab2cb-98cb-5dda-a472-b1e50a8039d8")
 	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 39.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "80a0612e-7109-5e3c-820d-255a640df0aa")
+		(property "Reference" "TP1" (at 699.77 17.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP VBATT_PROT" (at 699.77 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP1") (unit 1))
+			)
+		)
+	)
 	(global_label "VBATT_PROT"
 		(shape bidirectional)
 		(at 699.77 39.37 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "210ce2b9-583e-5677-af86-d33af6a6f976")
+		(uuid "1aa2cd4e-ad05-5d27-98c9-47702922ec28")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fcc9bf7c-bec6-5c67-9902-10360ad8e61d")
+		(property "Reference" "TP2" (at 699.77 32.61 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +5V_D" (at 699.77 35.61 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP2") (unit 1))
+			)
+		)
 	)
 	(global_label "+5V_D"
 		(shape bidirectional)
-		(at 699.77 52.07 0)
+		(at 699.77 54.61 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "10e99c41-acdc-5d82-b291-267acbfcb644")
+		(uuid "6f1e39e0-478b-5418-a48d-12f8f04b99e2")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 68.58 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d361df56-8ad3-5011-85f7-fb5102198c7c")
+		(property "Reference" "TP3" (at 699.77 46.58 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +3V3_D" (at 699.77 49.58 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP3") (unit 1))
+			)
+		)
 	)
 	(global_label "+3V3_D"
 		(shape bidirectional)
-		(at 699.77 63.5 0)
+		(at 699.77 68.58 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "0325aad5-fb81-5dd3-afda-8af646664b30")
+		(uuid "14ffdab5-681f-5150-980e-37e20fe9edb5")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 82.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5fbc0af5-5a65-50fb-9071-4a18b0bc6249")
+		(property "Reference" "TP4" (at 699.77 60.55 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +6V2_A" (at 699.77 63.55 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP4") (unit 1))
+			)
+		)
 	)
 	(global_label "+6V2_A"
 		(shape bidirectional)
-		(at 699.77 76.2 0)
+		(at 699.77 82.55 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "fe2c1708-222d-5ab4-afe2-8f2de379cf1a")
+		(uuid "7686a079-c05d-5ae2-95c9-e5e5f6ba8500")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4af7fb68-afe3-5d6e-933b-b48c6c1fbbcb")
+		(property "Reference" "TP5" (at 699.77 74.52 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +1V2_CORE" (at 699.77 77.52 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP5") (unit 1))
+			)
+		)
 	)
 	(global_label "+1V2_CORE"
 		(shape bidirectional)
-		(at 699.77 87.63 0)
+		(at 699.77 96.52 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "c7ad2cad-09c9-5746-a71e-b54b6e71e4d0")
+		(uuid "1d0ad2db-06b5-566f-a38e-76afd3d20a25")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 110.49 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8d5e74e1-2c8e-5ca0-ae36-b961119a1c33")
+		(property "Reference" "TP6" (at 699.77 88.49 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +5V_A" (at 699.77 91.49 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP6") (unit 1))
+			)
+		)
 	)
 	(global_label "+5V_A"
 		(shape bidirectional)
-		(at 699.77 100.33 0)
+		(at 699.77 110.49 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "95b8aa18-1dfe-5924-9f37-d4f08ab3681b")
+		(uuid "71501af6-bd25-5773-bd4a-47b910a69e50")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 124.46000000000001 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d4bd3c3d-f260-5929-94e3-af1713a858e7")
+		(property "Reference" "TP7" (at 699.77 102.46000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +3V3_CLK" (at 699.77 105.46000000000001 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP7") (unit 1))
+			)
+		)
 	)
 	(global_label "+3V3_CLK"
-		(shape bidirectional)
-		(at 699.77 111.76 0)
-		(fields_autoplaced yes)
-		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "b97c45db-859f-5aaa-baf7-207a0c1a110c")
-	)
-	(global_label "+3V3_PLL"
 		(shape bidirectional)
 		(at 699.77 124.46000000000001 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "a66a2c0d-9de0-5164-8cb0-492e189d4536")
+		(uuid "bb3cccc4-748e-519f-be66-cb844eb4d2e0")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 138.43 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4fc6c506-e753-5b53-8251-026780b92ddd")
+		(property "Reference" "TP8" (at 699.77 116.43 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +3V3_PLL" (at 699.77 119.43 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP8") (unit 1))
+			)
+		)
+	)
+	(global_label "+3V3_PLL"
+		(shape bidirectional)
+		(at 699.77 138.43 0)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "c2108f6c-92e2-5533-ba0e-f46602a595e9")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 152.4 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f6ed1e9c-a1f3-52c3-a772-123473b90eb9")
+		(property "Reference" "TP9" (at 699.77 130.4 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +3V6_BT" (at 699.77 133.4 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP9") (unit 1))
+			)
+		)
 	)
 	(global_label "+3V6_BT"
 		(shape bidirectional)
-		(at 699.77 135.89000000000001 0)
+		(at 699.77 152.4 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "fe235d47-f7fa-5dee-a3a5-4053cb0c2417")
+		(uuid "56166a2d-b650-520e-92a9-0b043ce9a294")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 166.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "10db5408-da27-51d9-841d-7ce41e14e9a0")
+		(property "Reference" "TP10" (at 699.77 144.37 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +15V5_A" (at 699.77 147.37 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP10") (unit 1))
+			)
+		)
 	)
 	(global_label "+15V5_A"
 		(shape bidirectional)
-		(at 699.77 148.59 0)
+		(at 699.77 166.37 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "e3b7f51c-cca9-5d4b-b878-547b79c1b9b8")
+		(uuid "6d250598-f006-502e-b44d-ce7768663403")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 180.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9c014460-c417-5da0-8e09-6a4d20f134ba")
+		(property "Reference" "TP11" (at 699.77 158.34 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP -15V5_A" (at 699.77 161.34 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP11") (unit 1))
+			)
+		)
 	)
 	(global_label "-15V5_A"
 		(shape bidirectional)
-		(at 699.77 160.02 0)
+		(at 699.77 180.34 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "1b4cbb2c-a42c-5518-90c3-111b31985be5")
+		(uuid "4c00e89a-dbbe-5aed-9806-825eb4df60dd")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 194.31 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "85982ae9-ed75-5f1f-b190-0ae1933ae0c0")
+		(property "Reference" "TP12" (at 699.77 172.31 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP +13V5_A" (at 699.77 175.31 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP12") (unit 1))
+			)
+		)
 	)
 	(global_label "+13V5_A"
 		(shape bidirectional)
-		(at 699.77 171.45 0)
+		(at 699.77 194.31 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "11e2ccd1-a309-5981-b8e6-aec73ed819e5")
+		(uuid "4fde4ece-df19-50ab-90cd-7c2b5b7b98a2")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 699.77 208.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "da23d802-c985-5fb1-99bc-fd4bcd846ff6")
+		(property "Reference" "TP13" (at 699.77 186.28 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "TP -13V5_A" (at 699.77 189.28 0) (effects (font (size 1.27 1.27))))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/1243d9cb-8a3c-5ada-8b57-ee4ac6238a28" (reference "TP13") (unit 1))
+			)
+		)
 	)
 	(global_label "-13V5_A"
 		(shape bidirectional)
-		(at 699.77 184.15 0)
+		(at 699.77 208.28 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "8870929f-a9de-5449-926b-620e267a558a")
+		(uuid "c3034cff-8e8a-59ab-9e0b-b1f247b06d74")
 	)
 	(text "PG->EN DIVIDER ARITHMETIC (F34) -- check before any BOM cost-pass normalises these values.\nPGOOD on U3 is OPEN-DRAIN (T1-64). Three constraints on two resistors:\n  1. PG released (+3V3_D up): EN_3V3_PLL = 3V3 * R3/(R2+R3) must exceed the LDO's V_IH.\n  2. PG asserted low (fault): EN must sit below V_IL.\n  3. +3V3_D absent / PG high-Z: R3 must dominate so EN defaults LOW -- fail-safe off.\nValues above are PLACEHOLDERS. [VERIFY] the chosen LDO's EN threshold table, then solve.\nDo not substitute standard values without re-checking all three inequalities.
 

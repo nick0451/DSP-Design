@@ -65,6 +65,7 @@ SRC = {
     "Analog_ADC:ADS1015IDGS":          (STOCK_DIR + "/Analog_ADC.kicad_sym", "ADS1015IDGS"),
     "Sensor_Temperature:TMP461xxRUN":  (STOCK_DIR + "/Sensor_Temperature.kicad_sym", "TMP461xxRUN"),
     "Device:R":                        (STOCK_DIR + "/Device.kicad_sym", "R"),
+    "Connector:TestPoint":             (STOCK_DIR + "/Connector.kicad_sym", "TestPoint"),
 }
 DEFS, PINGEO = {}, {}
 for libid, (path, nm) in SRC.items():
@@ -741,13 +742,17 @@ NOTE6 = (
     "   copper under the tab. This pad is a Block E thermal input, not just an outline."
 )
 
+# TESTPOINTS ARE COMPONENTS, NOT LABELS. A bare global label is electrically on the net but it
+# is NOT A PART -- no footprint, so it would never reach copper, and BRINGUP.md's "multimeter
+# walking a checklist" would have had nothing to touch. ERC caught it as label_dangling; the
+# label was doing nothing except LOOKING like a testpoint on the exported PDF.
+for _i, _r in enumerate(TESTPOINTS):
+    PLACE.append((f"TP{_i+1}", "Connector:TestPoint", 700, 40 + _i * 14, f"TP {_r}", {"1": _r}))
+
 body = [place(*p) for p in PLACE]
 # Testpoints live in their own column clear of every device row, not tucked between them.
 # The previous layout interleaved them with the passive rows, which is what made the
 # collision above possible in the first place.
-for i, r in enumerate(TESTPOINTS):
-    x, y = snap(700), snap(40 + i * 12)
-    body.append("\n".join(emit_label(r, x, y, 0, "left", u("tp" + r))))
 for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2),
                                    (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4),
                                    (560.0, 760.0, NOTE5), (40.0, 820.0, NOTE6),
