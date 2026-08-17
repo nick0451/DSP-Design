@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "8bd6956e-1e76-52d7-b7d3-99f6a94d3ad7")
-	(paper "User" 1160.0 910.0)
+	(paper "User" 1170.0 910.0)
 	(title_block
 		(title "ODSP-12 :: Analog in -- 4 differential, dual range, into AK5574")
 		(date "2026-08-16")
@@ -3890,7 +3890,7 @@
 		(dnp no)
 		(uuid "efb65b88-7e24-54da-b2c5-963be9d10230")
 		(property "Reference" "R403" (at 100.33 17.369999999999997 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 20.369999999999997 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R403") (unit 1))
@@ -3921,7 +3921,7 @@
 		(dnp no)
 		(uuid "6cac0228-b0c5-5e6c-8af6-006ca88a431c")
 		(property "Reference" "R404" (at 129.54 17.369999999999997 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 20.369999999999997 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R404") (unit 1))
@@ -4045,7 +4045,7 @@
 		(dnp no)
 		(uuid "7ef868f7-fe07-5f8c-819a-91b2766beaba")
 		(property "Reference" "R408" (at 100.33 40.230000000000004 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 43.230000000000004 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 43.230000000000004 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R408") (unit 1))
@@ -4076,7 +4076,7 @@
 		(dnp no)
 		(uuid "6e8582e5-8471-5979-8d52-62a9ceb6efd4")
 		(property "Reference" "R409" (at 129.54 40.230000000000004 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 43.230000000000004 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 43.230000000000004 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R409") (unit 1))
@@ -4231,7 +4231,7 @@
 		(dnp no)
 		(uuid "9d63107c-fdf7-5dd7-930c-ca2ae7cf365a")
 		(property "Reference" "R414" (at 100.33 78.33 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 81.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 81.33 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R414") (unit 1))
@@ -4262,7 +4262,7 @@
 		(dnp no)
 		(uuid "9f29d693-ef2d-54cf-9bb6-0cec7a83aa10")
 		(property "Reference" "R415" (at 129.54 78.33 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 81.33 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 81.33 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R415") (unit 1))
@@ -4386,7 +4386,7 @@
 		(dnp no)
 		(uuid "8b18a309-81c8-531b-8ec7-2d5655a850bd")
 		(property "Reference" "R419" (at 100.33 99.92 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 102.92 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 102.92 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R419") (unit 1))
@@ -4417,7 +4417,7 @@
 		(dnp no)
 		(uuid "412823ab-611c-509e-9e7d-2ad829da695d")
 		(property "Reference" "R420" (at 129.54 99.92 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 102.92 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 102.92 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R420") (unit 1))
@@ -4572,7 +4572,7 @@
 		(dnp no)
 		(uuid "9f2c4db5-e421-53b9-868a-b8a046e0dac9")
 		(property "Reference" "R425" (at 100.33 138.02 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 141.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 141.02 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R425") (unit 1))
@@ -4603,7 +4603,7 @@
 		(dnp no)
 		(uuid "e7af6415-33e0-51a5-a887-5da3d32398a8")
 		(property "Reference" "R426" (at 129.54 138.02 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 141.02 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 141.02 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R426") (unit 1))
@@ -4727,7 +4727,7 @@
 		(dnp no)
 		(uuid "9c8d44a5-98b5-5594-9be1-79e9a491e72a")
 		(property "Reference" "R430" (at 100.33 159.61 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 162.61 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 162.61 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R430") (unit 1))
@@ -4758,7 +4758,7 @@
 		(dnp no)
 		(uuid "db606d9e-954c-50c3-ab14-c53d3943d31e")
 		(property "Reference" "R431" (at 129.54 159.61 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 162.61 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 162.61 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R431") (unit 1))
@@ -4913,7 +4913,7 @@
 		(dnp no)
 		(uuid "aa043e9d-5ad5-540b-ba2a-88edadc1ab62")
 		(property "Reference" "R436" (at 100.33 197.71 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 200.71 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 200.71 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R436") (unit 1))
@@ -4944,7 +4944,7 @@
 		(dnp no)
 		(uuid "de9acbcf-d272-5ba4-b16a-2a829d1c9024")
 		(property "Reference" "R437" (at 129.54 197.71 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 200.71 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 200.71 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R437") (unit 1))
@@ -5068,7 +5068,7 @@
 		(dnp no)
 		(uuid "b4bcb535-a0ad-5693-8d8a-17f065abdefa")
 		(property "Reference" "R441" (at 100.33 220.57 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "9.09k" (at 100.33 223.57 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "8.45k" (at 100.33 223.57 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R441") (unit 1))
@@ -5099,7 +5099,7 @@
 		(dnp no)
 		(uuid "f066f42c-a8cb-5da3-8e44-e19ade4c06f1")
 		(property "Reference" "R442" (at 129.54 220.57 0) (effects (font (size 1.27 1.27))))
-		(property "Value" "332R" (at 129.54 223.57 0) (effects (font (size 1.27 1.27))))
+		(property "Value" "324R" (at 129.54 223.57 0) (effects (font (size 1.27 1.27))))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/73205b74-b9a0-569b-a7e6-12356b295440" (reference "R442") (unit 1))
@@ -7538,7 +7538,7 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "c8493468-55a9-5a50-a396-fe8e93acd504")
 	)
-	(text "GAIN PLAN, WORKED FORWARD -- source ceiling to ADC full scale. A range change re-fires\nthis arithmetic; that is the point of writing it here rather than in a note file.\n\n  ADC full scale = 0.56 x (VREFH - VREFL) = 0.56 x 5 V = 2.80 Vpp diff = 0.990 Vrms\n  INA1650 gain   = 1 V/V EXACTLY -- there is no gain to share between stages, so the\n                   attenuator does ALL the range work in BOTH modes.\n\n  Rtop = 10k per leg, Rbot = 9.09k per leg, Rspk = 332R per leg (switched by K1-K4)\n  LINE    (Rbot alone):        2.00 Vrms in -> 0.943 Vrms  (95.3% of FS)\n  SPEAKER (Rbot || Rspk):      30.0 Vrms in -> 0.931 Vrms  (94.0% of FS)\n  Zin, line mode, differential = 2 x (Rtop + Rbot) = 38 kOhm  vs the >= 20 kOhm decree\n\nNOTE WHAT IS *NOT* HERE: no gain stage. That is a consequence, not an omission -- the\nINA1650 is fixed at 1 V/V, so any topology that attenuated further would need one, and\nevery extra stage multiplies the attenuator's own noise before the ADC sees it."
+	(text "GAIN PLAN, WORKED FORWARD -- source ceiling to ADC full scale. A range change re-fires\nthis arithmetic; that is the point of writing it here rather than in a note file.\n\n  ADC full scale = 0.56 x (VREFH - VREFL) = 0.56 x 5 V = 2.80 Vpp diff = 0.990 Vrms\n  INA1650 gain   = 1 V/V EXACTLY -- there is no gain to share between stages, so the\n                   attenuator does ALL the range work in BOTH modes.\n\n  FULL SCALE CARRIES A TOLERANCE AND THE MINIMUM GOVERNS (F54). The spec table reads\n  +/-2.7 / 2.8 / 2.9 Vpp min/typ/max = 0.9546 / 0.9899 / 1.0253 Vrms differential. A part at\n  the MIN end reaches full scale on a SMALLER input -- IT CLIPS FIRST -- so min is the\n  dangerous end and min is the design point. Targeting 95% of TYP would leave only 1.2%\n  on a min part, i.e. the 'cheap insurance' would be absent exactly where it is needed.\n  This is CLAUDE.md S7's round-outward rule applied to a CEILING rather than a floor.\n  Cost of the change: 0.32 dB of signal, hence 0.32 dB of SNR, on a path whose noise is\n  set by the attenuator and the INA1650 anyway (NOTE8) -- and the ADC's own floor is\n  ~5 dB below that, so it buys the margin back for nothing that matters.\n\n  Rtop = 10k per leg, Rbot = 8.45k per leg, Rspk = 324R per leg (switched by K1-K4)\n  LINE    (Rbot alone):        2.00 Vrms in -> 0.908 Vrms  (95.1% of FS min, 91.7% typ)\n  SPEAKER (Rbot || Rspk):      30.0 Vrms in -> 0.907 Vrms  (95.0% of FS min, 91.6% typ)\n  Zin, line mode, differential = 2 x (Rtop + Rbot) = 37 kOhm  vs the >= 20 kOhm decree\n\nNOTE WHAT IS *NOT* HERE: no gain stage. That is a consequence, not an omission -- the\nINA1650 is fixed at 1 V/V, so any topology that attenuated further would need one, and\nevery extra stage multiplies the attenuator's own noise before the ADC sees it."
 		(exclude_from_sim no)
 		(at 650.24 39.37 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
@@ -7550,7 +7550,7 @@
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "33807463-a95c-50d6-a23b-33f1af7baaf5")
 	)
-	(text "WHY THE RANGE ELEMENT IS A RELAY, DERIVED -- not asserted (Q2 convention).\n\nAt the 30 Vrms speaker ceiling the INPUT NODE sees +/-42 V peak. Walk the options:\n  * Analog switch AT THE INPUT: needs rails containing +/-42 V. The largest analog rail\n    on this board is +/-13V5_A. IT DOES NOT CONTAIN THE SWING. Excluded by arithmetic,\n    which is exactly the reasoning that made F8 say 'or use a relay'.\n  * Analog switch AFTER a fixed first-stage attenuator: the switch then sees ~1 Vrms in\n    NORMAL use -- but the misconfiguration case is not exotic, it is the DEFAULT user\n    error: speaker level applied while the board still thinks it is in line mode. The\n    node then sits at 30/2.02 = 14.2 Vrms = +/-20 V peak, and the switch is across it.\n    Survivable only by adding clamps that then load the signal.\n  * RELAY in the bottom leg: contacts are indifferent to +/-42 V, add no distortion\n    (S6.2's own preference), and the misconfiguration case is a non-event.\n  -> RELAY. K1-K4, two Form A poles each, shorting Rspk to ground on BOTH legs together.\n\nFAIL DIRECTION IS DELIBERATE: de-energised = LINE (Rbot alone, less attenuation). The\nopposite choice -- de-energised = speaker -- is the better FAIL-SAFE, since the safe state\nis maximum attenuation, and it was rejected on power: line is the common install, so it\nwould energise four coils continuously in the ordinary case, ~120 mA on +5V_D forever.\nTHE CONSEQUENCE, STATED: a coil or driver failure in a speaker-level install presents as\n14.2 Vrms into the INA1650, which CLIPS but does not damage it (500 kOhm inputs and the\n1k/1W series parts limit the current). Audible distortion, not silence and not smoke.\nREOPEN if a field failure makes that the wrong trade.\n\nREF A / REF B (12, 9) are tied to AGND_REF, a QUIET GROUND REFERENCE, through a 0R --\nthe banked disposition: 'must be driven from a low impedance, NOT left to a divider.'\nA BUFFERED MID-RAIL IS DELIBERATELY *NOT* USED: the INA1650 runs on +/-13V5_A, so its\nown mid-rail IS ground, and a buffer would only add a noise source and a failure mode\nbetween the reference pin and the thing it references. VMID_OUT is tied back to VMID_IN\nthrough 0R with a noise-reduction cap, which is the datasheet's own arrangement.\nThe 0R positions exist so a star point can be moved at layout WITHOUT a schematic edit."
+	(text "WHY THE RANGE ELEMENT IS A RELAY, DERIVED -- not asserted (Q2 convention).\n\nAt the 30 Vrms speaker ceiling the INPUT NODE sees +/-42 V peak. Walk the options:\n  * Analog switch AT THE INPUT: needs rails containing +/-42 V. The largest analog rail\n    on this board is +/-13V5_A. IT DOES NOT CONTAIN THE SWING. Excluded by arithmetic,\n    which is exactly the reasoning that made F8 say 'or use a relay'.\n  * Analog switch AFTER a fixed first-stage attenuator: the switch then sees ~1 Vrms in\n    NORMAL use -- but the misconfiguration case is not exotic, it is the DEFAULT user\n    error: speaker level applied while the board still thinks it is in line mode. The\n    node then sits at 30/2.02 = 13.6 Vrms = +/-19 V peak, and the switch is across it.\n    Survivable only by adding clamps that then load the signal.\n  * RELAY in the bottom leg: contacts are indifferent to +/-42 V, add no distortion\n    (S6.2's own preference), and the misconfiguration case is a non-event.\n  -> RELAY. K1-K4, two Form A poles each, shorting Rspk to ground on BOTH legs together.\n\nFAIL DIRECTION IS DELIBERATE: de-energised = LINE (Rbot alone, less attenuation). The\nopposite choice -- de-energised = speaker -- is the better FAIL-SAFE, since the safe state\nis maximum attenuation, and it was rejected on power: line is the common install, so it\nwould energise four coils continuously in the ordinary case, ~120 mA on +5V_D forever.\nTHE CONSEQUENCE, STATED: a coil or driver failure in a speaker-level install presents as\n13.6 Vrms into the INA1650, which CLIPS but does not damage it (500 kOhm inputs and the\n1k/1W series parts limit the current). Audible distortion, not silence and not smoke.\nREOPEN if a field failure makes that the wrong trade.\n\nREF A / REF B (12, 9) are tied to AGND_REF, a QUIET GROUND REFERENCE, through a 0R --\nthe banked disposition: 'must be driven from a low impedance, NOT left to a divider.'\nA BUFFERED MID-RAIL IS DELIBERATELY *NOT* USED: the INA1650 runs on +/-13V5_A, so its\nown mid-rail IS ground, and a buffer would only add a noise source and a failure mode\nbetween the reference pin and the thing it references. VMID_OUT is tied back to VMID_IN\nthrough 0R with a noise-reduction cap, which is the datasheet's own arrangement.\nThe 0R positions exist so a star point can be moved at layout WITHOUT a schematic edit."
 		(exclude_from_sim no)
 		(at 650.24 330.2 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
@@ -7562,7 +7562,7 @@
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "fecbd97a-c8a9-57d2-9a9c-8bc11dd3fae0")
 	)
-	(text "F50 COPPER -- AND WHY IT IS DIFFERENTIAL RATHER THAN THE UNITY BUFFER THAT WAS PLANNED.\n\nONE PIECE OF ARITHMETIC DECIDES THE WHOLE TOPOLOGY. AKM's window is a constraint on the\ninput COMMON MODE, and it is narrow: 0.502 to 0.522 x AVDD is 2.510 to 2.610 V, i.e. only\n+/-50 mV wide. A single-ended drive -- signal on AINnP, bias on AINnN -- moves the\ncommon mode by HALF the differential swing, 667 mV peak. That is 13x the entire\nwindow, on a part whose datasheet says in as many words that 'S/(N+D) varies depending\non DC bias voltage of the input signal'. Single-ended drive turns a stated bias\nSENSITIVITY into signal-dependent distortion. It is excluded by arithmetic, not by taste.\n\nSo both ADC pins are driven, antiphase, exactly as Figure 76 does it -- and the common\nmode then sits at BIAS at every instant, by construction, independent of signal level.\n\nThe INA1650 is single-ended-out, so this stage must also convert. Per channel:\n  LEG N  SE{n} -- C1 100uF NP -- R_IN 2k -> (-)in ; R_F 1k || C_F 620p ; (+)in = VBIAS_ADC\n         inverting, gain -0.5, output = BIAS - 0.5 x SE\n  LEG P  SE{n} -- R_A 2k -- SE{n}_H -- R_B 2k -- GND      (passive /2, GROUND domain)\n         SE{n}_H -- C2 22n film -> follower(+) ; R_BP 10M to VBIAS_ADC\n         non-inverting, gain +0.5 of SE, output = BIAS + 0.5 x SE\n  AINnP - AINnN = SE exactly. UNITY DIFFERENTIAL GAIN, which is what 'unity' has to mean\n  here: 0.943 Vrms single-ended in, 0.943 Vrms differential at the ADC, 95.3 % of FS.\n  Each pin moves only +/-667 mV about 2.56 V -- 1.89 to 3.23 V on a 5 V rail.\n\nTHREE PLACEMENT CHOICES THAT ARE NOT ARBITRARY:\n  * R_B RETURNS TO GND, NOT TO AGND_REF. AGND_REF is the INA1650's REF SENSE node and\n    must carry no current -- that is the whole content of T1-67. The /2 divider carries\n    236 uA of audio per channel; putting that into AGND_REF would modulate the receiver's\n    own reference with its own output. Same rule as F36: a sense node is not a return.\n  * R_BP IS 10M AND THAT IS THE POINT, NOT AN OVERSIZE. Anything returning to VBIAS_ADC\n    injects signal current into a node shared by all four channels, and VBIAS_ADC is a\n    DIVIDER -- its impedance at 20 Hz is only ~796 Ohm even with 10 uF on it. At 10M the\n    four channels together draw 0.19 uA, for ~-72 dB of channel-to-channel crosstalk;\n    at 100k it would be -32 dB, which is audible. AKM never meets this because BOTH\n    their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\n    Our leg P is a follower, so the problem is ours and the fix has to be ours.\n  * THE TWO LEGS ARE PARALLEL, NOT CASCADED. Taking leg P as an inverter of leg N's\n    output is one part cheaper and wrong: leg N's distortion would then appear at BOTH\n    pins with opposite sign and DOUBLE differentially, where in parallel the two legs'\n    distortions are uncorrelated and add in quadrature (x1.41, not x2).\n\nSUPERSEDES F50's FIRST FIX. Driving INA1650 REF A/B to ~2.56 V was the original answer;\nit is single-ended drive by another name and falls to the same arithmetic. REF A/B stay\non AGND_REF, and NOTE3's disposition of them stands unchanged."
+	(text "F50 COPPER -- AND WHY IT IS DIFFERENTIAL RATHER THAN THE UNITY BUFFER THAT WAS PLANNED.\n\nTHE LOAD-BEARING REASON IS T1, FIGURE-LEVEL, AND DOES NOT DEPEND ON PARSING A SENTENCE:\nAKM's own reference circuit for this exact part -- Figure 76, the SAME figure this whole\nstage is copied from -- DRIVES BOTH ADC PINS ANTIPHASE, from two inverting legs with Bias\non both non-inverting inputs. Their published DR = 121 dB and S/(N+D) = 112 dB are measured\nwith that circuit. Departing from a converter vendor's reference INPUT circuit is exactly\nthe class of decision that has cost this project before, and the topology is theirs.\n\nA SECOND, INDEPENDENT REASON: driving differentially HALVES the per-pin swing, to\n1.919..3.203 V instead of 1.277..3.845 V on a 5 V rail. That is what makes RAIL-TO-RAIL\nOUTPUT UNNECESSARY and widens the candidate set for F52 considerably.\n\nCORROBORATION, AND IT IS DELIBERATELY NOT THE LEAD -- read the caveat with it. AKM writes:\n'The S/(N+D) characteristics of the AK5574 varies depending on DC BIAS VOLTAGE of the\ninput signal. Set the DC BIAS VOLTAGE in a range from 0.502 x AVDD to 0.522 x AVDD for\nOPTIMAL characteristics.' Note precisely what that sentence is and is not. It says DC bias,\ntwice, and it says optimal -- NOT abs-max, NOT guaranteed operation. Single-ended drive\nkeeps the DC bias compliant and modulates the INSTANTANEOUS common mode instead, by\n642 mV peak against a window only +/-50 mV wide. IF S/(N+D) tracks the operating point\nthen a signal that moves the operating point modulates distortion -- which is the textbook\nroute to even-order products, and is why differential drive cancels them. THAT INFERENCE\nIS OURS, NOT AKM's. It is T2, it corroborates, and NOTHING HERE RESTS ON IT: the vendor\nbuilt a differential drive for a part whose spec sentence mentions only DC bias, and the\nswing argument above stands on its own. Stated this way so that the first reader who pulls\npage 67 and sees 'DC bias voltage' does not conclude the constraint was misread and revert\nto a unity buffer, taking the vendor-topology benefit with it.\n\nEither way the built circuit has the stronger property: the common mode sits at BIAS at\nEVERY INSTANT, by construction, independent of signal level.\n\nThe INA1650 is single-ended-out, so this stage must also convert. Per channel:\n  LEG N  SE{n} -- C1 100uF NP -- R_IN 2k -> (-)in ; R_F 1k || C_F 620p ; (+)in = VBIAS_ADC\n         inverting, gain -0.5, output = BIAS - 0.5 x SE\n  LEG P  SE{n} -- R_A 2k -- SE{n}_H -- R_B 2k -- GND      (passive /2, GROUND domain)\n         SE{n}_H -- C2 22n film -> follower(+) ; R_BP 10M to VBIAS_ADC\n         non-inverting, gain +0.5 of SE, output = BIAS + 0.5 x SE\n  AINnP - AINnN = SE exactly. UNITY DIFFERENTIAL GAIN, which is what 'unity' has to mean\n  here: 0.908 Vrms single-ended in, 0.908 Vrms differential at the ADC, 95.1 % of FS.\n  Each pin moves only +/-642 mV about 2.56 V -- 1.92 to 3.20 V on a 5 V rail.\n\nTHREE PLACEMENT CHOICES THAT ARE NOT ARBITRARY:\n  * R_B RETURNS TO GND, NOT TO AGND_REF. AGND_REF is the INA1650's REF SENSE node and\n    must carry no current -- that is the whole content of T1-67. The /2 divider carries\n    227 uA of audio per channel; putting that into AGND_REF would modulate the receiver's\n    own reference with its own output. Same rule as F36: a sense node is not a return.\n  * R_BP IS 10M AND THAT IS THE POINT, NOT AN OVERSIZE -- WITH THE TRANSFER FUNCTION, since\n    this is a 40 dB decision and a cost pass needs to trip over the arithmetic, not the\n    conclusion. Anything returning to VBIAS_ADC injects signal current into a node shared\n    by all four channels. Worst case is a correlated (mono) input on all four:\n        i_tot   = N_ch x (SE/2) / R_BP                 leg P taps the /2 node\n        Z_bias  = (RB_TOP||RB_BOT) || 1/(2.pi.f.C)  = 5122 || 796 = 689 Ohm at 20 Hz\n        v_bias  = i_tot x Z_bias\n      and v_bias reaches the VICTIM ASYMMETRICALLY, which is the half that is easy to miss:\n      leg N's (+) input takes it at NOISE GAIN 1.5, while leg P's arrives through R_BP\n      against a 1k source and is divided by 1e-04. So a COMMON-MODE disturbance on the bias\n      node lands DIFFERENTIALLY at the ADC, and the ADC cannot reject it.\n        crosstalk = (N_ch x NG_N / 2) x Z_bias / R_BP\n      R_BP = 10M  ->  -73.7 dB        R_BP = 100k  ->  -33.7 dB, which is audible\n    The four channels together draw only 0.18 uA at 10M. AKM never meets any of this because\n    BOTH their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\n    Our leg P is a follower, so the problem is ours and the fix has to be ours.\n    NOTE THE COUPLING TO NOTE8: R_BP is also NOISELESS only because the /2 divider shunts\n    it -- 10M || 1k = 1000 Ohm. Raise the divider and R_BP stops being free in BOTH budgets.\n  * THE TWO LEGS ARE PARALLEL, NOT CASCADED. Taking leg P as an inverter of leg N's\n    output is one part cheaper and wrong: leg N's distortion would then appear at BOTH\n    pins with opposite sign and DOUBLE differentially, where in parallel the two legs'\n    distortions are uncorrelated and add in quadrature (x1.41, not x2).\n\nSUPERSEDES F50's FIRST FIX. Driving INA1650 REF A/B to ~2.56 V was the original answer;\nit is single-ended drive by another name and falls to the same arithmetic. REF A/B stay\non AGND_REF, and NOTE3's disposition of them stands unchanged."
 		(exclude_from_sim no)
 		(at 650.24 660.4 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
@@ -7580,13 +7580,13 @@
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "f8f762ce-8183-5c21-b300-27a8d4a7655e")
 	)
-	(text "THE AMPLIFIER IS AN F38 LINE (F52). Its PN is not pinned; its SELECTION GATE is, as\nthree inequalities, so the moment a datasheet arrives the answer is arithmetic. The\nSOIC-8 dual pinout and land pattern are already committed -- every candidate uses them.\n\nGATE 1 -- NOISE, and it is the binding one.\n  What arrives here is already noisy: the INA1650 contributes 11.0 nV/rtHz (1.56 uVrms\n  20 Hz-20 kHz, SBOS818B) and the attenuator's 4.7 kOhm per-leg Thevenin adds 12.5,\n  for 16.6 nV/rtHz and an SNR of 112.1 dB at the receiver's output -- which is already\n  within a decibel of the AK5574's own 112 dB S/(N+D), so neither dominates and the budget is tight.\n  This stage adds sqrt( N_res^2 + (NG_N^2 + 1) x en^2 ), N_res = 6.42 nV/rtHz:\n     en = 3 nV/rtHz  ->  8.4 total  ->  +0.98 dB\n     en = 5          ->  11.1        ->  +1.59 dB\n     en = 7          ->  14.2        ->  +2.36 dB\n     en = 12         ->  22.6        ->  +4.53 dB\n  REQUIRE en <= 6.1 nV/rtHz at 1 kHz (2.0 dB); TARGET <= 5 (1.59 dB).\n  THE (NG_N^2 + 1) FACTOR IS THE COST OF GAIN 0.5 FROM A UNITY SOURCE: leg N's noise\n  gain is 1.5 while its signal gain is 0.5. Nothing in the topology avoids it -- every\n  alternative tried (both legs from the /2 tap; cascaded inverters) is WORSE, at 5x and\n  13x en^2 against this arrangement's 3.25x.\n\nGATE 2 -- INPUT COMMON MODE, AND IT IS WHY THIS IS NOT AN OPA1656.\n  Leg P is a FOLLOWER, so its (+) input SWINGS: 1.89 to 3.23 V on a 5 V rail. The\n  OPA1656 already on this board specifies VCM only to (V+) - 2.25 V = 2.75 V (SBOS901C)\n  -- it clears the BIAS point by 189 mV and FAILS the positive signal peak by 478 mV.\n  A part whose VCM stops 2.25 V below the rail cannot follow a mid-rail signal on 5 V.\n  That is the specific reason, with a number, behind 'not an OPA1656', and it is a\n  property of leg P alone -- leg N, whose inputs both sit at 2.56 V, would be fine.\n  REQUIRE VCM to include 3.23 V at V+ = 5 V, i.e. rail-to-rail or near-RRI input.\n  Output only needs 1.89..3.23 V, so RAIL-TO-RAIL OUTPUT IS *NOT* REQUIRED -- the\n  differential topology bought that back, and it widens the candidate set considerably.\n  Also REQUIRE CMOS/FET input: R_BP is 10M, and a bipolar 1 nA input current would put\n  10 mV of offset on AINnP where a 10 pA CMOS part puts 100 uV.\n\nGATE 3 -- QUIESCENT CURRENT, because this stage is a NEW LOAD ON +5V_A.\n  V-17 closed +5V_A at 146 mA (converters only). Eight amplifiers land on top of it.\n  +6V2_A was identified at 186 mA against the 250 mA already assumed, so the headroom\n  is 64 mA and REQUIRE IQ <= 8.0 mA per channel. Comfortable for anything in class,\n  but it is a rail number that changed and it is recorded rather than absorbed.\n\nGATE 4 -- STABILITY, AND THE 10 OHM IS LOAD-BEARING FOR THE AMPLIFIER.\n  AKM's 10 R + 100 pF is not only an antialias element: the 10 R is the ISOLATION\n  RESISTOR that makes 100 pF a survivable load, and leg P is a UNITY-GAIN FOLLOWER,\n  which is the least stable configuration a capacitive load can be presented to.\n  DO NOT 'IMPROVE' THIS FILTER BY DELETING THE 10 R OR MOVING THE 100 pF AHEAD OF IT.\n  REQUIRE unity-gain stable, specified into >= 100 pF behind 10 R.\n  The matched 257 kHz poles (C_F across R_F, C_P across R_B -- equal because\n  R_A||R_B = R_F = 1k) roll both legs off identically before the modulator's 6.144 MHz\n  sampling rate, and they are the reason leg P needs no feedback network of its own."
+	(text "THE AMPLIFIER IS AN F38 LINE (F52). Its PN is not pinned; its SELECTION GATE is, as\nthree inequalities, so the moment a datasheet arrives the answer is arithmetic. The\nSOIC-8 dual pinout and land pattern are already committed -- every candidate uses them.\n\nGATE 1 -- NOISE, and it is the binding one.\n  What arrives here is already noisy: the INA1650 contributes 11.0 nV/rtHz (1.56 uVrms\n  20 Hz-20 kHz, SBOS818B) and the attenuator's 4.5 kOhm per-leg Thevenin adds 12.2,\n  for 16.5 nV/rtHz and an SNR of 111.8 dB at the receiver's output.\n  COMPARE THAT AGAINST THE RIGHT ADC NUMBER. It is NOT the 112 dB S/(N+D) figure -- that\n  is measured at -1 dBFS and INCLUDES DISTORTION, so setting a noise budget against it\n  compares a noise figure to a noise-plus-distortion one. The noise number is DYNAMIC\n  RANGE / S-N (A-wtd), typ 121 dB, MIN 117 dB. So the front end sits ~5 dB ABOVE the converter's own floor\n  and THE FRONT END, NOT THE ADC, SETS THIS SIGNAL PATH'S NOISE. That does not relax the\n  budget below -- it tightens the argument for it: every dB this stage adds lands on the\n  term that already dominates, with no converter headroom to absorb it.\n  This stage adds sqrt( N_res^2 + (NG_N^2 + 1) x en^2 ), N_res = 6.42 nV/rtHz:\n     en = 3 nV/rtHz  ->  8.4 total  ->  +1.00 dB\n     en = 5          ->  11.1        ->  +1.62 dB\n     en = 7          ->  14.2        ->  +2.40 dB\n     en = 12         ->  22.6        ->  +4.59 dB\n  REQUIRE en <= 6.0 nV/rtHz at 1 kHz (2.0 dB); TARGET <= 5 (1.62 dB).\n  THE (NG_N^2 + 1) FACTOR IS THE COST OF GAIN 0.5 FROM A UNITY SOURCE: leg N's noise\n  gain is 1.5 while its signal gain is 0.5. Nothing in the topology avoids it -- every\n  alternative tried (both legs from the /2 tap; cascaded inverters) is WORSE, at 5x and\n  13x en^2 against this arrangement's 3.25x.\n\nGATE 2 -- INPUT COMMON MODE, AND IT IS WHY THIS IS NOT AN OPA1656.\n  Leg P is a FOLLOWER, so its (+) input SWINGS: 1.92 to 3.20 V on a 5 V rail. The\n  OPA1656 already on this board specifies VCM only to (V+) - 2.25 V = 2.75 V (SBOS901C)\n  -- it clears the BIAS point by 189 mV and FAILS the positive signal peak by 453 mV.\n  A part whose VCM stops 2.25 V below the rail cannot follow a mid-rail signal on 5 V.\n  That is the specific reason, with a number, behind 'not an OPA1656', and it is a\n  property of leg P alone -- leg N, whose inputs both sit at 2.56 V, would be fine.\n  REQUIRE VCM to include 3.20 V at V+ = 5 V, i.e. rail-to-rail or near-RRI input.\n  Output only needs 1.92..3.20 V, so RAIL-TO-RAIL OUTPUT IS *NOT* REQUIRED -- the\n  differential topology bought that back, and it widens the candidate set considerably.\n  Also REQUIRE CMOS/FET input: R_BP is 10M, and a bipolar 1 nA input current would put\n  10 mV of offset on AINnP where a 10 pA CMOS part puts 100 uV.\n\n  WHY THE SUPPLY IS SINGLE +5V_A AND NOT +/-13V5_A, STATED HERE BESIDE THE PART CHOICE\n  BECAUSE IT IS THE LOAD-BEARING PREMISE OF THE EXCLUSION ABOVE: an amplifier powered from\n  the SAME NET that feeds the AK5574's AVDD physically cannot drive an ADC pin past\n  AVDD + 0.3 V. Abs-max compliance is STRUCTURAL, not analytical -- there is no sequencing\n  order, no fault and no start-up transient that can defeat it, because a rail cannot skew\n  against itself. That is an M3 guarantee-by-construction and it is what pays for the VCM\n  constraint the 5 V rail imposes. MOVING THIS STAGE ONTO +/-13V5_A 'FOR HEADROOM' WOULD\n  DELETE THAT GUARANTEE and re-open both the clamp question in NOTE9 and this one.\n\nGATE 3 -- QUIESCENT CURRENT, because this stage is a NEW LOAD ON +5V_A.\n  V-17 closed +5V_A at 146 mA (converters only). Eight amplifiers land on top of it.\n  +6V2_A was identified at 186 mA against the 250 mA already assumed, so the headroom\n  is 64 mA and REQUIRE IQ <= 8.0 mA per channel. Comfortable for anything in class,\n  but it is a rail number that changed and it is recorded rather than absorbed.\n\nGATE 4 -- STABILITY, AND THE 10 OHM IS LOAD-BEARING FOR THE AMPLIFIER.\n  AKM's 10 R + 100 pF is not only an antialias element: the 10 R is the ISOLATION\n  RESISTOR that makes 100 pF a survivable load, and leg P is a UNITY-GAIN FOLLOWER,\n  which is the least stable configuration a capacitive load can be presented to.\n  DO NOT 'IMPROVE' THIS FILTER BY DELETING THE 10 R OR MOVING THE 100 pF AHEAD OF IT.\n  REQUIRE unity-gain stable, specified into >= 100 pF behind 10 R.\n  The matched 257 kHz poles (C_F across R_F, C_P across R_B -- equal because\n  R_A||R_B = R_F = 1k) roll both legs off identically before the modulator's 6.144 MHz\n  sampling rate, and they are the reason leg P needs no feedback network of its own."
 		(exclude_from_sim no)
 		(at 1050.29 199.39000000000001 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "01de0840-5fc3-5341-8e34-e6543148201c")
 	)
-	(text "F49's CLAMP INEQUALITY, REPEATED ON THE +5 V SIDE -- SAME FORM, DIFFERENT RAIL.\n\nWHAT CAN REACH A 5 V PART WITH MORE THAN 5 V: only the INA1650, and the fault is not\nhypothetical -- it is NOTE3's OWN documented failure. A coil or driver failure in a\nspeaker-level install leaves 14.2 Vrms at the receiver, which clips at its 13.5 V rail,\nand that rail arrives through R_IN (leg N) and R_A (leg P) at pins on +5V_A.\n  BAV99 at each op-amp input, series R as the limiter:\n     leg N  (13.5 - 5.0 - 0.7) / 2k = 3.90 mA        leg P  same through 2k = 3.90 mA\n     four channels, both legs:  I_inj = 31.2 mA\n  LEGAL ONLY IF THE RAIL CAN ABSORB IT. +5V_A comes from an LT3045, which SOURCES but\n  CANNOT SINK, so the test is the rail's own quiescent load, not the diode's rating:\n     146.0 mA quiescent  vs  31.2 mA injected   ->  clears by 4.7x\n  This is on the sheet and not in a note file for exactly F49's reason: a future\n  low-power revision that sleeps the converters while the inputs stay hot breaks the\n  inequality SILENTLY, and nothing about the clamp itself would show it.\n\nNO CLAMP AT THE ADC PINS, AND THE REASON IS CONSTRUCTIONAL. AINnP/AINnN are driven only\nby op-amp outputs powered from +5V_A -- THE SAME NET that feeds the AK5574's AVDD and\nVREFH1/2. An output cannot exceed its own rail, and no sequencing skew exists between a\nrail and itself, so 'AVDD + 0.3 V' cannot be violated by any ordering of events. Adding\nclamps here would buy nothing and cost voltage-variable capacitance on the one node in\nthe chain where the source impedance is 10 Ohm and the CCIF criterion is listening.\nIF THE LEVEL-SHIFT STAGE IS EVER MOVED TO ITS OWN RAIL, THIS PARAGRAPH BECOMES FALSE.\n\nLEG N's CLAMP SITS ON A VIRTUAL EARTH -- a node that carries no signal by definition --\nso its junction capacitance is not merely small, it is UNMODULATED. Leg P's does see\nsignal, but from a 1k source (R_A||R_B), where ~1 pF of variation is nothing at audio.\nContrast NOTE4, where the input-side clamps had to be biased to +/-13V5_A to get the\nsame property; here the topology hands it over for free on one leg and cheaply on the\nother. Same mechanism, same measurement, third instance on this board."
+	(text "F49's CLAMP INEQUALITY, REPEATED ON THE +5 V SIDE -- SAME FORM, DIFFERENT RAIL.\n\nWHAT CAN REACH A 5 V PART WITH MORE THAN 5 V: only the INA1650, and the fault is not\nhypothetical -- it is NOTE3's OWN documented failure. A coil or driver failure in a\nspeaker-level install leaves 13.6 Vrms at the receiver, which clips at its 13.5 V rail,\nand that rail arrives through R_IN (leg N) and R_A (leg P) at pins on +5V_A.\n  BAV99 at each op-amp input, series R as the limiter:\n     leg N  (13.5 - 5.0 - 0.7) / 2k = 3.90 mA        leg P  same through 2k = 3.90 mA\n     four channels, both legs:  I_inj = 31.2 mA\n  LEGAL ONLY IF THE RAIL CAN ABSORB IT. +5V_A comes from an LT3045, which SOURCES but\n  CANNOT SINK, so the test is the rail's own quiescent load, not the diode's rating:\n     146.0 mA quiescent  vs  31.2 mA injected   ->  clears by 4.7x\n  This is on the sheet and not in a note file for exactly F49's reason: a future\n  low-power revision that sleeps the converters while the inputs stay hot breaks the\n  inequality SILENTLY, and nothing about the clamp itself would show it.\n\nNO CLAMP AT THE ADC PINS, AND THE REASON IS CONSTRUCTIONAL. AINnP/AINnN are driven only\nby op-amp outputs powered from +5V_A -- THE SAME NET that feeds the AK5574's AVDD and\nVREFH1/2. An output cannot exceed its own rail, and no sequencing skew exists between a\nrail and itself, so 'AVDD + 0.3 V' cannot be violated by any ordering of events. Adding\nclamps here would buy nothing and cost voltage-variable capacitance on the one node in\nthe chain where the source impedance is 10 Ohm and the CCIF criterion is listening.\nIF THE LEVEL-SHIFT STAGE IS EVER MOVED TO ITS OWN RAIL, THIS PARAGRAPH BECOMES FALSE.\n\nLEG N's CLAMP SITS ON A VIRTUAL EARTH -- a node that carries no signal by definition --\nso its junction capacitance is not merely small, it is UNMODULATED. Leg P's does see\nsignal, but from a 1k source (R_A||R_B), where ~1 pF of variation is nothing at audio.\nContrast NOTE4, where the input-side clamps had to be biased to +/-13V5_A to get the\nsame property; here the topology hands it over for free on one leg and cheaply on the\nother. Same mechanism, same measurement, third instance on this board."
 		(exclude_from_sim no)
 		(at 1050.29 480.06 0)
 		(effects (font (size 1.27 1.27)) (justify left top))

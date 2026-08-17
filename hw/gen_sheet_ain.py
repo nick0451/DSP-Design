@@ -88,7 +88,14 @@ for libid, (path, nm) in SRC.items():
 GND = "GND"; NC = None
 
 # ---------------------------------------------------------------- the gain plan, computed
-FS_RMS   = 0.56 * 5.0 / (2 * math.sqrt(2))    # 0.99 Vrms differential at the ADC
+FS_RMS   = 0.56 * 5.0 / (2 * math.sqrt(2))    # 0.99 Vrms differential -- the TYP column
+# F54: full scale carries a TOLERANCE -- +/-2.7 / 2.8 / 2.9 Vpp, min/typ/max (T1-105, figure
+# level). A part at the MIN end reaches full scale on a SMALLER input, i.e. IT CLIPS FIRST, so
+# min is the dangerous end and min is what the attenuator is designed against. Targeting 95 % of
+# TYP left only 1.2 % on a min part -- the "cheap insurance" the first pass claimed was, on the
+# worst-case part, almost entirely absent. This is CLAUDE.md S7's outward-rounding rule applied
+# to a CEILING instead of a floor: round toward the end that fails.
+FS_MIN   = 2.7 / (2 * math.sqrt(2))
 LINE_MAX, SPKR_MAX = 2.0, 30.0
 E96 = [100,102,105,107,110,113,115,118,121,124,127,130,133,137,140,143,147,150,154,158,162,165,
        169,174,178,182,187,191,196,200,205,210,215,221,226,232,237,243,249,255,261,267,274,280,
@@ -118,7 +125,7 @@ def rtxt(r):
 #   * Both ranges target 95 % of full scale, not 100 %. The ceiling is a SOURCE ceiling; landing
 #     exactly on FS leaves nothing for source tolerance, and 0.4 dB is cheap insurance.
 RIN    = 500e3                                     # INA1650 internal input resistor, per leg
-TARGET = 0.95 * FS_RMS
+TARGET = 0.95 * FS_MIN                             # F54: against MIN, not typ
 RTOP = e96(10e3)
 def _ratio(rb):
     par = rb * RIN / (rb + RIN)
@@ -317,6 +324,12 @@ I_INJ      = len(CH) * I_CLAMP
 I_5VA      = 146e-3                             # V-17, T1
 IQ_GATE    = (250e-3 - 186e-3) / (2 * len(CH))  # V-17 headroom on +6V2_A / 8 amplifiers
 
+SE_PK  = V_LINE * math.sqrt(2)                  # single-ended peak at the INA1650 output
+Z_BIAS = 1.0 / (1 / (RB_TOP * RB_BOT / (RB_TOP + RB_BOT)) + 2 * math.pi * 20 * 10e-6)
+def xtalk_dB(rbp):
+    """Bias-node crosstalk, worst case: 4 correlated channels, leg-N noise gain, 20 Hz."""
+    return 20 * math.log10(len(CH) * NG_N / 2 * Z_BIAS / rbp)
+
 BIAS = "VBIAS_ADC"
 P += [passive("R", 60, 505, rtxt(RB_TOP), "+5V_A", BIAS),
       passive("R", 90, 505, rtxt(RB_BOT), BIAS, GND),
@@ -415,16 +428,29 @@ NOTE1 = (
     "  INA1650 gain   = 1 V/V EXACTLY -- there is no gain to share between stages, so the\\n"
     "                   attenuator does ALL the range work in BOTH modes.\\n"
     "\\n"
+  "  FULL SCALE CARRIES A TOLERANCE AND THE MINIMUM GOVERNS (F54). The spec table reads\\n"
+    "  +/-2.7 / 2.8 / 2.9 Vpp min/typ/max = %.4f / %.4f / %.4f Vrms differential. A part at\\n"
+    "  the MIN end reaches full scale on a SMALLER input -- IT CLIPS FIRST -- so min is the\\n"
+    "  dangerous end and min is the design point. Targeting 95%% of TYP would leave only 1.2%%\\n"
+    "  on a min part, i.e. the 'cheap insurance' would be absent exactly where it is needed.\\n"
+    "  This is CLAUDE.md S7's round-outward rule applied to a CEILING rather than a floor.\\n"
+    "  Cost of the change: %.2f dB of signal, hence %.2f dB of SNR, on a path whose noise is\\n"
+    "  set by the attenuator and the INA1650 anyway (NOTE8) -- and the ADC's own floor is\\n"
+    "  ~%.0f dB below that, so it buys the margin back for nothing that matters.\\n"
+    "\\n"
     "  Rtop = %s per leg, Rbot = %s per leg, Rspk = %s per leg (switched by K1-K4)\\n"
-    "  LINE    (Rbot alone):        %.2f Vrms in -> %.3f Vrms  (%.1f%% of FS)\\n"
-    "  SPEAKER (Rbot || Rspk):      %.1f Vrms in -> %.3f Vrms  (%.1f%% of FS)\\n"
+    "  LINE    (Rbot alone):        %.2f Vrms in -> %.3f Vrms  (%.1f%% of FS min, %.1f%% typ)\\n"
+    "  SPEAKER (Rbot || Rspk):      %.1f Vrms in -> %.3f Vrms  (%.1f%% of FS min, %.1f%% typ)\\n"
     "  Zin, line mode, differential = 2 x (Rtop + Rbot) = %.0f kOhm  vs the >= 20 kOhm decree\\n"
     "\\n"
     "NOTE WHAT IS *NOT* HERE: no gain stage. That is a consequence, not an omission -- the\\n"
     "INA1650 is fixed at 1 V/V, so any topology that attenuated further would need one, and\\n"
     "every extra stage multiplies the attenuator's own noise before the ADC sees it."
-) % (FS_RMS, rtxt(RTOP), rtxt(RBOT), rtxt(RSPK),
-     LINE_MAX, V_LINE, 100 * V_LINE / FS_RMS, SPKR_MAX, V_SPKR, 100 * V_SPKR / FS_RMS, ZIN)
+) % (FS_RMS, FS_MIN, FS_RMS, 2.9 / (2 * math.sqrt(2)),
+     20 * math.log10(FS_RMS / FS_MIN), 20 * math.log10(FS_RMS / FS_MIN), 117.0 - FE_SNR,
+     rtxt(RTOP), rtxt(RBOT), rtxt(RSPK),
+     LINE_MAX, V_LINE, 100 * V_LINE / FS_MIN, 100 * V_LINE / FS_RMS,
+     SPKR_MAX, V_SPKR, 100 * V_SPKR / FS_MIN, 100 * V_SPKR / FS_RMS, ZIN)
 
 NOTE2 = (
     "F9 AS AN INEQUALITY, NOT A PARTS PREFERENCE -- and the mechanism is NOT the divider ratio.\\n"
@@ -532,16 +558,34 @@ NOTE4 = (
 NOTE5 = (
     "F50 COPPER -- AND WHY IT IS DIFFERENTIAL RATHER THAN THE UNITY BUFFER THAT WAS PLANNED.\\n"
     "\\n"
-    "ONE PIECE OF ARITHMETIC DECIDES THE WHOLE TOPOLOGY. AKM's window is a constraint on the\\n"
-    "input COMMON MODE, and it is narrow: %.3f to %.3f x AVDD is %.3f to %.3f V, i.e. only\\n"
-    "+/-%.0f mV wide. A single-ended drive -- signal on AINnP, bias on AINnN -- moves the\\n"
-    "common mode by HALF the differential swing, %.0f mV peak. That is %.0fx the entire\\n"
-    "window, on a part whose datasheet says in as many words that 'S/(N+D) varies depending\\n"
-    "on DC bias voltage of the input signal'. Single-ended drive turns a stated bias\\n"
-    "SENSITIVITY into signal-dependent distortion. It is excluded by arithmetic, not by taste.\\n"
+    "THE LOAD-BEARING REASON IS T1, FIGURE-LEVEL, AND DOES NOT DEPEND ON PARSING A SENTENCE:\\n"
+    "AKM's own reference circuit for this exact part -- Figure 76, the SAME figure this whole\\n"
+    "stage is copied from -- DRIVES BOTH ADC PINS ANTIPHASE, from two inverting legs with Bias\\n"
+    "on both non-inverting inputs. Their published DR = 121 dB and S/(N+D) = 112 dB are measured\\n"
+    "with that circuit. Departing from a converter vendor's reference INPUT circuit is exactly\\n"
+    "the class of decision that has cost this project before, and the topology is theirs.\\n"
     "\\n"
-    "So both ADC pins are driven, antiphase, exactly as Figure 76 does it -- and the common\\n"
-    "mode then sits at BIAS at every instant, by construction, independent of signal level.\\n"
+    "A SECOND, INDEPENDENT REASON: driving differentially HALVES the per-pin swing, to\\n"
+    "%.3f..%.3f V instead of %.3f..%.3f V on a 5 V rail. That is what makes RAIL-TO-RAIL\\n"
+    "OUTPUT UNNECESSARY and widens the candidate set for F52 considerably.\\n"
+    "\\n"
+    "CORROBORATION, AND IT IS DELIBERATELY NOT THE LEAD -- read the caveat with it. AKM writes:\\n"
+    "'The S/(N+D) characteristics of the AK5574 varies depending on DC BIAS VOLTAGE of the\\n"
+    "input signal. Set the DC BIAS VOLTAGE in a range from 0.502 x AVDD to 0.522 x AVDD for\\n"
+    "OPTIMAL characteristics.' Note precisely what that sentence is and is not. It says DC bias,\\n"
+    "twice, and it says optimal -- NOT abs-max, NOT guaranteed operation. Single-ended drive\\n"
+    "keeps the DC bias compliant and modulates the INSTANTANEOUS common mode instead, by\\n"
+    "%.0f mV peak against a window only +/-%.0f mV wide. IF S/(N+D) tracks the operating point\\n"
+    "then a signal that moves the operating point modulates distortion -- which is the textbook\\n"
+    "route to even-order products, and is why differential drive cancels them. THAT INFERENCE\\n"
+    "IS OURS, NOT AKM's. It is T2, it corroborates, and NOTHING HERE RESTS ON IT: the vendor\\n"
+    "built a differential drive for a part whose spec sentence mentions only DC bias, and the\\n"
+    "swing argument above stands on its own. Stated this way so that the first reader who pulls\\n"
+    "page 67 and sees 'DC bias voltage' does not conclude the constraint was misread and revert\\n"
+    "to a unity buffer, taking the vendor-topology benefit with it.\\n"
+    "\\n"
+    "Either way the built circuit has the stronger property: the common mode sits at BIAS at\\n"
+    "EVERY INSTANT, by construction, independent of signal level.\\n"
     "\\n"
     "The INA1650 is single-ended-out, so this stage must also convert. Per channel:\\n"
     "  LEG N  SE{n} -- C1 %s -- R_IN %s -> (-)in ; R_F %s || C_F 620p ; (+)in = VBIAS_ADC\\n"
@@ -558,13 +602,24 @@ NOTE5 = (
     "    must carry no current -- that is the whole content of T1-67. The /2 divider carries\\n"
     "    %.0f uA of audio per channel; putting that into AGND_REF would modulate the receiver's\\n"
     "    own reference with its own output. Same rule as F36: a sense node is not a return.\\n"
-    "  * R_BP IS %s AND THAT IS THE POINT, NOT AN OVERSIZE. Anything returning to VBIAS_ADC\\n"
-    "    injects signal current into a node shared by all four channels, and VBIAS_ADC is a\\n"
-    "    DIVIDER -- its impedance at 20 Hz is only ~%.0f Ohm even with 10 uF on it. At %s the\\n"
-    "    four channels together draw %.2f uA, for ~%.0f dB of channel-to-channel crosstalk;\\n"
-    "    at 100k it would be %.0f dB, which is audible. AKM never meets this because BOTH\\n"
-    "    their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\\n"
+    "  * R_BP IS %s AND THAT IS THE POINT, NOT AN OVERSIZE -- WITH THE TRANSFER FUNCTION, since\\n"
+    "    this is a 40 dB decision and a cost pass needs to trip over the arithmetic, not the\\n"
+    "    conclusion. Anything returning to VBIAS_ADC injects signal current into a node shared\\n"
+    "    by all four channels. Worst case is a correlated (mono) input on all four:\\n"
+    "        i_tot   = N_ch x (SE/2) / R_BP                 leg P taps the /2 node\\n"
+    "        Z_bias  = (RB_TOP||RB_BOT) || 1/(2.pi.f.C)  = %.0f || %.0f = %.0f Ohm at 20 Hz\\n"
+    "        v_bias  = i_tot x Z_bias\\n"
+    "      and v_bias reaches the VICTIM ASYMMETRICALLY, which is the half that is easy to miss:\\n"
+    "      leg N's (+) input takes it at NOISE GAIN %.1f, while leg P's arrives through R_BP\\n"
+    "      against a %s source and is divided by %.0e. So a COMMON-MODE disturbance on the bias\\n"
+    "      node lands DIFFERENTIALLY at the ADC, and the ADC cannot reject it.\\n"
+    "        crosstalk = (N_ch x NG_N / 2) x Z_bias / R_BP\\n"
+    "      R_BP = %s  ->  %.1f dB        R_BP = 100k  ->  %.1f dB, which is audible\\n"
+    "    The four channels together draw only %.2f uA at %s. AKM never meets any of this because\\n"
+    "    BOTH their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\\n"
     "    Our leg P is a follower, so the problem is ours and the fix has to be ours.\\n"
+    "    NOTE THE COUPLING TO NOTE8: R_BP is also NOISELESS only because the /2 divider shunts\\n"
+    "    it -- %s || %s = %.0f Ohm. Raise the divider and R_BP stops being free in BOTH budgets.\\n"
     "  * THE TWO LEGS ARE PARALLEL, NOT CASCADED. Taking leg P as an inverter of leg N's\\n"
     "    output is one part cheaper and wrong: leg N's distortion would then appear at BOTH\\n"
     "    pins with opposite sign and DOUBLE differentially, where in parallel the two legs'\\n"
@@ -573,15 +628,17 @@ NOTE5 = (
     "SUPERSEDES F50's FIRST FIX. Driving INA1650 REF A/B to ~2.56 V was the original answer;\\n"
     "it is single-ended drive by another name and falls to the same arithmetic. REF A/B stay\\n"
     "on AGND_REF, and NOTE3's disposition of them stands unchanged."
-) % (BIAS_LO, BIAS_HI, BIAS_LO * AVDD, BIAS_HI * AVDD, WIN_HALFWIDTH * 1e3,
-     V_LINE * math.sqrt(2) / 2 * 1e3, (V_LINE * math.sqrt(2) / 2) / WIN_HALFWIDTH,
+) % (BIAS_V - SE_PK / 2, BIAS_V + SE_PK / 2, BIAS_V - SE_PK, BIAS_V + SE_PK,
+     SE_PK / 2 * 1e3, WIN_HALFWIDTH * 1e3,
      "100uF NP", rtxt(R_IN), rtxt(R_F), rtxt(R_A), rtxt(R_B), "22n film", rtxt(R_BP),
-     V_LINE, V_LINE, 100 * V_LINE / FS_RMS, V_LINE * math.sqrt(2) / 2 * 1e3, BIAS_V,
-     BIAS_V - V_LINE * math.sqrt(2) / 2, BIAS_V + V_LINE * math.sqrt(2) / 2,
-     V_LINE / 2 / R_B * 1e6, rtxt(R_BP), 1 / (2 * math.pi * 20 * 10e-6),
-     rtxt(R_BP), len(CH) * V_LINE / 2 / R_BP * 1e6,
-     20 * math.log10(len(CH) * (V_LINE / 2 / R_BP) * (1 / (2 * math.pi * 20 * 10e-6)) * NG_N / V_LINE),
-     20 * math.log10(len(CH) * (V_LINE / 2 / 100e3) * (1 / (2 * math.pi * 20 * 10e-6)) * NG_N / V_LINE))
+     V_LINE, V_LINE, 100 * V_LINE / FS_MIN, SE_PK / 2 * 1e3, BIAS_V,
+     BIAS_V - SE_PK / 2, BIAS_V + SE_PK / 2,
+     V_LINE / 2 / R_B * 1e6, rtxt(R_BP),
+     RB_TOP * RB_BOT / (RB_TOP + RB_BOT), 1 / (2 * math.pi * 20 * 10e-6), Z_BIAS,
+     NG_N, rtxt(RA_PAR), RA_PAR / R_BP,
+     rtxt(R_BP), xtalk_dB(R_BP), xtalk_dB(100e3),
+     len(CH) * V_LINE / 2 / R_BP * 1e6, rtxt(R_BP),
+     rtxt(R_BP), rtxt(RA_PAR), 1 / (1 / R_BP + 1 / RA_PAR))
 
 NOTE6 = (
     "THE BIAS DIVIDER IS A RATIO SPEC, AND THE E96-PLUS-TOLERANCE CONVENTION WAS BUILT FOR\\n"
@@ -657,8 +714,14 @@ NOTE8 = (
     "GATE 1 -- NOISE, and it is the binding one.\\n"
     "  What arrives here is already noisy: the INA1650 contributes %.1f nV/rtHz (%.2f uVrms\\n"
     "  20 Hz-20 kHz, SBOS818B) and the attenuator's %.1f kOhm per-leg Thevenin adds %.1f,\\n"
-    "  for %.1f nV/rtHz and an SNR of %.1f dB at the receiver's output -- which is already\\n"
-    "  within a decibel of the AK5574's own %s, so neither dominates and the budget is tight.\\n"
+    "  for %.1f nV/rtHz and an SNR of %.1f dB at the receiver's output.\\n"
+    "  COMPARE THAT AGAINST THE RIGHT ADC NUMBER. It is NOT the 112 dB S/(N+D) figure -- that\\n"
+    "  is measured at -1 dBFS and INCLUDES DISTORTION, so setting a noise budget against it\\n"
+    "  compares a noise figure to a noise-plus-distortion one. The noise number is DYNAMIC\\n"
+    "  RANGE / S-N (A-wtd), %s. So the front end sits ~%.0f dB ABOVE the converter's own floor\\n"
+    "  and THE FRONT END, NOT THE ADC, SETS THIS SIGNAL PATH'S NOISE. That does not relax the\\n"
+    "  budget below -- it tightens the argument for it: every dB this stage adds lands on the\\n"
+    "  term that already dominates, with no converter headroom to absorb it.\\n"
     "  This stage adds sqrt( N_res^2 + (NG_N^2 + 1) x en^2 ), N_res = %.2f nV/rtHz:\\n"
     "     en = 3 nV/rtHz  ->  %.1f total  ->  +%.2f dB\\n"
     "     en = 5          ->  %.1f        ->  +%.2f dB\\n"
@@ -683,6 +746,15 @@ NOTE8 = (
     "  Also REQUIRE CMOS/FET input: R_BP is %s, and a bipolar 1 nA input current would put\\n"
     "  %.0f mV of offset on AINnP where a 10 pA CMOS part puts %.0f uV.\\n"
     "\\n"
+    "  WHY THE SUPPLY IS SINGLE +5V_A AND NOT +/-13V5_A, STATED HERE BESIDE THE PART CHOICE\\n"
+    "  BECAUSE IT IS THE LOAD-BEARING PREMISE OF THE EXCLUSION ABOVE: an amplifier powered from\\n"
+    "  the SAME NET that feeds the AK5574's AVDD physically cannot drive an ADC pin past\\n"
+    "  AVDD + 0.3 V. Abs-max compliance is STRUCTURAL, not analytical -- there is no sequencing\\n"
+    "  order, no fault and no start-up transient that can defeat it, because a rail cannot skew\\n"
+    "  against itself. That is an M3 guarantee-by-construction and it is what pays for the VCM\\n"
+    "  constraint the 5 V rail imposes. MOVING THIS STAGE ONTO +/-13V5_A 'FOR HEADROOM' WOULD\\n"
+    "  DELETE THAT GUARANTEE and re-open both the clamp question in NOTE9 and this one.\\n"
+    "\\n"
     "GATE 3 -- QUIESCENT CURRENT, because this stage is a NEW LOAD ON +5V_A.\\n"
     "  V-17 closed +5V_A at %.0f mA (converters only). Eight amplifiers land on top of it.\\n"
     "  +6V2_A was identified at 186 mA against the 250 mA already assumed, so the headroom\\n"
@@ -699,7 +771,7 @@ NOTE8 = (
     "  R_A||R_B = R_F = %s) roll both legs off identically before the modulator's %.3f MHz\\n"
     "  sampling rate, and they are the reason leg P needs no feedback network of its own."
 ) % (INA_EN * 1e9, 1.56, RS_LEG / 1e3, math.sqrt(2) * eR(RS_LEG) * 1e9, FE_EN * 1e9, FE_SNR,
-     "112 dB S/(N+D)", N_RES * 1e9,
+     "typ 121 dB, MIN 117 dB", 117.0 - FE_SNR, N_RES * 1e9,
      n_stage(3e-9) * 1e9, degr(3e-9), n_stage(5e-9) * 1e9, degr(5e-9),
      n_stage(7e-9) * 1e9, degr(7e-9), n_stage(12e-9) * 1e9, degr(12e-9),
      EN_GATE * 1e9, degr(5e-9), NG_N, NG_N ** 2 + 1,
@@ -831,6 +903,6 @@ print(f"  {len(PLACE)} device instances, all pins dispositioned")
 print(f"  {len(LABELS)} global labels, no collisions")
 print(f"  page {PAPER_W:.0f} x {PAPER_H:.0f} mm, derived from content and asserted (F53)")
 print(f"  gain plan: Rtop {rtxt(RTOP)} / Rbot {rtxt(RBOT)} / Rspk {rtxt(RSPK)}")
-print(f"    line    {LINE_MAX} Vrms -> {V_LINE:.4f} Vrms ({100*V_LINE/FS_RMS:.1f}% FS)")
-print(f"    speaker {SPKR_MAX} Vrms -> {V_SPKR:.4f} Vrms ({100*V_SPKR/FS_RMS:.1f}% FS)")
+print(f"    line    {LINE_MAX} Vrms -> {V_LINE:.4f} Vrms ({100*V_LINE/FS_MIN:.1f}% FSmin, {100*V_LINE/FS_RMS:.1f}% typ)")
+print(f"    speaker {SPKR_MAX} Vrms -> {V_SPKR:.4f} Vrms ({100*V_SPKR/FS_MIN:.1f}% FSmin, {100*V_SPKR/FS_RMS:.1f}% typ)")
 print(f"    Zin diff (line) = {ZIN:.0f} kOhm")
