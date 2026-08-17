@@ -81,13 +81,20 @@ AK4458 = [
     (31,"AVDD",P,1),(30,"AVSS",P,1),
     # unit 2: digital
     (1,"MCLK",I,2),(2,"BICK",I,2),(3,"LRCK",I,2),
-    (4,"SDTI1",I,2),(5,"SDTI2",I,2),(6,"SDTI3/TDMO1",B,2),(7,"SDTI4/TDMO2",B,2),
+    (4,"SDTI1",I,2),(5,"SDTI2",I,2),
+    # SDTI3/4 are typed INPUT, not bidirectional. Their TDMO alternate function is unused in
+    # this design, and T1-52 requires unused SDTI pins to be tied to DVSS -- a bidirectional
+    # type on a pin the datasheet tells you to ground reads to ERC as a driver into a power
+    # net. Same reasoning as the ADAU1466's VDRIVE retype: type the pin for how the datasheet
+    # says to USE it. The NAME keeps both functions so nothing is hidden.
+    (6,"SDTI3/TDMO1",I,2),(7,"SDTI4/TDMO2",I,2),
     (8,"DSDR3",I,2),(9,"DSDL4",I,2),(10,"DSDR4",I,2),
     (11,"DZF/SMUTE",B,2),(48,"PDN",I,2),
     (13,"SDA/CDTI/TDM0",B,2),(14,"SCL/CCLK/TDM1",I,2),
     (15,"CAD0_I2C/CSN/DIF",I,2),(12,"CAD1/DCHAIN",I,2),
     (16,"PS/CAD0_SPI",I,2),(17,"I2C",I,2),
-    (44,"LDOE",I,2),(45,"TVDD",P,2),(46,"DVSS",P,2),(47,"VDD18",P,2),
+    (44,"LDOE",I,2),(45,"TVDD",P,2),(46,"DVSS",P,2),
+    (47,"VDD18",PO,2),   # internal LDO OUTPUT, not a supply input -- same as the AK5574
 ]
 
 # BM83SM1. Pin names below are the HOST-MODE / our-config function.
@@ -207,6 +214,27 @@ ULN2003 = [
     (14,"O3",OC,1),(15,"O2",OC,1),(16,"O1",OC,1),
 ]
 
+# OPA1656, SOIC-8 dual. SEVENTH extends-alias instance (KiCad's OPA1656ID extends LM2904), so
+# project symbol per the standing rule. Standard dual-opamp SOIC-8 pinout, cross-checked against
+# the parent symbol: 1 OUT_A, 2 -IN_A, 3 +IN_A, 4 V-, 5 +IN_B, 6 -IN_B, 7 OUT_B, 8 V+.
+# THREE UNITS -- A, B, and power -- so M14's reconstruct-and-no-overlap assertions apply.
+OPA1656 = [
+    (1,"OUT_A",O,1),(2,"-IN_A",I,1),(3,"+IN_A",I,1),
+    (7,"OUT_B",O,2),(6,"-IN_B",I,2),(5,"+IN_B",I,2),
+    (8,"V+",P,3),(4,"V-",P,3),
+]
+
+# Mute elements. BOTH ARE PLACEHOLDERS PENDING THEIR DATASHEETS (V-14 / V-15) -- the topology
+# is decided and drawable, the PARTS are not pinned, and CLAUDE.md s8 rule 9 forbids inventing
+# pin numbers. These carry the FUNCTION so the netlist and the fail-safe walk are checkable;
+# the footprints and exact pin order land when the datasheets do.
+MUTE_SERIES = [                       # Form A photoMOS, energised-to-pass (S6.4 [HARD])
+    (1,"LED_A",I,1),(2,"LED_K",I,1),(3,"SW1",PA,1),(4,"SW2",PA,1),
+]
+MUTE_SHUNT = [                        # depletion pair, back-to-back SOURCE-to-SOURCE
+    (1,"G",I,1),(2,"D1",PA,1),(3,"D2",PA,1),
+]
+
 # INA1650, 14-pin TSSOP (PW). TI SBOS818B, Pin Functions p.3.
 INA1650 = [
     (1,"VCC",P,1),(14,"VEE",P,1),
@@ -276,6 +304,18 @@ PARTS = {
         value="ULN2003A", mfr="Texas Instruments", fp="Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
         desc="7ch Darlington sink array with internal freewheel diodes (COM)",
         ds="TI ULN2003A"),
+    "OPA1656": dict(pins=OPA1656, n=8, ep=False, units=3,
+        value="OPA1656IDR", mfr="Texas Instruments", fp="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+        desc="Dual JFET audio op-amp, 2.9 nV/rtHz, rail-to-rail out to 250 mV",
+        ds="TI SBOS893"),
+    "MUTE_PHOTOMOS": dict(pins=MUTE_SERIES, n=4, ep=False, units=1,
+        value="PLACEHOLDER V-14", mfr="TBD", fp="ODSP12:TBD_V14",
+        desc="Form A photoMOS, energised-to-pass. PN PENDING V-14",
+        ds="V-14 -- NOT YET READ"),
+    "MUTE_DEPFET": dict(pins=MUTE_SHUNT, n=3, ep=False, units=1,
+        value="PLACEHOLDER V-15", mfr="TBD", fp="ODSP12:TBD_V15",
+        desc="Depletion NMOS pair, back-to-back source-to-source. PN PENDING V-15",
+        ds="V-15 -- NOT YET READ"),
     "INA1650": dict(pins=INA1650, n=14, ep=False, units=1,
         value="INA1650PW", mfr="Texas Instruments",
         fp="Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
