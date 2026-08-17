@@ -337,9 +337,9 @@ FS_WORST  = FS_MIN * (1 - RAIL_TOL)
 def cm_resid(t):  return 0.5 * (0.5 * 2 * t + 0.5 * t) * SE_PK   # CM residual, volts pk
 def gain_err(t):  return 1.5 * t                                  # differential gain error
 Z_BIAS = 1.0 / (1 / (RB_TOP * RB_BOT / (RB_TOP + RB_BOT)) + 2 * math.pi * 20 * 10e-6)
-def xtalk_dB(rbp):
-    """Bias-node crosstalk, worst case: 4 correlated channels, leg-N noise gain, 20 Hz."""
-    return 20 * math.log10(len(CH) * NG_N / 2 * Z_BIAS / rbp)
+def xtalk_dB(rbp, n=None):
+    """Bias-node crosstalk at 20 Hz. n = aggressor count: len(CH) COHERENT is the design worst case; n=1 is the conventional acceptance condition. They differ by 12.0 dB and must never be quoted apart (C3)."""
+    return 20 * math.log10((len(CH) if n is None else n) * NG_N / 2 * Z_BIAS / rbp)
 
 BIAS = "VBIAS_ADC"
 P += [passive("R", 60, 505, rtxt(RB_TOP), "+5V_A", BIAS),
@@ -646,6 +646,20 @@ NOTE5 = (
     "      case is 12 dB quieter. Stated because coherent and uncorrelated summing differ by 6 dB\\n"
     "      and a reader cannot tell which was assumed from the constant alone.\\n"
     "      R_BP = %s  ->  %.1f dB        R_BP = 100k  ->  %.1f dB, which is audible\\n"
+    "\\n"
+    "      TWO CONDITIONS, AND THEY MUST NEVER BE QUOTED APART. The design was sized for FOUR\\n"
+    "      COHERENT aggressors; the conventional acceptance measurement drives ONE channel.\\n"
+    "      They differ by 20log10(4) = 12.0 dB:\\n"
+    "         one channel driven   (what a bench test reports)      %.1f dB\\n"
+    "         four coherent        (what the design was sized for)  %.1f dB\\n"
+    "      Against a proposed S12 line of >= 70 dB that is %.1f dB of margin on the bench and\\n"
+    "      only %.1f dB against the design case. THE BENCH NUMBER IS THE SAFE-DIRECTION ONE,\\n"
+    "      so nobody audits it: the test passes comfortably and a later cost pass reads the\\n"
+    "      comfort as spendable. M10 in its exact form -- which is why both numbers live here\\n"
+    "      rather than the flattering one.\\n"
+    "      FOR SCALE, the silicon: AK5574 interchannel isolation 110 dB min / 120 typ -- and\\n"
+    "      note ITS condition too, specified AIN1<->AIN2 and AIN3<->AIN4, i.e. WITHIN a pair,\\n"
+    "      not across all four. The shared bias node is the dominant term on either reading.\\n"
     "    The four channels together draw only %.2f uA at %s. AKM never meets any of this because\\n"
     "    BOTH their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\\n"
     "    Our leg P is a follower, so the problem is ours and the fix has to be ours.\\n"
@@ -676,6 +690,8 @@ NOTE5 = (
      NG_N, rtxt(RA_PAR), RA_PAR / R_BP,
      SE_PK / 2 * 1e3, SE_PK,
      rtxt(R_BP), xtalk_dB(R_BP), xtalk_dB(100e3),
+     xtalk_dB(R_BP, 1), xtalk_dB(R_BP),
+     (-70.0) - xtalk_dB(R_BP, 1), (-70.0) - xtalk_dB(R_BP),
      len(CH) * V_LINE / 2 / R_BP * 1e6, rtxt(R_BP),
      rtxt(R_BP), rtxt(RA_PAR), 1 / (1 / R_BP + 1 / RA_PAR),
      rtxt(R_BP), FC_P, "22n")
@@ -906,11 +922,29 @@ NOTE11 = (
     "     t = 1 %%    ->  %.1f mV residual   vs the +/-%.0f mV window  ->  clears %.1fx\n"
     "     t = 0.1 %%  ->  %.2f mV residual                             ->  clears %.0fx\n"
     "\n"
-    "  THE SAME FOUR PARTS ALSO SET CHANNEL GAIN, which is the half that is easy to miss because\n"
-    "  it is not a distortion mechanism: differential gain is (g_P + g_N), nominal 1.000, with a\n"
-    "  worst-case error of +/-1.5t -- %.2f dB at 1 %%, %.3f dB at 0.1 %%. On a 12-channel active\n"
-    "  crossover, INTER-CHANNEL gain matching is a product property, not a nicety.\n"
-    "\n"
+    "  THE SAME FOUR PARTS ALSO SET CHANNEL GAIN -- BUT THAT IS *NOT* A SECOND REASON TO BUY\\n"
+    "  0.1 %% PARTS, AND SAYING SO WOULD WEAKEN THE ARGUMENT RATHER THAN STRENGTHEN IT (C4).\\n"
+    "  Differential gain is (g_P + g_N), nominal 1.000, worst-case error +/-1.5t:\\n"
+    "        %.2f dB at t = 1 %%      %.3f dB at t = 0.1 %%\\n"
+    "  Two things swamp it:\\n"
+    "    * THE CONVERTER IS 4x WORSE THAN THE RESISTORS. AK5574 INTERCHANNEL GAIN MISMATCH is\\n"
+    "      0 dB typ / **0.5 dB MAX** (p.9, figure read). Taking the resistor term from 0.13 dB\\n"
+    "      to 0.013 dB improves a contributor that is already a quarter of one you cannot buy\\n"
+    "      your way out of.\\n"
+    "    * CHANNEL GAIN IS TRIMMABLE AND CM RESIDUAL IS NOT. This is an ADAU1466 with\\n"
+    "      per-channel gain in the signal flow: ONE input-gain calibration removes the\\n"
+    "      resistor term and the converter term TOGETHER. Nothing in firmware removes\\n"
+    "      %.1f mV of common-mode excursion at the ADC pins.\\n"
+    "  SO THE PART GRADE RESTS ON THE CM RESIDUAL ALONE, where 1 %% clears 5.2x and 0.1 %%\\n"
+    "  clears 52x. The gain figure is recorded as WHAT THE DSP TRIM IS FOR. Stating it as a\\n"
+    "  second reason would make two arguments look mutually reinforcing when only one is\\n"
+    "  load-bearing -- and a reader who checks the weaker one may discount both.\\n"
+    "\\n"
+    "  GAP, SAME SHAPE AS THE CROSSTALK ONE ABOVE: S12 has NO inter-channel gain-matching\\n"
+    "  criterion either. If it is a product property it wants a line; if it is trimmed at\\n"
+    "  calibration then the criterion belongs to THE CALIBRATION STEP rather than the board.\\n"
+    "  That is a decision to be made rather than inherited, and it is the operator's.\\n"
+    "\\n"
     "  BOM CONSEQUENCE, in F9's currency and for F9's reason: R_A/R_B are EQUAL VALUES and want a\n"
     "  MATCHED PAIR (an array element pair, ideal case); R_IN/R_F are a 2:1 RATIO and want a\n"
     "  ratio-matched pair or 0.1 %% discretes. As with F9 the specification is MATCHING AND\n"
@@ -922,6 +956,7 @@ NOTE11 = (
 ) % (SE_PK, cm_resid(0.01) * 1e3, WIN_HALFWIDTH * 1e3, WIN_HALFWIDTH / cm_resid(0.01),
      cm_resid(0.001) * 1e3, WIN_HALFWIDTH / cm_resid(0.001),
      20 * math.log10(1 + gain_err(0.01)), 20 * math.log10(1 + gain_err(0.001)),
+     cm_resid(0.01) * 1e3,
      WIN_HALFWIDTH / cm_resid(0.01), cm_resid(0.01) * 1e3)
 
 _NOTE_ORDER = [NOTE1, NOTE2, NOTE3, NOTE4, NOTE5, NOTE6,
