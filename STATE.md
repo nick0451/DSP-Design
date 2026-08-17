@@ -6,7 +6,7 @@ Governed by `CLAUDE.md` §5. **Read at session start. Update as work happens.**
 Tiers: **T1** source of truth (verified) · **T2** highly probable (actionable, tagged) ·
 **T3** likely (branchable, check quickly) · **T4** speculation (never drives work).
 
-Last updated: 2026-08-15
+Last updated: 2026-08-16
 
 ---
 
@@ -20,11 +20,11 @@ Everything needed is **in the repo**; nothing load-bearing lives only in convers
 |---|---|---|
 | 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules |
 | 2 | **`STATE.md` §0** (here) | Position, next action, session boundary |
-| 3 | `STATE.md` §5 | **The ledger. Read M1–M17 before any datasheet or file work** |
+| 3 | `STATE.md` §5 | **The ledger. Read M1–M18 before any datasheet or file work** |
 | 4 | `REQUIREMENTS.md` **v1.7** | The authority. Cite by section **and** version |
 | 5 | `hw/README.md` | Tool paths, build/verify commands, KiCad-10 format traps |
-| 6 | `STATE.md` §7 / §8 / §9 | Findings (F1–F51), [VERIFY] (V-01…V-30), I2C bus map |
-| 7 | `BRINGUP.md` | Bench checklist — §4 is this session's additions |
+| 6 | `STATE.md` §7 / §8 / §9 | Findings (F1–F53), [VERIFY] (V-01…V-30), I2C bus map |
+| 7 | `BRINGUP.md` | Bench checklist — **§0 is receiving inspection**, §4 is capture-session additions |
 | 8 | `DATASHEETS.md` | 27 documents held in `datasheets/` (untracked); this is the register |
 
 **Git is the memory of record.** Commit messages carry the *reasoning*; `git log` is a usable
@@ -38,6 +38,9 @@ found a real defect in committed work:
    three *wrong* T1 facts earlier in the project.
 2. **Verify the artefact, not the receipt.** ERC on an empty sheet is clean; a 200 response can
    be the wrong PDF; `file` said 10 pages where `pdfinfo` said 51. **Check the netlist.**
+   **F53 is this habit's own failure and the sharpest example of it:** *"PDF export renders 10
+   pages"* was recorded as proof, and a page **count** was read as a content check. The export had
+   been clipping every sheet's notes for four sessions. **A count is a receipt. Open the page.**
 3. **Run the recorded constraints against the artefact.** The `RT` error, the ILIM error and the
    4.479 V<sub>rms</sub> gain miss were all caught by a *consequence* contradicting a written
    requirement — never by re-deriving anything.
@@ -300,10 +303,27 @@ project — **layer count has a floor of 4 (F25) but no outline, no stackup, no 
 **ALL TEN SHEETS ARE DRAWN. ERC = 41 and the number is ABSOLUTE** — no violation waits on an
 undrawn counterpart. Nothing is half-wired; every stop this session was taken *before* a block.
 
+**F50's COPPER IS DRAWN (2026-08-16, fifth pass). ERC 41 → 33.** `06_analog_in` is now 158
+instances / 440 labels. Executing the criteria changed the block's shape and turned up two
+findings — **F52** (the amplifier's gate rules out both named candidates) and **F53** (every sheet
+has been declaring a page smaller than its content, so the PDF export has been clipping every
+on-sheet note since the first sheet). See §7.
+
 **THE NEXT ACTION, unambiguous and in this order:**
 
-**(1) Draw F50's copper** — the ADC input level-shift stage. The *disposition is closed*
-(T1-103, AKM Figure 76) and only the copper is missing. What it is:
+**(1) The clock tree** — six criteria plus the rails-up-before-PDN statement, all recorded below.
+
+**(2) Sweep the ERC punch list** — three tiers, below. **F53's paper fix rides along here**: eight
+generators still declare A3, the change is ~12 identical lines each, and the pattern is already
+proven on `06_analog_in`.
+
+**(3) F52 needs one datasheet** — any single-supply dual op-amp meeting the four-leg gate. This is
+the only thing on the sheet that is not committable.
+
+---
+
+**DONE, kept for the argument — F50's copper.** The *disposition* was closed
+(T1-103, AKM Figure 76); what the copper added:
    - AC-couple the INA1650 output into a **single-supply +5V_A stage** whose non-inverting input
      sits on a **ratiometric bias: 10 kΩ / 10.5 kΩ from AVDD = 0.51220 × AVDD**, decoupled
      10 µF ∥ 0.1 µF. **Unbuffered is correct** — it feeds an op-amp input, so T1-67 never engages.
@@ -315,6 +335,19 @@ undrawn counterpart. Nothing is half-wired; every stop this session was taken *b
      INA input at unity still sends ±13 V toward it. Series R + clamp, inequality on-sheet.
    - **F51 decision due here:** DNP position across the 10.5 kΩ leg so the board builds for
      either date-code revision.
+
+**FIVE DELIBERATE DEPARTURES FROM THAT PLAN, each argued on the sheet — kept side by side with it
+because the plan was right about the *inputs* and wrong about the *shape*, and that distinction is
+the useful one:**
+
+| Planned | Built | Why |
+|---|---|---|
+| One unity buffer per channel | **Two amplifiers, differential** | AKM's window constrains the **common mode**; single-ended drive moves it 13.3× the window's width (F50c) |
+| "Unity gain" | **Unity *differential* gain**, ±0.5 per leg | Same thing, once the source is single-ended — but it costs a noise-gain of 1.5 on the inverting leg, and that is what makes F52's gate tight |
+| Bias feeds the stage | Bias feeds **high-impedance inputs only**; R<sub>BP</sub> = 10 MΩ | A resistor returning to a shared divider injects signal current — −37 dB of crosstalk at the obvious value |
+| Film per the figure's footnote | **C0G** at 100 p / 620 p / 15 n | Strictly better than film on every axis that matters here, and available in 0603/0805. A departure *upward* from a vendor note |
+| Clamp at the ADC pins | **Clamps at the op-amp inputs; none at the ADC** | The stage runs on the *same* `+5V_A` that feeds AVDD, so no sequencing skew can violate AVDD + 0.3 V. Clamping there would buy nothing and cost voltage-variable capacitance where the CCIF criterion is listening |
+| DNP across the 10.5 kΩ leg | **No DNP** | See F51 — the hedge is against parts discontinued in 2021, and it degrades a precision ratio node |
 
 **(2) Then the clock tree** — criteria below, all seven.
 
@@ -593,6 +626,10 @@ Each entry names **how it was verified**. Nothing enters on reasoning alone.
 | T1-77 | **TI states the boost pass-through problem in its own words:** *"Boost converters have a natural pass-through path from the supply to the load through the high-side power diode (D1). Because of this path and the minimum on-time limitation of the device, boost converters cannot provide current limit protection when the output voltage is close to or less than the input supply voltage."* | `LM5156-Q1_TI.pdf` §9.3.8. **This is the citation under F39's rejection of a plain boost** — not our inference |
 | T1-78 | **The eliminated candidates, each by a number in its own datasheet.** LM5155-Q1: 45 V operating / 50 V transient. LM5157-Q1: **integrated 50 V** switch. TPS55340-Q1: 2.9–38 V in, **40 V** switch, f<sub>SW</sub> to 2.5 MHz. LM5175-Q1 (4-switch buck-boost, one plain inductor): **operating frequency range 100–600 kHz, full stop** | The four datasheets, now held. LM5175's range lands squarely in T1-71's PSRR notch |
 | T1-103 | **AK5574 Figure 76, "Input Buffer Example 1" — AKM's own recommended circuit, read at figure level, and it settles F50's shape.** Structure: input buffer on **±15 V** (NJM5534) → **68 µF AC COUPLING** → a **single-supply +5 V second stage** whose non-inverting input sits on a **Bias node**, gain 620/3300 = **−14.5 dB** → **10 Ω series + 100 pF to ground at each ADC pin**, plus **15 nF differential across the pair**. Film capacitors specified for the 15 nF and 1 nF. Stated performance: DR 121 dB, S/(N+D) 112 dB at 48 kHz | `AK5574_AKM.pdf` p.67, rendered. **The bias divider is 10 kΩ / 10.5 kΩ from VA — i.e. 0.51220 × AVDD, dead centre of the 0.502–0.522 window — and it is UNBUFFERED, decoupled with 10 µF ∥ 0.1 µF** |
+| T1-105 | **AK5574 full scale is 2.8 Vpp DIFFERENTIAL, and Note 10 says so in as many words:** *"This value is (AINnP)−(AINnN) that the ADC output becomes full-scale (n=1-4). Vin = 0.56 × (VREFHm−VREFLm) [Vpp]."* Spec table: 2.7 / **2.8** / 2.9 Vpp | p.9, rendered. **Checked because Figure 76 labels "2.8 Vpp" beside *each* ADC pin, which would imply 5.6 Vpp differential and put `06_analog_in`'s whole gain plan 6 dB out.** It reconciles: 14.9 Vpp differential in, ÷2 per leg, ×0.1879, ×2 back to differential = 2.80 Vpp. The figure's annotation is loose; Note 10 is normative. **The anchor holds and the gain plan is unchanged** |
+| T1-106 | **Figure 76 drives BOTH ADC pins, antiphase, from two INVERTING stages** — one per leg of an already-differential source, each with `Bias` on its **non-inverting** input. So **AKM's bias node carries no signal current at all**, which is the property that lets it be an unbuffered divider | p.67, rendered at 200 dpi. **This is the structural fact the recorded T1-103 did not carry**, and it decides the AIN_N gap: the ADC is driven differentially, not single-ended |
+| T1-107 | **OPA1656 VCM range is (V−) to (V+) − 2.25 V.** On a +5 V single supply that is **0 to 2.75 V**. Rail-to-rail *output* to 250 mV; supply 4.5–36 V; e<sub>n</sub> **4.3 nV/√Hz at 1 kHz** (2.9 at 10 kHz); I<sub>B</sub> 10 pA | TI SBOS901C, spec table. **This is the number behind the operator's "not an OPA1656" rider** — it clears the 2.561 V bias point by 189 mV but **fails the +5V_A follower's signal peak of 3.228 V by 478 mV** |
+| T1-108 | **INA1650 output voltage noise = 1.56 µV<sub>RMS</sub>, 20 Hz–20 kHz, C<sub>MID</sub> = 1 µF** → 11.0 nV/√Hz flat-equivalent | TI SBOS818B spec table. **The front-end noise anchor.** With the attenuator's 4.72 kΩ per-leg Thévenin (12.5 nV/√Hz differential) the receiver output is **16.6 nV/√Hz → 112.1 dB SNR**, within a decibel of the AK5574's own 112 dB S/(N+D) — so neither dominates, and the level-shift stage's budget is tight by arithmetic rather than by preference |
 | T1-104 | **The 2.5 V bias is the OLD circuit and it costs ~6 dB.** *"For products with Date Code XXXXHXX, AKM recommends Figure 76 as the revised circuit example, which adjusts the optimal input bias voltage… In case the original circuit example is used featuring input bias voltage of 2.5 V (Typ.), S/(N+D) performance will be degrade ~6 dB."* The 10.5 kΩ leg **is** the revision | Same page. **This is an F38/date-code axis nobody had considered: the correct bias depends on when the part was manufactured** |
 | T1-99 | **F31 CLOSES on the datasheet's own words.** Pin 23 `BAT_IN`: *"Power supply input; voltage range: 3.2V to 4.2V. **Source can either be a Li-ion battery or any other power rail on the host board.**"* A direct rail feed with no battery and no charger path is **blessed, not tolerated**. `ADAP_IN` (22) is the 5 V charger input and its own description permits floating | BM83 DS70005402G Table 2-2 p.13 + §5.1 |
 | T1-100 | **BM83 current, Table 9-12:** A2DP 12.05 mA (iOS) / 12.32 mA (Android) · SCO/eSCO 14.1 mA · **continuous TX 59 mA worst (modulation off, PL0)** · continuous RX 49 mA · standby 2.81 µA. Charger draws 3–4.5 mA and is unused | §9. **Against the AP2127's 300 mA: 5× margin**, and the LDO dissipates 84 mW. §7.1's 100 mA estimate was conservative by ~1.7× — left in place, but recorded so a cost pass cannot "discover" the headroom |
@@ -865,6 +902,21 @@ site search is worse than their own documents, which is most of them**, and it i
 than guessing doc numbers or trusting a distributor's link. *Companion to M11:* when a document
 points at a successor, the pointer is usually **in** the file, so the redirect boundary M11 warns
 about is normally crossable without leaving the archive.
+
+**M18 — A DECLARED CONTAINER IS NOT A CHECKED ONE, AND EESCHEMA DRAWS OUTSIDE ITS OWN FRAME.**
+Every sheet declared `(paper "A3")` — 420 × 297 mm — while seven of nine ran content to as much as
+1050 × 884 mm. On screen nothing looked wrong, because the editor renders past the frame quite
+happily. **The PDF export clips to the page**, so the exported schematic silently dropped the
+AK5574, both INA1650s' surroundings, every decoupling network — **and all forty on-sheet notes,
+which is to say every M7 inequality this project has written.** The convention that "the number
+that makes this legal goes *on the sheet*" was defeated for four sessions by a one-line property
+nobody checked. **The tell:** `STATE.md` recorded *"PDF export renders 10 pages, which is the
+proof KiCad traverses the hierarchy"* — a page **count** was read as if it were a content check.
+That is habit 2 ("verify the artefact, not the receipt") failing on the very artefact cited as
+proof. **Countermeasure, and it is not a bigger constant:** the generator **derives** the page from
+its own content extent and **asserts** the fit, so a sheet can never again outgrow its paper
+silently. Generalised: *when a format declares a container — page, buffer, envelope, budget — the
+declaration is an assertion to be run, not a fact to be trusted.*
 
 **M17 — Reference-designator uniqueness is an unstated assumption that every downstream
 artefact relies on, and generated sheets bypass the annotator that normally enforces it.**
@@ -1351,8 +1403,11 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
-| **F51** | ⛔ | **NEW — F38's THIRD axis: the correct external circuit can depend on WHEN THE PART WAS MADE.** T1-104: the AK5574's recommended input network changed at **date code XXXXHXX (October 2021)**; the older 2.5 V bias costs **~6 dB of S/(N+D)**. Same PN, same package, same vendor, same datasheet — **different recommended circuit, and nothing on a BOM carries a date code.** | **Add to the F38 sweep as a third question**, after suffix (F37/F38) and manufacturer (F38a): *does this part's recommended application circuit depend on a date code or silicon revision?* **Practical mitigation:** the 10 k/10.5 k divider is correct for post-2021 parts and the 10.5 k leg is the only difference, so a **DNP position across it** makes the board buildable either way — the stuffing-flexibility convention applied to a *vendor revision* rather than a feature. Decide at F50's drawing |
+| **F53** | ⛔ | **NEW — EVERY SHEET DECLARED A PAGE SMALLER THAN ITS CONTENT, AND THE PDF EXPORT HAS BEEN SILENTLY CLIPPING SINCE THE FIRST SHEET.** All ten declared `(paper "A3")` = 420 × 297 mm; **seven of nine overflow it**, `06_analog_in` to 1050 × 884 mm. Eeschema renders outside the frame, so nothing ever looked wrong. The export does not: page 7 was missing the **AK5574**, U42's surroundings, all decoupling, **and all four of its notes**. Across the project **every on-sheet note — every M7 inequality this board has written — was absent from the exported schematic.** | **FIXED on `06_analog_in`, and not with a bigger constant.** The generator now **derives** the page from its own content extent (labels + parts + measured note boxes + 25 mm margin) and **asserts** the fit, so a sheet cannot outgrow its paper silently again. Verified at the artefact: page 7 is now **1160 × 910 mm** and all ten note headings extract from the PDF. `(paper "User" W H)` was confirmed **empirically** against `kicad-cli`, not from memory — the stock demos only carry named sizes. **THE OTHER EIGHT GENERATORS ARE UNFIXED**; the change is ~12 identical lines each and belongs in the punch-list pass, not mid-block. **G1b's evidence is unaffected** (ERC and the netlist never depended on geometry) but **G7's is**: the design note's on-sheet half was not in the deliverable |
+| **F52** | ⚠ | **NEW — the ADC driver's part number cannot be pinned, but its selection gate can, and the gate rules out one of the two candidates that were named.** Criterion 4 asked for the deciding noise number; worked against T1-108, it is demanding: the front end already sits at **16.6 nV/√Hz** and the stage adds √(N<sub>res</sub>² + 3.25·e<sub>n</sub>²). A **TLV9002-class** jellybean would cost several dB and is excluded on noise; **OPA1656** — already on this board, and the tempting BOM-consolidation answer — is excluded on **VCM** by T1-107, by 478 mV at the follower's signal peak. **No datasheet is held for any surviving candidate**, so §8 rule 9 forbids pinning it | **Drawn as `ODSP12:OPAMP_ADCDRV`, a placeholder of a NEW KIND: the footprint is T1 while the PN is not.** Every candidate that clears the gate ships on the standard dual-op-amp SOIC-8 pinout, so the land pattern, the netlist and the pin map are all committable now and only the value line waits — unlike `MUTE_PHOTOMOS`/`MUTE_DEPFET`, where the package is unknown too. **The gate, all four legs on-sheet:** e<sub>n</sub> ≤ **6.1 nV/√Hz** at 1 kHz (2.0 dB) with ≤ 5 as target · VCM must include **3.228 V at V+ = 5 V** (rail-to-rail *output* NOT required — the differential topology bought that back and widens the field) · CMOS/FET input, because R<sub>BP</sub> is 10 MΩ · I<sub>Q</sub> ≤ **8.0 mA/ch** from V-17's +6V2_A headroom · unity-gain stable into ≥ 100 pF behind 10 Ω |
+| **F51** | ⛔ | **NEW — F38's THIRD axis: the correct external circuit can depend on WHEN THE PART WAS MADE.** T1-104: the AK5574's recommended input network changed at **date code XXXXHXX (October 2021)**; the older 2.5 V bias costs **~6 dB of S/(N+D)**. Same PN, same package, same vendor, same datasheet — **different recommended circuit, and nothing on a BOM carries a date code.** | **Add to the F38 sweep as a third question**, after suffix (F37/F38) and manufacturer (F38a): *does this part's recommended application circuit depend on a date code or silicon revision?* **Practical mitigation:** the 10 k/10.5 k divider is correct for post-2021 parts and the 10.5 k leg is the only difference, so a **DNP position across it** makes the board buildable either way — the stuffing-flexibility convention applied to a *vendor revision* rather than a feature. **DECIDED at F50's drawing, 2026-08-16 — the DNP is NOT fitted.** The board commits to the revised 10 k/10.5 k network. A stuffing option would put an unpopulated pad on the one node whose entire job is to be a precise ratio, in order to hedge against parts that stopped being made in October 2021. **The assumption is stated on-sheet so it is checkable rather than silent** (*any currently-orderable AK5574EN long postdates the H revision*) and it is **tested rather than trusted**, per M3, by two lines: `BRINGUP.md` §0 gains a receiving check (date code ≥ H at first article), and §12's own THD+N line catches a 6 dB S/(N+D) miss anyway if receiving misses it. **Ledger form: a part number names a design, not a revision of it** |
 | **V-14/V-15 candidates** | ▫ | **Operator-supplied part data, 2026-08-16 — T2, not yet read from datasheets.** **Series (V-14): TLP3475**, Form A photoMOS, **50 V blocking — NOT 60 V**; the 60 was folklore and is retracted (M10-adjacent: *a wrong number that errs safe is still wrong*). 50 V is comically sufficient for ±6.4 V audio. **The R-variant carries a built-in input resistor — check the table; if its value suits the LED drive it deletes a BOM line.** **Shunt (V-15), and they bracket the window from opposite sides:** **DN2540** — 400 V, V<sub>GS(off)</sub> −1.5…−3.5 V, R<sub>ds(on)</sub> 17 typ / 25 max Ω, I<sub>DSS</sub> ≥ 150 mA, C<sub>oss</sub> 12 typ / 30 max pF, C<sub>rss</sub> 1/5 pF, **SOT-89 (DN2540N8-G)**. **LND150** — 500 V, R<sub>ds</sub> max 1 kΩ, 30 mA, SOT-89. | **Neither lands inside the 100–500 Ω window, and that is fine — the window was a placeholder for V-16's real question.** At 20 kHz even 10 pF of series C<sub>off</sub> is ~800 kΩ, so **either R<sub>on</sub> buries the leakage by 55+ dB**. The actual trade: **DN2540 buys ~40× deeper mute at the cost of 12–30 pF of nonlinear C<sub>oss</sub> across the output in the PASS state; LND150 loads the signal less and mutes less deeply.** **Lean: DN2540 pair** — back-to-back halves the effective C<sub>oss</sub>, and ~10 pF behind a 10 Ω build-out is nothing to the 19+20 kHz pair — **but V-16's stack decides, not the lean.** Gate bias from the −13V5_A divider clears V<sub>GS(off)</sub> max by **4×**, inside ±20 V abs max; **both inequalities on-sheet** |
+| **F50c** | ✅ | **COPPER DRAWN 2026-08-16, and executing the criteria changed the block's shape — the stage is DIFFERENTIAL, not the unity buffer that was planned.** One piece of arithmetic decided it, and it is not a preference: **AKM's window is a constraint on the input COMMON MODE and it is only ±50 mV wide** (0.502–0.522 × AVDD). Single-ended drive — signal on `AINnP`, bias on `AINnN` — moves the common mode by half the differential swing, **667 mV peak, 13.3× the entire window**, on a part whose datasheet says outright that *"S/(N+D) varies depending on DC bias voltage of the input signal."* **Single-ended drive converts a stated bias sensitivity into signal-dependent distortion.** T1-106 confirms Figure 76 drives both pins antiphase for exactly this reason | **Per channel: leg N inverting at −0.5 about `VBIAS_ADC` (100 µF NP → 2k00 → 1k00 ‖ 620p); leg P a passive ÷2 in the GROUND domain (2k00/2k00 ‖ 620p) → 22 nF film → follower biased through 10 MΩ.** `AINnP − AINnN = SE` exactly — **unity DIFFERENTIAL gain**, which is what "unity" has to mean once the source is single-ended. Each pin moves only ±667 mV about 2.561 V (**1.894–3.228 V**), so rail-to-rail output is not required. **Three placements that are not arbitrary and are argued on-sheet:** R<sub>B</sub> returns to `GND` and **not** `AGND_REF`, which is the INA1650's REF *sense* node and must carry no current (T1-67/F36's rule at one remove) · R<sub>BP</sub> is **10 MΩ deliberately**, because anything returning to `VBIAS_ADC` injects signal current into a node shared by four channels whose impedance is ~690 Ω at 20 Hz — at 100 kΩ the crosstalk would be **−37 dB**; AKM never meets this because *both* their legs are inverting · the legs are **parallel, not cascaded**, because a cascade doubles leg N's distortion differentially where parallel legs add in quadrature. **Supersedes F50's first fix:** driving REF A/B to 2.56 V is single-ended drive by another name and falls to the same arithmetic; REF A/B stay on `AGND_REF` and NOTE3 is unchanged. **ERC 41 → 33**; the four `AINn_N` `pin_not_driven` are gone and the netlist walks INA1650 → ADC pin on all four channels |
 | **F50** | ✅ | **CLOSED — and the answer is neither Shape A nor Shape B, it is AKM's own hybrid (T1-103).** **The ratiometric decree is confirmed by the vendor's own arithmetic:** Figure 76's bias divider is **10 kΩ / 10.5 kΩ = 0.51220 × AVDD**, dead centre of the window. **A fixed 2.56 V reference fails**: against AVDD ±2 % it lands at 0.5224 and 0.5020 × AVDD — **outside the window at BOTH ends, with nothing left for divider, offset or drift.** The window is ±1 % on a *ratio*, so only a ratiometric source can hold it. | **The shape AKM uses:** AC coupling sits **between the ±15 V buffer and a single-supply +5 V level-shifting stage**, not at the ADC pins — so the ADC is **DC-driven** from that stage (Shape A's property where it matters) while the DC break happens upstream (Shape B's element where it is cheap). Our INA1650 plays the first-stage buffer; what is missing is AKM's **second stage**, at unity rather than their −14.5 dB, since our 0.94 V<sub>rms</sub> is already at level. **The bias divider stays UNBUFFERED** — it feeds an op-amp non-inverting input, so T1-67's low-impedance rule never engages; stiffness comes from 10 µF ∥ 0.1 µF. **Riders carried:** the new stage is a single-supply CMOS part (OPA2320 / TLV9002 class), **not** an OPA1656; and the ADC pins get AKM's own 10 Ω + 100 pF + 15 nF differential network, which is also where F49's clamp inequality repeats on the ADC side |
 | **F50** | ⛔ | **NEW, and it invalidates part of `06_analog_in` — the ADC's input bias window and the INA1650's output common mode do not meet.** AK5574: *"Set the DC bias voltage in a range from 0.502 × AVDD to 0.522 × AVDD for optimal characteristics"* → **2.510–2.610 V** at AVDD 5 V. As drawn, the INA1650's `REF A/B` tie to `AGND_REF`, so its output common mode is **0 V** — the ADC inputs sit **2.51 V below their specified window**, and the negative half of every waveform swings **below AVSS**. This is not a margin question; it is the wrong operating point. | **The fix is at the REF pins, not at the ADC.** Drive `REF A/B` from a **buffered ~2.56 V** and the INA1650's output common mode lands in the window by construction. **Note what is NOT the fix:** a divider on REF. T1-67 is explicit — REF *"must be driven from a low impedance"* — and F36 drew the distinction the hard way: **FB is inside a loop that regulates it; REF believes whatever it sees.** A divider here would be the REF-pin rule violated at one remove, which is exactly the shape the operator predicted. **Also not `VMID_OUT`**: the INA1650's buffered mid-rail is the mid-point of *its own* ±13V5_A supply, i.e. 0 V — the right pin for the wrong voltage. **Needs a buffer from +5V_A**, and every OPA1656 unit on the DAC sheets is already spoken for, so this is a new part |
 | **V-04** | ✅ | **CLOSED — ADC side, from the same read.** **MCLK = 512fs** (DCKS pin low, the default) for fs = 32/44.1/48 kHz, so the 24.576 MHz XO is exactly 512fs at 48 kHz and matches the DAC side (T1-26). **Plus a sequencing fact that belongs in BRINGUP.md:** *"After exiting reset (PDN pin L→H) upon power-up, the AK5574 is in power-down state **until MCLK is input**."* **The clock tree must be running before §7.2 step 5a releases PDN** — a fourth member of the F20/F30 family, where a [HARD] sequence step omits a device's readiness precondition | — |

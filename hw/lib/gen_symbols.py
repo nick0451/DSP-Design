@@ -224,6 +224,19 @@ OPA1656 = [
     (8,"V+",P,3),(4,"V-",P,3),
 ]
 
+# ADC input level-shift / single-ended-to-differential driver (F50 copper, F52 part).
+# PLACEHOLDER, but a DIFFERENT KIND of placeholder from the two below, and the difference is
+# worth stating: the FOOTPRINT here is T1 while the PN is not. Every candidate that clears
+# 06_analog_in's three selection inequalities ships on the standard dual-opamp SOIC-8 pinout
+# -- 1 OUT_A, 2 -IN_A, 3 +IN_A, 4 V-, 5 +IN_B, 6 -IN_B, 7 OUT_B, 8 V+ -- so the land pattern
+# and the netlist are both committable now and only the value line waits. Cross-checked
+# against OPA1656 above, which is the same pinout and was EXCLUDED on VCM (see the sheet).
+OPAMP_ADCDRV = [
+    (1,"OUT_A",O,1),(2,"-IN_A",I,1),(3,"+IN_A",I,1),
+    (7,"OUT_B",O,2),(6,"-IN_B",I,2),(5,"+IN_B",I,2),
+    (8,"V+",P,3),(4,"V-",P,3),
+]
+
 # Mute elements. BOTH ARE PLACEHOLDERS PENDING THEIR DATASHEETS (V-14 / V-15) -- the topology
 # is decided and drawable, the PARTS are not pinned, and CLAUDE.md s8 rule 9 forbids inventing
 # pin numbers. These carry the FUNCTION so the netlist and the fail-safe walk are checkable;
@@ -308,6 +321,10 @@ PARTS = {
         value="OPA1656IDR", mfr="Texas Instruments", fp="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
         desc="Dual JFET audio op-amp, 2.9 nV/rtHz, rail-to-rail out to 250 mV",
         ds="TI SBOS893"),
+    "OPAMP_ADCDRV": dict(pins=OPAMP_ADCDRV, n=8, ep=False, units=3,
+        value="PLACEHOLDER F52", mfr="TBD", fp="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+        desc="Dual single-supply op-amp, ADC level-shift + single-ended-to-differential",
+        ds="F52 -- gate is on 06_analog_in: en, VCM and IQ, all three stated as inequalities"),
     "MUTE_PHOTOMOS": dict(pins=MUTE_SERIES, n=4, ep=False, units=1,
         value="PLACEHOLDER V-14", mfr="TBD", fp="ODSP12:TBD_V14",
         desc="Form A photoMOS, energised-to-pass. PN PENDING V-14",

@@ -14,6 +14,32 @@ Last updated: 2026-08-16 · covers `REQUIREMENTS.md` v1.0
 
 ---
 
+## 0. Receiving inspection — before anything is soldered
+
+**These are checks on the *parts*, not on the board.** They exist because a correct design can be
+built from a part whose datasheet no longer describes it.
+
+### 0.1 AK5574 date code must be ≥ `H` *(F51 / T1-104)*
+
+**Check the fifth digit of the date code on every AK5574EN in the reel: `XXXXHXX`.**
+`H` marks product made since **October 2021**. AKM changed the *recommended input bias voltage*
+at that revision, and the board is built for the **revised** circuit — the 10 kΩ / 10.5 kΩ
+divider on `06_analog_in`, giving 0.512 × AVDD.
+
+**If a pre-`H` part is fitted, the board still works and nothing is damaged — it loses ~6 dB of
+S/(N+D)**, because the older silicon wanted 2.5 V where this divider supplies 2.561 V.
+
+**Why this is a receiving check and not a BOM field:** nothing on a BOM line carries a date code,
+so no purchasing control exists for it. The design's assumption — *any currently-orderable
+AK5574EN long postdates the H revision* — is stated on the sheet precisely so it can be checked
+here rather than believed.
+
+**Backstop if this check is skipped:** a 6 dB S/(N+D) miss lands outside `REQUIREMENTS.md` §12's
+THD+N line, so acceptance catches an ancient part anyway. The receiving check exists to catch it
+*before* a build rather than after one.
+
+---
+
 ## 1. Power-up sequence gotchas
 
 ### 1.1 The DSP control port is dead while the PLL locks *(F20)*

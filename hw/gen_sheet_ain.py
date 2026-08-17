@@ -75,6 +75,7 @@ SRC = {
     "Relay:FINDER-30.22": (STOCK + "/Relay.kicad_sym", "FINDER-30.22"),
     "ODSP12:PCF8574T": (PROJ, "PCF8574T"),
     "ODSP12:ULN2003A": (PROJ, "ULN2003A"),
+    "ODSP12:OPAMP_ADCDRV": (PROJ, "OPAMP_ADCDRV"),
 }
 DEFS, PINGEO = {}, {}
 for libid, (path, nm) in SRC.items():
@@ -174,8 +175,11 @@ for pkg, (ca, cb) in enumerate([(1, 2), (3, 4)], start=1):
     ref = f"U4{pkg}"
     PLACE.append((ref, "ODSP12:INA1650", 300, 100 + (pkg - 1) * 170, "INA1650PW", {
         "1": "+13V5_A", "14": "-13V5_A",
-        "2": f"ATT{ca}_P", "4": f"ATT{ca}_N", "3": GND, "13": f"AIN{ca}_P", "12": "AGND_REF",
-        "7": f"ATT{cb}_P", "5": f"ATT{cb}_N", "6": GND, "8": f"AIN{cb}_P", "9": "AGND_REF",
+        # OUT_A / OUT_B now land on SE{n}, NOT on AIN{n}_P. The INA1650 is single-ended-out
+        # and ground-referenced; the ADC needs differential about 0.512 x AVDD. F50's copper
+        # -- the level-shift block below -- is what sits between them.
+        "2": f"ATT{ca}_P", "4": f"ATT{ca}_N", "3": GND, "13": f"SE{ca}", "12": "AGND_REF",
+        "7": f"ATT{cb}_P", "5": f"ATT{cb}_N", "6": GND, "8": f"SE{cb}", "9": "AGND_REF",
         "11": f"{ref}_VMIDIN", "10": f"{ref}_VMIDOUT"}, 1, INA))
 
 _pc = [0]
@@ -253,6 +257,115 @@ for pkg in (1, 2):
 P += [passive("C", 460, 400, "10uF", "+5V_A", GND), passive("C", 490, 400, "100n", "+5V_A", GND),
       passive("C", 520, 400, "10uF", "+3V3_D", GND), passive("C", 550, 400, "100n", "+3V3_D", GND),
       passive("C", 580, 400, "1uF", "VDD18_ADC", GND)]
+
+# ======================================================================================
+# F50 COPPER -- the ADC level-shift stage. All arithmetic below, none of it typed.
+# ======================================================================================
+AVDD             = 5.0
+BIAS_LO, BIAS_HI = 0.502, 0.522          # T1-103, AKM's own window, as a fraction of AVDD
+RB_TOP, RB_BOT   = 10.0e3, 10.5e3        # T1-103, AKM Figure 76's own divider
+BIAS_RATIO       = RB_BOT / (RB_TOP + RB_BOT)
+BIAS_V           = BIAS_RATIO * AVDD
+WIN_HI  = (BIAS_HI - BIAS_RATIO) / BIAS_RATIO
+WIN_LO  = (BIAS_RATIO - BIAS_LO) / BIAS_RATIO
+def ratio_err(t): return (1 - BIAS_RATIO) * 2 * t          # worst-case ratio error, +/-t each
+WIN_HALFWIDTH = (BIAS_HI - BIAS_LO) / 2 * AVDD              # +/-50 mV, the CM window in volts
+
+# Leg N -- inverting, gain -0.5.  Leg P -- passive /2 in the GROUND domain, then a follower.
+# Signal gain SE -> (AINP - AINN) is exactly 1; each pin moves +/-half.
+R_IN, R_F   = 2.00e3, 1.00e3
+R_A = R_B   = 2.00e3
+R_BP        = 10.0e6
+C1, C2      = 100e-6, 22e-9
+C_F         = 620e-12                     # leg N feedback pole
+R_S, C_SS, C_D = 10.0, 100e-12, 15e-9     # T1-103, AKM's own ADC-pin network
+NG_N        = 1 + R_F / R_IN              # 1.5 -- the price of gain 0.5 from a 1x source
+RA_PAR      = R_A * R_B / (R_A + R_B)
+
+FC_N = 1 / (2 * math.pi * R_IN * C1)
+FC_P = 1 / (2 * math.pi * (R_BP + RA_PAR) * C2)
+def hpf_phase(fc, f): return math.degrees(math.atan(fc / f))
+F_POLE = 1 / (2 * math.pi * R_F * C_F)                       # = 1/(2*pi*RA_PAR*C_F), matched
+COLD_DERATE = 0.75                                            # -25 % at -20 degC, worst case
+FC_N_COLD   = FC_N / (COLD_DERATE * 0.8)                      # x tolerance -20 % as well
+
+# Noise, input-referred at SE. Differential gain is 1, so a leg's OUTPUT noise refers 1:1.
+KT4 = 4 * 1.380649e-23 * 298.15
+def eR(r): return math.sqrt(KT4 * r)
+N_RES  = math.sqrt(KT4 * (R_F + R_F ** 2 / R_IN + RA_PAR))
+def n_stage(en): return math.hypot(N_RES, math.sqrt(NG_N ** 2 + 1) * en)
+INA_EN  = 1.56e-6 / math.sqrt(20e3 - 20)       # T1: SBOS818B, 1.56 uVrms 20 Hz-20 kHz
+RS_LEG  = 1.0 / (1 / RTOP + 1 / RBOT + 1 / RIN)
+FE_EN   = math.hypot(INA_EN, math.sqrt(2) * eR(RS_LEG))
+def degr(en): return 20 * math.log10(math.hypot(FE_EN, n_stage(en)) / FE_EN)
+def en_for(db):                                 # invert: largest en meeting a dB budget
+    lo, hi = 1e-12, 1e-6
+    for _ in range(200):
+        mid = math.sqrt(lo * hi)
+        if degr(mid) < db: lo = mid
+        else: hi = mid
+    return math.sqrt(lo * hi)
+EN_GATE = en_for(2.0)
+FE_SNR  = 20 * math.log10(V_LINE / (FE_EN * math.sqrt(20e3 - 20)))
+
+# F49's inequality, restated on the +5 V side. The fault is NOTE3's OWN documented case:
+# a relay/driver failure leaves speaker level in line mode, the INA1650 clips at its rail,
+# and that rail arrives through R_IN (leg N) and R_A (leg P) at pins that live on +5V_A.
+V_INA_RAIL = 13.5
+I_CLAMP    = sum((V_INA_RAIL - AVDD - 0.7) / r for r in (R_IN, R_A))
+I_INJ      = len(CH) * I_CLAMP
+I_5VA      = 146e-3                             # V-17, T1
+IQ_GATE    = (250e-3 - 186e-3) / (2 * len(CH))  # V-17 headroom on +6V2_A / 8 amplifiers
+
+BIAS = "VBIAS_ADC"
+P += [passive("R", 60, 505, rtxt(RB_TOP), "+5V_A", BIAS),
+      passive("R", 90, 505, rtxt(RB_BOT), BIAS, GND),
+      passive("C", 120, 505, "10uF",      BIAS, GND),
+      passive("C", 150, 505, "100n",      BIAS, GND)]
+
+for n in CH:
+    yb = 540 + (n - 1) * 100
+    se, nc = f"SE{n}", f"LS{n}_NC"
+    ni, pi = f"LS{n}_NI", f"LS{n}_PI"
+    no, po = f"LS{n}_NO", f"LS{n}_PO"
+    half   = f"SE{n}_H"
+    # leg N: AC-couple, invert at -0.5 about BIAS
+    P += [passive("C", 60, yb, "100uF NP", se, nc),
+          passive("R", 90, yb, rtxt(R_IN), nc, ni),
+          passive("R", 120, yb, rtxt(R_F), ni, no),
+          passive("C", 150, yb, "620p C0G", ni, no)]
+    # leg P: passive /2 to GND -- NOT to AGND_REF, which is the INA1650's REF sense node and
+    # must carry no signal current -- then AC-couple into a follower biased through R_BP.
+    P += [passive("R", 60, yb + 14, rtxt(R_A), se, half),
+          passive("R", 90, yb + 14, rtxt(R_B), half, GND),
+          passive("C", 120, yb + 14, "620p C0G", half, GND),
+          passive("C", 150, yb + 14, "22n film", half, pi),
+          passive("R", 180, yb + 14, rtxt(R_BP), pi, BIAS)]
+    # Clamps at the two op-amp inputs -- the ONLY nodes on this stage that a +/-13V5_A fault
+    # can reach. Leg N's sits on a virtual earth, so it carries no signal and contributes no
+    # nonlinear capacitance at all; leg P's sees signal but from a 1k source (NOTE7).
+    PLACE.append((f"D{409 + n}", "Diode:BAV99", 215, yb, "BAV99", {"1": GND, "2": ni, "3": "+5V_A"}))
+    PLACE.append((f"D{413 + n}", "Diode:BAV99", 215, yb + 14, "BAV99", {"1": GND, "2": pi, "3": "+5V_A"}))
+    ref = f"U{44 + n}"
+    OA1, OA2, OA3 = (geometry(gs.OPAMP_ADCDRV, i) for i in (1, 2, 3))
+    assert set(OA1) | set(OA2) | set(OA3) == set(PINGEO["ODSP12:OPAMP_ADCDRV"]), "opamp units"
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb, "PLACEHOLDER F52",
+                  {"1": no, "2": ni, "3": BIAS}, 1, OA1))
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 20, "PLACEHOLDER F52",
+                  {"7": po, "6": po, "5": pi}, 2, OA2))
+    PLACE.append((ref, "ODSP12:OPAMP_ADCDRV", 320, yb + 40, "PLACEHOLDER F52",
+                  {"8": "+5V_A", "4": GND}, 3, OA3))
+    P += [passive("C", 380, yb + 40, "100n", "+5V_A", GND)]
+    # AKM's own ADC-pin network, values verbatim. C0G rather than the figure's "film" note:
+    # at 100 pF / 620 pF / 15 nF, C0G is strictly better than film on every axis that matters
+    # here (no piezoelectricity, no voltage coefficient, +/-30 ppm/degC) and is available in
+    # 0603/0805. Departing UPWARD from a vendor note, with the reason stated.
+    P += [passive("R", 400, yb, "10R", no, f"AIN{n}_N"),
+          passive("C", 430, yb, "100p C0G", f"AIN{n}_N", GND),
+          passive("R", 400, yb + 14, "10R", po, f"AIN{n}_P"),
+          passive("C", 430, yb + 14, "100p C0G", f"AIN{n}_P", GND),
+          passive("C", 460, yb + 7, "15n C0G", f"AIN{n}_P", f"AIN{n}_N")]
+
 PLACE += P
 
 LABELS = {}
@@ -416,19 +529,288 @@ NOTE4 = (
     "and NOT to AGND_REF. Named so the two are not confused at layout."
 )
 
+NOTE5 = (
+    "F50 COPPER -- AND WHY IT IS DIFFERENTIAL RATHER THAN THE UNITY BUFFER THAT WAS PLANNED.\\n"
+    "\\n"
+    "ONE PIECE OF ARITHMETIC DECIDES THE WHOLE TOPOLOGY. AKM's window is a constraint on the\\n"
+    "input COMMON MODE, and it is narrow: %.3f to %.3f x AVDD is %.3f to %.3f V, i.e. only\\n"
+    "+/-%.0f mV wide. A single-ended drive -- signal on AINnP, bias on AINnN -- moves the\\n"
+    "common mode by HALF the differential swing, %.0f mV peak. That is %.0fx the entire\\n"
+    "window, on a part whose datasheet says in as many words that 'S/(N+D) varies depending\\n"
+    "on DC bias voltage of the input signal'. Single-ended drive turns a stated bias\\n"
+    "SENSITIVITY into signal-dependent distortion. It is excluded by arithmetic, not by taste.\\n"
+    "\\n"
+    "So both ADC pins are driven, antiphase, exactly as Figure 76 does it -- and the common\\n"
+    "mode then sits at BIAS at every instant, by construction, independent of signal level.\\n"
+    "\\n"
+    "The INA1650 is single-ended-out, so this stage must also convert. Per channel:\\n"
+    "  LEG N  SE{n} -- C1 %s -- R_IN %s -> (-)in ; R_F %s || C_F 620p ; (+)in = VBIAS_ADC\\n"
+    "         inverting, gain -0.5, output = BIAS - 0.5 x SE\\n"
+    "  LEG P  SE{n} -- R_A %s -- SE{n}_H -- R_B %s -- GND      (passive /2, GROUND domain)\\n"
+    "         SE{n}_H -- C2 %s -> follower(+) ; R_BP %s to VBIAS_ADC\\n"
+    "         non-inverting, gain +0.5 of SE, output = BIAS + 0.5 x SE\\n"
+    "  AINnP - AINnN = SE exactly. UNITY DIFFERENTIAL GAIN, which is what 'unity' has to mean\\n"
+    "  here: %.3f Vrms single-ended in, %.3f Vrms differential at the ADC, %.1f %% of FS.\\n"
+    "  Each pin moves only +/-%.0f mV about %.2f V -- %.2f to %.2f V on a 5 V rail.\\n"
+    "\\n"
+    "THREE PLACEMENT CHOICES THAT ARE NOT ARBITRARY:\\n"
+    "  * R_B RETURNS TO GND, NOT TO AGND_REF. AGND_REF is the INA1650's REF SENSE node and\\n"
+    "    must carry no current -- that is the whole content of T1-67. The /2 divider carries\\n"
+    "    %.0f uA of audio per channel; putting that into AGND_REF would modulate the receiver's\\n"
+    "    own reference with its own output. Same rule as F36: a sense node is not a return.\\n"
+    "  * R_BP IS %s AND THAT IS THE POINT, NOT AN OVERSIZE. Anything returning to VBIAS_ADC\\n"
+    "    injects signal current into a node shared by all four channels, and VBIAS_ADC is a\\n"
+    "    DIVIDER -- its impedance at 20 Hz is only ~%.0f Ohm even with 10 uF on it. At %s the\\n"
+    "    four channels together draw %.2f uA, for ~%.0f dB of channel-to-channel crosstalk;\\n"
+    "    at 100k it would be %.0f dB, which is audible. AKM never meets this because BOTH\\n"
+    "    their legs are inverting and their Bias node feeds only high-impedance (+) inputs.\\n"
+    "    Our leg P is a follower, so the problem is ours and the fix has to be ours.\\n"
+    "  * THE TWO LEGS ARE PARALLEL, NOT CASCADED. Taking leg P as an inverter of leg N's\\n"
+    "    output is one part cheaper and wrong: leg N's distortion would then appear at BOTH\\n"
+    "    pins with opposite sign and DOUBLE differentially, where in parallel the two legs'\\n"
+    "    distortions are uncorrelated and add in quadrature (x1.41, not x2).\\n"
+    "\\n"
+    "SUPERSEDES F50's FIRST FIX. Driving INA1650 REF A/B to ~2.56 V was the original answer;\\n"
+    "it is single-ended drive by another name and falls to the same arithmetic. REF A/B stay\\n"
+    "on AGND_REF, and NOTE3's disposition of them stands unchanged."
+) % (BIAS_LO, BIAS_HI, BIAS_LO * AVDD, BIAS_HI * AVDD, WIN_HALFWIDTH * 1e3,
+     V_LINE * math.sqrt(2) / 2 * 1e3, (V_LINE * math.sqrt(2) / 2) / WIN_HALFWIDTH,
+     "100uF NP", rtxt(R_IN), rtxt(R_F), rtxt(R_A), rtxt(R_B), "22n film", rtxt(R_BP),
+     V_LINE, V_LINE, 100 * V_LINE / FS_RMS, V_LINE * math.sqrt(2) / 2 * 1e3, BIAS_V,
+     BIAS_V - V_LINE * math.sqrt(2) / 2, BIAS_V + V_LINE * math.sqrt(2) / 2,
+     V_LINE / 2 / R_B * 1e6, rtxt(R_BP), 1 / (2 * math.pi * 20 * 10e-6),
+     rtxt(R_BP), len(CH) * V_LINE / 2 / R_BP * 1e6,
+     20 * math.log10(len(CH) * (V_LINE / 2 / R_BP) * (1 / (2 * math.pi * 20 * 10e-6)) * NG_N / V_LINE),
+     20 * math.log10(len(CH) * (V_LINE / 2 / 100e3) * (1 / (2 * math.pi * 20 * 10e-6)) * NG_N / V_LINE))
+
+NOTE6 = (
+    "THE BIAS DIVIDER IS A RATIO SPEC, AND THE E96-PLUS-TOLERANCE CONVENTION WAS BUILT FOR\\n"
+    "ABSOLUTE ONES. So it is written here as the inequality it actually is.\\n"
+    "\\n"
+    "  %s / %s from +5V_A  ->  ratio = %.5f x AVDD = %.4f V, AKM's own value (T1-103)\\n"
+    "  Window %.3f..%.3f x AVDD, expressed RELATIVE to that nominal:  -%.2f %% / +%.2f %%\\n"
+    "  Worst-case ratio error from two independent +/-t parts = (1 - ratio) x 2t:\\n"
+    "     t = 1 %%    ->  +/-%.3f %%   clears by %.1fx   -- LEGAL, and this is the fallback\\n"
+    "     t = 0.1 %%  ->  +/-%.3f %%   clears by %.0fx   -- and F9 already puts 0.1 %% arrays\\n"
+    "                                                       on this sheet, so it may be free\\n"
+    "  RATIOMETRIC IS THE WHOLE POINT: a fixed 2.56 V reference lands at %.4f and %.4f x AVDD\\n"
+    "  against AVDD +/-2 %% -- OUTSIDE THE WINDOW AT BOTH ENDS before any error term joins.\\n"
+    "  Only a divider from AVDD itself tracks, which is why AKM drew one.\\n"
+    "\\n"
+    "STIFFNESS: 10 uF || 100 nF at the node, per AKM. T1-67 DOES NOT ENGAGE HERE and the\\n"
+    "reason is structural, not a judgement call -- VBIAS_ADC feeds op-amp (+) inputs, which\\n"
+    "are high-impedance, whereas T1-67's rule is about the INA1650's REF pin, which sits\\n"
+    "inside a resistor network that BELIEVES whatever it sees. Same board, same voltage,\\n"
+    "different pin class. The 10 uF is the reason R_BP had to be %s -- see NOTE5.\\n"
+    "\\n"
+    "TEMPERATURE: this is a RATIO, so the divider's absolute tempco cancels and only\\n"
+    "TRACKING matters -- the same argument NOTE2 makes for the attenuator, and the same\\n"
+    "reason an array beats two discretes over the -20..+70 degC decree."
+) % (rtxt(RB_TOP), rtxt(RB_BOT), BIAS_RATIO, BIAS_V, BIAS_LO, BIAS_HI,
+     100 * WIN_LO, 100 * WIN_HI,
+     100 * ratio_err(0.01), WIN_LO / ratio_err(0.01),
+     100 * ratio_err(0.001), WIN_LO / ratio_err(0.001),
+     2.56 / (AVDD * 1.02), 2.56 / (AVDD * 0.98), rtxt(R_BP))
+
+NOTE7 = (
+    "COUPLING CORNERS -- TWO OF THEM, DELIBERATELY MATCHED, AND SIZED BY THE COLD END.\\n"
+    "\\n"
+    "  LEG N   C1 100 uF non-polar into R_IN %s (a virtual earth, so the load is R_IN\\n"
+    "          exactly)                                   f_c = %.3f Hz\\n"
+    "  LEG P   C2 22 nF film into R_BP + (R_A||R_B) = %s  f_c = %.3f Hz\\n"
+    "\\n"
+    "MATCHING IS WHAT MATTERS, NOT THE ABSOLUTE VALUE. A corner mismatch between the legs\\n"
+    "converts signal to COMMON MODE, which the ADC rejects; it does not create a differential\\n"
+    "error. At 20 Hz the two legs sit at %.2f and %.2f degrees, a %.2f degree difference =\\n"
+    "%.2f %% CM conversion. That is why two wildly different capacitor TYPES are acceptable\\n"
+    "in the two legs, which would otherwise look like a defect.\\n"
+    "\\n"
+    "COLD IS THE SIZING AXIS, NOT DC BIAS. These capacitors see %.2f V and ~0 V respectively\\n"
+    "and no signal voltage worth naming above the corner, so the power sheet's DC-BIAS\\n"
+    "derating discipline does not bite here -- but the -20 degC decree does, and a non-polar\\n"
+    "aluminium part is where it bites. Stacking -25 %% cold on -20 %% tolerance:\\n"
+    "          C1 100 uF -> %.0f uF worst case  ->  f_c = %.2f Hz\\n"
+    "  At 20 Hz that is still only %.3f dB of amplitude and %.1f degrees of phase, and the\\n"
+    "  AK5574's own digital HPF (HPFE strapped on, pin 44) sits above it regardless.\\n"
+    "  SPECIFY C1 BY ITS LOW-TEMPERATURE IMPEDANCE RATIO, not just its capacitance -- that\\n"
+    "  is the parameter the -20 degC number comes from and it is the one that varies most\\n"
+    "  between otherwise identical-looking parts.\\n"
+    "\\n"
+    "GROUP DELAY: a 1st-order HPF at %.2f Hz has tau = %.2f ms at 20 Hz. Irrelevant in\\n"
+    "absolute terms; what would matter on a 12-channel crossover is CHANNEL-TO-CHANNEL\\n"
+    "mismatch, and all four channels take their corner from the same two part values, so\\n"
+    "+/-20 %% spread gives +/-%.0f us between channels -- three orders below the DSP's own\\n"
+    "delay resolution and far below any inter-channel effect."
+) % (rtxt(R_IN), FC_N, rtxt(R_BP + RA_PAR), FC_P,
+     hpf_phase(FC_N, 20), hpf_phase(FC_P, 20), abs(hpf_phase(FC_N, 20) - hpf_phase(FC_P, 20)),
+     100 * abs(math.radians(hpf_phase(FC_N, 20) - hpf_phase(FC_P, 20))),
+     BIAS_V, C1 * COLD_DERATE * 0.8 * 1e6, FC_N_COLD,
+     20 * math.log10(1 / math.sqrt(1 + (FC_N_COLD / 20) ** 2)), hpf_phase(FC_N_COLD, 20),
+     FC_N, 1e3 / (2 * math.pi * FC_N) / (1 + (20 / FC_N) ** 2),
+     1e6 * (1 / (2 * math.pi * FC_N * 1.2) - 1 / (2 * math.pi * FC_N * 0.8)) / (20 / FC_N) ** 2)
+
+NOTE8 = (
+    "THE AMPLIFIER IS AN F38 LINE (F52). Its PN is not pinned; its SELECTION GATE is, as\\n"
+    "three inequalities, so the moment a datasheet arrives the answer is arithmetic. The\\n"
+    "SOIC-8 dual pinout and land pattern are already committed -- every candidate uses them.\\n"
+    "\\n"
+    "GATE 1 -- NOISE, and it is the binding one.\\n"
+    "  What arrives here is already noisy: the INA1650 contributes %.1f nV/rtHz (%.2f uVrms\\n"
+    "  20 Hz-20 kHz, SBOS818B) and the attenuator's %.1f kOhm per-leg Thevenin adds %.1f,\\n"
+    "  for %.1f nV/rtHz and an SNR of %.1f dB at the receiver's output -- which is already\\n"
+    "  within a decibel of the AK5574's own %s, so neither dominates and the budget is tight.\\n"
+    "  This stage adds sqrt( N_res^2 + (NG_N^2 + 1) x en^2 ), N_res = %.2f nV/rtHz:\\n"
+    "     en = 3 nV/rtHz  ->  %.1f total  ->  +%.2f dB\\n"
+    "     en = 5          ->  %.1f        ->  +%.2f dB\\n"
+    "     en = 7          ->  %.1f        ->  +%.2f dB\\n"
+    "     en = 12         ->  %.1f        ->  +%.2f dB\\n"
+    "  REQUIRE en <= %.1f nV/rtHz at 1 kHz (2.0 dB); TARGET <= 5 (%.2f dB).\\n"
+    "  THE (NG_N^2 + 1) FACTOR IS THE COST OF GAIN 0.5 FROM A UNITY SOURCE: leg N's noise\\n"
+    "  gain is %.1f while its signal gain is 0.5. Nothing in the topology avoids it -- every\\n"
+    "  alternative tried (both legs from the /2 tap; cascaded inverters) is WORSE, at 5x and\\n"
+    "  13x en^2 against this arrangement's %.2fx.\\n"
+    "\\n"
+    "GATE 2 -- INPUT COMMON MODE, AND IT IS WHY THIS IS NOT AN OPA1656.\\n"
+    "  Leg P is a FOLLOWER, so its (+) input SWINGS: %.2f to %.2f V on a 5 V rail. The\\n"
+    "  OPA1656 already on this board specifies VCM only to (V+) - 2.25 V = %.2f V (SBOS901C)\\n"
+    "  -- it clears the BIAS point by %.0f mV and FAILS the positive signal peak by %.0f mV.\\n"
+    "  A part whose VCM stops 2.25 V below the rail cannot follow a mid-rail signal on 5 V.\\n"
+    "  That is the specific reason, with a number, behind 'not an OPA1656', and it is a\\n"
+    "  property of leg P alone -- leg N, whose inputs both sit at %.2f V, would be fine.\\n"
+    "  REQUIRE VCM to include %.2f V at V+ = 5 V, i.e. rail-to-rail or near-RRI input.\\n"
+    "  Output only needs %.2f..%.2f V, so RAIL-TO-RAIL OUTPUT IS *NOT* REQUIRED -- the\\n"
+    "  differential topology bought that back, and it widens the candidate set considerably.\\n"
+    "  Also REQUIRE CMOS/FET input: R_BP is %s, and a bipolar 1 nA input current would put\\n"
+    "  %.0f mV of offset on AINnP where a 10 pA CMOS part puts %.0f uV.\\n"
+    "\\n"
+    "GATE 3 -- QUIESCENT CURRENT, because this stage is a NEW LOAD ON +5V_A.\\n"
+    "  V-17 closed +5V_A at %.0f mA (converters only). Eight amplifiers land on top of it.\\n"
+    "  +6V2_A was identified at 186 mA against the 250 mA already assumed, so the headroom\\n"
+    "  is 64 mA and REQUIRE IQ <= %.1f mA per channel. Comfortable for anything in class,\\n"
+    "  but it is a rail number that changed and it is recorded rather than absorbed.\\n"
+    "\\n"
+    "GATE 4 -- STABILITY, AND THE 10 OHM IS LOAD-BEARING FOR THE AMPLIFIER.\\n"
+    "  AKM's 10 R + 100 pF is not only an antialias element: the 10 R is the ISOLATION\\n"
+    "  RESISTOR that makes 100 pF a survivable load, and leg P is a UNITY-GAIN FOLLOWER,\\n"
+    "  which is the least stable configuration a capacitive load can be presented to.\\n"
+    "  DO NOT 'IMPROVE' THIS FILTER BY DELETING THE 10 R OR MOVING THE 100 pF AHEAD OF IT.\\n"
+    "  REQUIRE unity-gain stable, specified into >= 100 pF behind 10 R.\\n"
+    "  The matched %.0f kHz poles (C_F across R_F, C_P across R_B -- equal because\\n"
+    "  R_A||R_B = R_F = %s) roll both legs off identically before the modulator's %.3f MHz\\n"
+    "  sampling rate, and they are the reason leg P needs no feedback network of its own."
+) % (INA_EN * 1e9, 1.56, RS_LEG / 1e3, math.sqrt(2) * eR(RS_LEG) * 1e9, FE_EN * 1e9, FE_SNR,
+     "112 dB S/(N+D)", N_RES * 1e9,
+     n_stage(3e-9) * 1e9, degr(3e-9), n_stage(5e-9) * 1e9, degr(5e-9),
+     n_stage(7e-9) * 1e9, degr(7e-9), n_stage(12e-9) * 1e9, degr(12e-9),
+     EN_GATE * 1e9, degr(5e-9), NG_N, NG_N ** 2 + 1,
+     BIAS_V - V_LINE * math.sqrt(2) / 2, BIAS_V + V_LINE * math.sqrt(2) / 2, AVDD - 2.25,
+     (AVDD - 2.25 - BIAS_V) * 1e3, (BIAS_V + V_LINE * math.sqrt(2) / 2 - (AVDD - 2.25)) * 1e3,
+     BIAS_V, BIAS_V + V_LINE * math.sqrt(2) / 2,
+     BIAS_V - V_LINE * math.sqrt(2) / 2, BIAS_V + V_LINE * math.sqrt(2) / 2,
+     rtxt(R_BP), 1e-9 * R_BP * 1e3, 10e-12 * R_BP * 1e6,
+     I_5VA * 1e3, IQ_GATE * 1e3, F_POLE / 1e3, rtxt(R_F), 48e3 * 128 / 1e6)
+
+NOTE9 = (
+    "F49's CLAMP INEQUALITY, REPEATED ON THE +5 V SIDE -- SAME FORM, DIFFERENT RAIL.\\n"
+    "\\n"
+    "WHAT CAN REACH A 5 V PART WITH MORE THAN 5 V: only the INA1650, and the fault is not\\n"
+    "hypothetical -- it is NOTE3's OWN documented failure. A coil or driver failure in a\\n"
+    "speaker-level install leaves %.1f Vrms at the receiver, which clips at its %.1f V rail,\\n"
+    "and that rail arrives through R_IN (leg N) and R_A (leg P) at pins on +5V_A.\\n"
+    "  BAV99 at each op-amp input, series R as the limiter:\\n"
+    "     leg N  (%.1f - %.1f - 0.7) / %s = %.2f mA        leg P  same through %s = %.2f mA\\n"
+    "     four channels, both legs:  I_inj = %.1f mA\\n"
+    "  LEGAL ONLY IF THE RAIL CAN ABSORB IT. +5V_A comes from an LT3045, which SOURCES but\\n"
+    "  CANNOT SINK, so the test is the rail's own quiescent load, not the diode's rating:\\n"
+    "     %.1f mA quiescent  vs  %.1f mA injected   ->  clears by %.1fx\\n"
+    "  This is on the sheet and not in a note file for exactly F49's reason: a future\\n"
+    "  low-power revision that sleeps the converters while the inputs stay hot breaks the\\n"
+    "  inequality SILENTLY, and nothing about the clamp itself would show it.\\n"
+    "\\n"
+    "NO CLAMP AT THE ADC PINS, AND THE REASON IS CONSTRUCTIONAL. AINnP/AINnN are driven only\\n"
+    "by op-amp outputs powered from +5V_A -- THE SAME NET that feeds the AK5574's AVDD and\\n"
+    "VREFH1/2. An output cannot exceed its own rail, and no sequencing skew exists between a\\n"
+    "rail and itself, so 'AVDD + 0.3 V' cannot be violated by any ordering of events. Adding\\n"
+    "clamps here would buy nothing and cost voltage-variable capacitance on the one node in\\n"
+    "the chain where the source impedance is 10 Ohm and the CCIF criterion is listening.\\n"
+    "IF THE LEVEL-SHIFT STAGE IS EVER MOVED TO ITS OWN RAIL, THIS PARAGRAPH BECOMES FALSE.\\n"
+    "\\n"
+    "LEG N's CLAMP SITS ON A VIRTUAL EARTH -- a node that carries no signal by definition --\\n"
+    "so its junction capacitance is not merely small, it is UNMODULATED. Leg P's does see\\n"
+    "signal, but from a %s source (R_A||R_B), where ~1 pF of variation is nothing at audio.\\n"
+    "Contrast NOTE4, where the input-side clamps had to be biased to +/-13V5_A to get the\\n"
+    "same property; here the topology hands it over for free on one leg and cheaply on the\\n"
+    "other. Same mechanism, same measurement, third instance on this board."
+) % (SPKR_MAX / (LINE_MAX / V_LINE), V_INA_RAIL, V_INA_RAIL, AVDD, rtxt(R_IN),
+     (V_INA_RAIL - AVDD - 0.7) / R_IN * 1e3, rtxt(R_A), (V_INA_RAIL - AVDD - 0.7) / R_A * 1e3,
+     I_INJ * 1e3, I_5VA * 1e3, I_INJ * 1e3, I_5VA / I_INJ, rtxt(RA_PAR))
+
+NOTE10 = (
+    "F38b -- THE DATE-CODE AXIS. THE THIRD THING AN F38 SWEEP HAS TO ASK.\\n"
+    "\\n"
+    "T1-104, from the same page as the circuit above: 'For products with Date Code XXXXHXX,\\n"
+    "AKM recommends Figure 76 as the revised circuit example... In case the original circuit\\n"
+    "example is used featuring input bias voltage of 2.5 V (Typ.), S/(N+D) performance will\\n"
+    "be degrade ~6 dB.' Same PN. Same package. Same vendor. Same datasheet. DIFFERENT CORRECT\\n"
+    "EXTERNAL CIRCUIT, selected by WHEN THE DIE WAS MADE -- and nothing on a BOM line carries\\n"
+    "a date code, so no purchasing control exists for it. The F38 sweep gains a third\\n"
+    "question after suffix (F37/F38) and manufacturer (F38a):\\n"
+    "     DOES THIS PART'S RECOMMENDED APPLICATION CIRCUIT DEPEND ON A DATE CODE OR SILICON\\n"
+    "     REVISION?\\n"
+    "\\n"
+    "THE DECISION HERE: commit to the revised network -- the %s / %s divider drawn above --\\n"
+    "and DO NOT fit a DNP position across the %s leg. A stuffing option would build for\\n"
+    "either revision, but it would also put an unpopulated pad on the one node whose whole\\n"
+    "job is to be a precise ratio, and it hedges against parts that stopped being made in\\n"
+    "October 2021. THE ASSUMPTION IS STATED SO IT IS CHECKABLE RATHER THAN SILENT: any\\n"
+    "currently-orderable AK5574EN long postdates the H revision.\\n"
+    "\\n"
+    "AND THE ASSUMPTION IS TESTED RATHER THAN TRUSTED (M3's pattern). Two lines carry it:\\n"
+    "  * RECEIVING -- date code verified >= H at first-article inspection (BRINGUP.md).\\n"
+    "  * ACCEPTANCE -- a 6 dB S/(N+D) miss is bench-visible and lands outside S12's own\\n"
+    "    THD+N line, so an ancient part is caught even if receiving misses it.\\n"
+    "The general form, for the ledger: A PART NUMBER NAMES A DESIGN, NOT A REVISION OF IT."
+) % (rtxt(RB_TOP), rtxt(RB_BOT), rtxt(RB_BOT))
+
+NOTES = [(650.0, 40.0, NOTE1), (650.0, 170.0, NOTE2),
+         (650.0, 330.0, NOTE3), (650.0, 500.0, NOTE4),
+         (650.0, 660.0, NOTE5), (650.0, 830.0, NOTE6),
+         (1050.0, 40.0, NOTE7), (1050.0, 200.0, NOTE8),
+         (1050.0, 480.0, NOTE9), (1050.0, 640.0, NOTE10)]
+
 body  = [place(*p) for p in PLACE]
-for i, (nx, ny, txt) in enumerate([(650.0, 40.0, NOTE1), (650.0, 170.0, NOTE2),
-                                   (650.0, 330.0, NOTE3), (650.0, 500.0, NOTE4)]):
+for i, (nx, ny, txt) in enumerate(NOTES):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')
+
+# ---------------------------------------------------------------- the page must CONTAIN the sheet
+# F53: every sheet on this project declared (paper "A3") -- 420 x 297 mm -- while its content ran
+# to a canvas several times that. Eeschema draws outside the frame quite happily, so nothing ever
+# looked wrong on screen; the PDF export CLIPS TO THE PAGE, so the exported schematic silently
+# dropped whole blocks and EVERY on-sheet note. The earlier proof "PDF renders 10 pages" tested
+# traversal and was read as if it tested content.
+# The fix is not a bigger constant -- it is that the page is DERIVED FROM THE CONTENT and asserted,
+# so a sheet can never again outgrow its paper without the build stopping.
+def note_extent(txt):
+    lines = txt.split("\\n")
+    return max(len(l) for l in lines) * 0.85, len(lines) * 1.9    # 1.27 mm font, measured
+_X = [lx for lx, _ in LABELS] + [p[2] for p in PLACE]
+_Y = [ly for _, ly in LABELS] + [p[3] for p in PLACE]
+for _nx, _ny, _t in NOTES:
+    _w, _h = note_extent(_t); _X.append(_nx + _w); _Y.append(_ny + _h)
+PAPER_W = math.ceil((max(_X) + 25) / 10) * 10
+PAPER_H = math.ceil((max(_Y) + 25) / 10) * 10
+assert PAPER_W <= 1200 and PAPER_H <= 1200, (
+    f"page {PAPER_W} x {PAPER_H} mm exceeds KiCad's user-page limit -- split the sheet")
+assert min(_X) >= 0 and min(_Y) >= 0, "content at negative coordinates falls off the page origin"
 
 sch = f'''(kicad_sch
 \t(version {VER})
 \t(generator "eeschema")
 \t(generator_version "10.0")
 \t(uuid "{SHEET_UUID}")
-\t(paper "A3")
+\t(paper "User" {PAPER_W:.1f} {PAPER_H:.1f})
 \t(title_block
 \t\t(title "ODSP-12 :: Analog in -- 4 differential, dual range, into AK5574")
 \t\t(date "2026-08-16")
@@ -447,6 +829,7 @@ open(DEST, "w", encoding="utf-8", newline="\n").write(sch)
 print(f"wrote {DEST}")
 print(f"  {len(PLACE)} device instances, all pins dispositioned")
 print(f"  {len(LABELS)} global labels, no collisions")
+print(f"  page {PAPER_W:.0f} x {PAPER_H:.0f} mm, derived from content and asserted (F53)")
 print(f"  gain plan: Rtop {rtxt(RTOP)} / Rbot {rtxt(RBOT)} / Rspk {rtxt(RSPK)}")
 print(f"    line    {LINE_MAX} Vrms -> {V_LINE:.4f} Vrms ({100*V_LINE/FS_RMS:.1f}% FS)")
 print(f"    speaker {SPKR_MAX} Vrms -> {V_SPKR:.4f} Vrms ({100*V_SPKR/FS_RMS:.1f}% FS)")
