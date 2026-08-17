@@ -27,6 +27,11 @@ reports/
 # count and SHA256 per part, which is enough to re-fetch and verify.
 /datasheets/
 
+# Claude Code machine-local settings. settings.json (shared, if it ever exists) is
+# tracked; settings.local.json is per-machine by convention -- permission allowlists
+# and the like, which are an operator's environment rather than the design.
+.claude/settings.local.json
+
 # Python bytecode from the generator scripts
 __pycache__/
 *.pyc
