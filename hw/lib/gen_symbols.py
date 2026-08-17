@@ -252,7 +252,7 @@ OPAMP_ADCDRV = [
 # pin numbers. These carry the FUNCTION so the netlist and the fail-safe walk are checkable;
 # the footprints and exact pin order land when the datasheets do.
 MUTE_SERIES = [                       # Form A photoMOS, energised-to-pass (S6.4 [HARD])
-    (1,"LED_A",I,1),(2,"LED_K",I,1),(3,"SW1",PA,1),(4,"SW2",PA,1),
+    (1,"ANODE",I,1),(2,"CATHODE",I,1),(3,"DRAIN1",PA,1),(4,"DRAIN2",PA,1),
 ]
 MUTE_SHUNT = [                        # depletion pair, back-to-back SOURCE-to-SOURCE
     (1,"G",I,1),(2,"D1",PA,1),(3,"D2",PA,1),
@@ -340,9 +340,9 @@ PARTS = {
         desc="Dual RRIO CMOS op-amp, 8.5 nV/rtHz at 1 kHz, ADC level-shift + SE-to-differential",
         ds="TI SBOS513F"),
     "MUTE_PHOTOMOS": dict(pins=MUTE_SERIES, n=4, ep=False, units=1,
-        value="PLACEHOLDER V-14", mfr="TBD", fp="ODSP12:TBD_V14",
-        desc="Form A photoMOS, energised-to-pass. PN PENDING V-14",
-        ds="V-14 -- NOT YET READ"),
+        value="TLP3475", mfr="Toshiba", fp="ODSP12:Toshiba_VSON4_11-2D1A",
+        desc="1-Form-A photorelay, 50 V off-state, Ron 1.5R max, Coff 20 pF max",
+        ds="Toshiba TLP3475 2023-05-24"),
     "MUTE_DEPFET": dict(pins=MUTE_SHUNT, n=3, ep=False, units=1,
         value="PLACEHOLDER V-15", mfr="TBD", fp="ODSP12:TBD_V15",
         desc="Depletion NMOS pair, back-to-back source-to-source. PN PENDING V-15",
