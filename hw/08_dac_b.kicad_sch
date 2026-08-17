@@ -968,7 +968,7 @@
 			)
 		)
 	)
-	(global_label "MCLK_DAC"
+	(global_label "MCLK_DAC_B"
 		(shape bidirectional)
 		(at 53.34 317.5 180)
 		(fields_autoplaced yes)

@@ -224,6 +224,16 @@ OPA1656 = [
     (8,"V+",P,3),(4,"V-",P,3),
 ]
 
+# 24.576 MHz LVCMOS oscillator -- the S3 [HARD] master clock. PN NOT PINNED (F56); the gate is
+# on 02_dsp. Same shape as OPAMP_ADCDRV: the FOOTPRINT is T1 while the part is not, because the
+# 4-pad LVCMOS oscillator pinout is an industry standard across every 2520/3225/5032 package --
+# 1 OE(/ST/NC), 2 GND, 3 OUT, 4 VDD. Pin 1 is typed INPUT rather than passive deliberately: on
+# an NC-variant it is harmless, on an OE or ST variant it is a control, and the sheet drives it
+# to a defined level either way rather than assuming which variant arrives.
+XO_LVCMOS = [
+    (1,"OE",I,1),(2,"GND",P,1),(3,"OUT",O,1),(4,"VDD",P,1),
+]
+
 # ADC input level-shift / single-ended-to-differential driver (F50 copper, F52 part).
 # PLACEHOLDER, but a DIFFERENT KIND of placeholder from the two below, and the difference is
 # worth stating: the FOOTPRINT here is T1 while the PN is not. Every candidate that clears
@@ -321,6 +331,10 @@ PARTS = {
         value="OPA1656IDR", mfr="Texas Instruments", fp="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
         desc="Dual JFET audio op-amp, 2.9 nV/rtHz, rail-to-rail out to 250 mV",
         ds="TI SBOS893"),
+    "XO_LVCMOS": dict(pins=XO_LVCMOS, n=4, ep=False, units=1,
+        value="PLACEHOLDER F56", mfr="TBD", fp="Oscillator:Oscillator_SMD_SeikoEpson_SG210_4pin_3.2x2.5mm",
+        desc="24.576 MHz LVCMOS XO, 3.3 V -- the S3 [HARD] master clock",
+        ds="F56 -- gate on 02_dsp: duty 25-75 %, phase noise, +/-ppm over -20..+70 degC"),
     "OPAMP_ADCDRV": dict(pins=OPAMP_ADCDRV, n=8, ep=False, units=3,
         value="PLACEHOLDER F52", mfr="TBD", fp="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
         desc="Dual single-supply op-amp, ADC level-shift + single-ended-to-differential",

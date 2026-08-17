@@ -178,7 +178,9 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
         "21": "+5V_A", "20": GND, "27": "+5V_A", "26": GND,
         "34": "+5V_A", "35": GND, "40": "+5V_A", "41": GND,
         "31": "+5V_A", "30": GND,
-        "1": "MCLK_DAC", "2": port + "_BCLK", "3": port + "_LRCLK",
+        # S3 [HARD]: one fanout output per converter. Both AK4458s shared one MCLK net until
+        # the clock tree was drawn -- see 02_dsp CLKNOTE1.
+        "1": f"MCLK_DAC_{chr(64 + dev_idx)}", "2": port + "_BCLK", "3": port + "_LRCLK",
         "4": port + "_DATA", "5": GND, "6": GND, "7": GND,     # SDTI2-4 unused -> DVSS (T1-52)
         "8": GND, "9": GND, "10": GND,                          # DSDR3/DSDL4/DSDR4 -> DVSS
         "11": NC,                                               # DZF must be OPEN (T1-52)
