@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.6 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.7 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -84,6 +84,14 @@ protects. Capture begins.
 | F26 | **AK4118A and WM8804 deleted.** S/PDIF RX *and* TX are integrated in the ADAU1466. SDATA_IN2 and SDATA_OUT2 return to spare; I2C address 0x13 returns to the pool; coax front end reduces to termination + transformer + AC coupling into pin 4. Rationale recorded in §2 so it is not relitigated | §2, §3, §4, §5, §8, §12 |
 | F25 | **≥ 4 layers decreed** — the exposed pad requires "a dedicated copper ground layer *within* the PCB", so there is no compliant 2-layer build. A **floor, not a ceiling**; 6 stays live pending routing | §6.3 / Block E |
 | F27 | **TMP461-class replaces TMP102**, remote channel to the DSP's thermal diode on pins 63/64 | §5, §9 |
+
+**v1.7 - 2026-08-16.** V-04, V-06 closed; §7.2 gains a precondition satisfied by construction.
+
+| Finding | Change | Section |
+|---|---|---|
+| V-04 | ADC side closed: **MCLK = 512fs** (DCKS low), so 24.576 MHz is exactly 512fs at 48 kHz on both converter families. **§7.2 gains step 5a-pre**: MCLK must be running before `PDN` release — satisfied by rail ordering, verified at bring-up | §7.2 |
+| V-06 | OPA1656 swing **(V−)+0.25 … (V+)−0.25** → ±13.25 V vs the 6.36 V peak 4.5 V<sub>rms</sub> needs: **6.4 dB**, quoted at a *harder* load than §12's. The [HARD] output level is now derivation end-to-end | §6.2, §12 |
+| F50/F51 | ADC input bias must be **ratiometric, 0.512 × AVDD** — a fixed reference fails against AVDD tolerance at both ends. And the correct network **depends on the part's date code** | §6.1 |
 
 **v1.6 - 2026-08-16.** V-17 closed; F46 decreed — a rail deleted.
 
@@ -643,6 +651,18 @@ switcher.**
     or its supply is broken, and no amount of retried writes repairs that.
 4. ESP32 slave-boots the program over SPI, verifies readback
 5. **Converter config phase, reordered so the wait costs nothing** *(v1.0, F30)*:
+   - **5a-pre.** **MCLK MUST ALREADY BE RUNNING** *(v1.7, V-04)*. The AK5574's datasheet:
+     *"After exiting reset (PDN pin L→H) upon power-up, the AK5574 is in power-down state
+     **until MCLK is input**."* **Fourth member of the F20/F30 family** — a [HARD] sequence step
+     whose precondition was not written down.
+     **SATISFIED BY CONSTRUCTION, NOT BY A STEP.** The clock tree runs from +3V3_CLK off
+     +6V2_A, which is up before the MCU finishes booting, and the fanout's `1G` straps high per
+     its F21 disposition — so **the clocks free-run from analog-rails-up and no firmware
+     ordering can get this wrong.** A step that *can* be misordered was deliberately not
+     created. **Verify at bring-up** rather than sequence it: `BRINGUP.md` checks MCLK at the
+     ADC pin before the first PDN release.
+     *What would break it:* gating the fanout from an MCU GPIO — see the clock sheet, where
+     that proposal will arrive.
    - **5a.** Release the AK5574 `PDN` **first, at the top of the phase.**
    - **5b.** **Hold the entire I2C0 bus quiet for ≥12.5 ms** — the max of the AK5574's 10 ms
      register-write lockout and its 583/fs ≈ 12.1 ms initialisation at 48 kHz.

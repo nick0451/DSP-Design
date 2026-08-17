@@ -46,7 +46,7 @@ Retrieved 2026-08-15.
 | **AP2127** LDO | `AP2127_Diodes.pdf` | 24 | `D48C96AC985D348A` | diodes.com — **closes V-23 and F36** |
 | **USBLC6-2** ESD array | `usblc6-2.pdf` | 20 | `BC30154F310CD631` | st.com Doc ID 11265 — operator-supplied. **Closes V-30** |
 
-All twenty-four are manufacturer-published documents, not aggregator copies — but note the last
+All twenty-seven are manufacturer-published documents, not aggregator copies — but note the last
 row is an **EDN article reprinted by Vishay**, which is context, not a specification, and must not
 be cited as one.
 

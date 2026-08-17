@@ -14,32 +14,43 @@ Last updated: 2026-08-15
 
 ### RESUME HERE — read order after a context compaction
 
-Everything needed to continue is **in the repo**; nothing load-bearing lives only in conversation.
-Read in this order, then act:
+Everything needed is **in the repo**; nothing load-bearing lives only in conversation.
 
 | # | File | What it gives you |
 |---|---|---|
-| 1 | `CLAUDE.md` | The constitution. §0 UNSET rule, §4 channel policy, §5 evidence tiers, §8 working rules. **Non-negotiable.** |
-| 2 | **`STATE.md` §0** (this section) | Current position, next action, session boundary |
-| 3 | `STATE.md` §5 | **The ledger — read the method rules M1–M7a before doing any datasheet or file work.** They are why the mistakes below were caught |
-| 4 | `REQUIREMENTS.md` **v1.2** | The authority. Cite by section **and** version |
-| 5 | `hw/README.md` | Mechanical how-to: tool paths, build/verify commands, KiCad-10 format traps |
-| 6 | `STATE.md` §7 / §8 / §9 | Findings register, [VERIFY] checklist, I2C bus map |
-| 7 | `BRINGUP.md` | Sequence findings as bench checklist lines |
-| 8 | `DATASHEETS.md` | 15 datasheets held locally in `datasheets/` (untracked); this is the register |
+| 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules |
+| 2 | **`STATE.md` §0** (here) | Position, next action, session boundary |
+| 3 | `STATE.md` §5 | **The ledger. Read M1–M17 before any datasheet or file work** |
+| 4 | `REQUIREMENTS.md` **v1.7** | The authority. Cite by section **and** version |
+| 5 | `hw/README.md` | Tool paths, build/verify commands, KiCad-10 format traps |
+| 6 | `STATE.md` §7 / §8 / §9 | Findings (F1–F51), [VERIFY] (V-01…V-30), I2C bus map |
+| 7 | `BRINGUP.md` | Bench checklist — §4 is this session's additions |
+| 8 | `DATASHEETS.md` | 27 documents held in `datasheets/` (untracked); this is the register |
 
-**Git is the memory of record — 21 commits, working tree clean.** Commit messages carry the
-reasoning, not just the change; `git log` is a usable narrative of why things are as they are.
+**Git is the memory of record.** Commit messages carry the *reasoning*; `git log` is a usable
+narrative of why things are as they are.
 
-**Three habits that account for most of what went right**, all now in the ledger:
-1. **Read datasheets by rendering the page** (`pdftoppm`), not by text extraction. Text extraction
-   produced three wrong T1 facts here (T1-25, T1-28, and a permuted pin map).
-2. **Verify the artefact, not the receipt.** ERC on an empty sheet is clean; a 200 response can be
-   the wrong PDF. Check the netlist, the page content, the pin map.
-3. **Run the recorded constraints against the artefact.** The `RT` error was caught because a
-   *consequence* contradicted a written requirement — not by re-deriving anything (M7).
+**THE FIVE HABITS that account for almost everything this session caught.** Every one of them
+found a real defect in committed work:
 
+1. **Render the datasheet page; never trust extracted text.** Figure-level reads produced T1-71
+   (the PSRR notch), T1-103 (AKM's bias divider) and every pin map. Text extraction produced
+   three *wrong* T1 facts earlier in the project.
+2. **Verify the artefact, not the receipt.** ERC on an empty sheet is clean; a 200 response can
+   be the wrong PDF; `file` said 10 pages where `pdfinfo` said 51. **Check the netlist.**
+3. **Run the recorded constraints against the artefact.** The `RT` error, the ILIM error and the
+   4.479 V<sub>rms</sub> gain miss were all caught by a *consequence* contradicting a written
+   requirement — never by re-deriving anything.
+4. **Criteria before the block.** The operator publishes acceptance criteria *before* the work
+   starts. Three times this session they caught committed or staged work (F40's ILIM, F41's
+   collision, F48's abs-max). It works because the criteria arrive before the momentum does.
+5. **Stop before a block, never partway through.** Used three times, correctly each time.
 
+**Closing rituals — run BOTH at every sheet close:**
+- **M6a:** one end-to-end walk of every control/I2C net, driver to receiver. *Coverage assertions
+  see omission; only a trace sees misassignment.* (Caught the PCF8574 SDA/INT swap.)
+- **M17:** hierarchy-wide refdes audit. *Generated sheets bypass the annotator.* (Caught `Q1`
+  being both the SEPIC FET and a mute shunt — which would have detonated at assembly.)
 
 **Phase:** **Capture begun** (2026-08-15). Architecture specified at `REQUIREMENTS.md` v0.7,
 governance closed, tooling verified. Mechanical and fabrication still unspecified — layout remains
@@ -283,6 +294,83 @@ F15 (MCLK/LRCK phase coherence) · **F37** (pin the SS-enabled LM61460 PN) ·
 **Gates:** G0-S closed except datasheet residue · **G1b unmet and unclaimed** (ERC 80) ·
 G0-L still blocked on Blocks D/E (mechanical + fab), which remain the largest unknown on the
 project — **layer count has a floor of 4 (F25) but no outline, no stackup, no fab house.**
+
+### Session boundary — deliberate, 2026-08-16 (fourth). READ THIS FIRST.
+
+**ALL TEN SHEETS ARE DRAWN. ERC = 41 and the number is ABSOLUTE** — no violation waits on an
+undrawn counterpart. Nothing is half-wired; every stop this session was taken *before* a block.
+
+**THE NEXT ACTION, unambiguous and in this order:**
+
+**(1) Draw F50's copper** — the ADC input level-shift stage. The *disposition is closed*
+(T1-103, AKM Figure 76) and only the copper is missing. What it is:
+   - AC-couple the INA1650 output into a **single-supply +5V_A stage** whose non-inverting input
+     sits on a **ratiometric bias: 10 kΩ / 10.5 kΩ from AVDD = 0.51220 × AVDD**, decoupled
+     10 µF ∥ 0.1 µF. **Unbuffered is correct** — it feeds an op-amp input, so T1-67 never engages.
+   - **Unity gain**, not AKM's −14.5 dB: our 0.94 V<sub>rms</sub> is already at level.
+   - **Not an OPA1656.** Single-supply CMOS — OPA2320 / TLV9002 class, sized for the job.
+   - ADC pins take AKM's own network: **10 Ω series + 100 pF to ground each, 15 nF differential**
+     (film for the 15 nF and 1 nF per the figure's footnote).
+   - **F49's clamp inequality repeats on the ADC side** — abs max is AVDD + 0.3 V, and a clamped
+     INA input at unity still sends ±13 V toward it. Series R + clamp, inequality on-sheet.
+   - **F51 decision due here:** DNP position across the 10.5 kΩ leg so the board builds for
+     either date-code revision.
+
+**(2) Then the clock tree** — criteria below, all seven.
+
+**(3) Then sweep the ERC punch list** — three tiers, in this order:
+   - **Design work:** `U13_COMP` (SEPIC compensation network is not drawn), the four `MON_*`
+     rail-monitor dividers (§9 requires them).
+   - **Transcription:** `CLKOUT_DSP` termination.
+   - **F28 dispositions only:** the four unused TDM ports, `U6/U8/U9_PG` (PG is disabled by the
+     PGFB→OUT disposition — these should become explicit no-connects), `TP_SPDIF_TX`,
+     `TEMP_THERM_N`, `SIGNAL_SENSE`, `DSP_SELFBOOT`, `PLLFILT`.
+
+**G1b is NOT claimable and no date is named.** F50 is design work, the clock tree is absent, and
+41 is a punch list, not zero. **G0-S is otherwise closed.** **G0-L is untouched — Blocks D and E
+remain the largest unknown on the project: no outline, no stackup, no fab house.** Layer count
+still has only its floor of 4 (F25), and Block E has gained three thermal claims (the SM8S pad,
+the SEPIC magnetics, the 1466's via array) plus one *electrical* one — §12's load-dump table is
+conditional on the TVS land pattern being honoured.
+
+**What this session did:** F39 decreed and drawn (±13V5_A), then sheets 01, 03, 04, 05, 06, 07,
+08, 09 drawn. **Twelve findings raised (F40–F51), ten [VERIFY]s closed** (V-03, V-04, V-06, V-17,
+V-23, V-26, V-27 bounded, V-28, V-29 by analysis, V-30). **Nine ledger rules added (M9–M17).**
+REQUIREMENTS v1.2 → **v1.7**. Library 7 → **16 symbols**. Datasheets 15 → **27**.
+
+**The corrections that mattered most, so they are not re-made:**
+- **F40** — every LT3045 was programmed to a **7.5 mA** current limit. All five analog rails
+  would have collapsed.
+- **F41** — the testpoint grid silently **shorted three net pairs**; every assertion passed.
+- **F48** — the relay fail-direction trade violated the INA1650's **abs-max by 5 V**.
+- **F50** — the ADC bias was **2.51 V outside its window**; a fixed reference cannot fix it.
+- **Testpoints were labels, not components** — they would never have reached copper.
+- **Both AK4458s answered at 0x11**, found by re-emitting §9 as a gate.
+
+### Clock tree — criteria published 2026-08-16, block NOT started
+
+The [HARD] §3 section with the most downstream consequence and the least copper. **Criteria, so
+they survive the compaction:**
+
+1. **XO PN pinned with the jitter spec that justified §3** — the "CCHD-575 class" placeholder
+   becomes an orderable line with phase-noise/jitter numbers stated, **output format and level
+   verified against the ADAU1466's MCLK input requirements** (the last unread corner of V-01's
+   document), F38 one-line why attached.
+2. **The `1G` pull-up is DRAWN, not just dispositioned** — T1-68's "floating disables the whole
+   fanout and no MCLK reaches any converter" lands as a **fitted resistor** with its idle level
+   on-sheet (F21).
+3. **Source termination at every fanout output** — series R at the driver per the LMK1C1104's
+   guidance, values stated, **length-matching and impedance handed to Block E as a routing
+   input** rather than left implicit.
+4. **`+3V3_CLK` arrives with its reason** — one-line cross-reference to F33, per the convention
+   set when the rail was decreed.
+5. **V-04's ADC side is CLOSED** (T1-103/T1-104) — 512fs confirmed, so this criterion is already
+   satisfied; the read that closed it also produced F50 and F51.
+6. **No spread-spectrum touches this sheet — restated in copper**, because that is where a future
+   EMI fix would be proposed (M15's placement logic).
+7. **NEW, inherited from V-04:** the tree's **rails-up-before-PDN** property gets stated on the
+   clock sheet itself, since that sheet is where a future *"gate the fanout from the MCU for
+   power savings"* proposal would arrive — and that proposal would break §7.2's precondition.
 
 ### Session boundary — deliberate, 2026-08-16 (third): stopped BEFORE 06_analog_in
 
@@ -1263,6 +1351,8 @@ input rails unspecified; +5V_A cannot come from +5V_D).
 
 | ID | Sev | Finding | Proposed disposition |
 |---|---|---|---|
+| **F51** | ⛔ | **NEW — F38's THIRD axis: the correct external circuit can depend on WHEN THE PART WAS MADE.** T1-104: the AK5574's recommended input network changed at **date code XXXXHXX (October 2021)**; the older 2.5 V bias costs **~6 dB of S/(N+D)**. Same PN, same package, same vendor, same datasheet — **different recommended circuit, and nothing on a BOM carries a date code.** | **Add to the F38 sweep as a third question**, after suffix (F37/F38) and manufacturer (F38a): *does this part's recommended application circuit depend on a date code or silicon revision?* **Practical mitigation:** the 10 k/10.5 k divider is correct for post-2021 parts and the 10.5 k leg is the only difference, so a **DNP position across it** makes the board buildable either way — the stuffing-flexibility convention applied to a *vendor revision* rather than a feature. Decide at F50's drawing |
+| **V-14/V-15 candidates** | ▫ | **Operator-supplied part data, 2026-08-16 — T2, not yet read from datasheets.** **Series (V-14): TLP3475**, Form A photoMOS, **50 V blocking — NOT 60 V**; the 60 was folklore and is retracted (M10-adjacent: *a wrong number that errs safe is still wrong*). 50 V is comically sufficient for ±6.4 V audio. **The R-variant carries a built-in input resistor — check the table; if its value suits the LED drive it deletes a BOM line.** **Shunt (V-15), and they bracket the window from opposite sides:** **DN2540** — 400 V, V<sub>GS(off)</sub> −1.5…−3.5 V, R<sub>ds(on)</sub> 17 typ / 25 max Ω, I<sub>DSS</sub> ≥ 150 mA, C<sub>oss</sub> 12 typ / 30 max pF, C<sub>rss</sub> 1/5 pF, **SOT-89 (DN2540N8-G)**. **LND150** — 500 V, R<sub>ds</sub> max 1 kΩ, 30 mA, SOT-89. | **Neither lands inside the 100–500 Ω window, and that is fine — the window was a placeholder for V-16's real question.** At 20 kHz even 10 pF of series C<sub>off</sub> is ~800 kΩ, so **either R<sub>on</sub> buries the leakage by 55+ dB**. The actual trade: **DN2540 buys ~40× deeper mute at the cost of 12–30 pF of nonlinear C<sub>oss</sub> across the output in the PASS state; LND150 loads the signal less and mutes less deeply.** **Lean: DN2540 pair** — back-to-back halves the effective C<sub>oss</sub>, and ~10 pF behind a 10 Ω build-out is nothing to the 19+20 kHz pair — **but V-16's stack decides, not the lean.** Gate bias from the −13V5_A divider clears V<sub>GS(off)</sub> max by **4×**, inside ±20 V abs max; **both inequalities on-sheet** |
 | **F50** | ✅ | **CLOSED — and the answer is neither Shape A nor Shape B, it is AKM's own hybrid (T1-103).** **The ratiometric decree is confirmed by the vendor's own arithmetic:** Figure 76's bias divider is **10 kΩ / 10.5 kΩ = 0.51220 × AVDD**, dead centre of the window. **A fixed 2.56 V reference fails**: against AVDD ±2 % it lands at 0.5224 and 0.5020 × AVDD — **outside the window at BOTH ends, with nothing left for divider, offset or drift.** The window is ±1 % on a *ratio*, so only a ratiometric source can hold it. | **The shape AKM uses:** AC coupling sits **between the ±15 V buffer and a single-supply +5 V level-shifting stage**, not at the ADC pins — so the ADC is **DC-driven** from that stage (Shape A's property where it matters) while the DC break happens upstream (Shape B's element where it is cheap). Our INA1650 plays the first-stage buffer; what is missing is AKM's **second stage**, at unity rather than their −14.5 dB, since our 0.94 V<sub>rms</sub> is already at level. **The bias divider stays UNBUFFERED** — it feeds an op-amp non-inverting input, so T1-67's low-impedance rule never engages; stiffness comes from 10 µF ∥ 0.1 µF. **Riders carried:** the new stage is a single-supply CMOS part (OPA2320 / TLV9002 class), **not** an OPA1656; and the ADC pins get AKM's own 10 Ω + 100 pF + 15 nF differential network, which is also where F49's clamp inequality repeats on the ADC side |
 | **F50** | ⛔ | **NEW, and it invalidates part of `06_analog_in` — the ADC's input bias window and the INA1650's output common mode do not meet.** AK5574: *"Set the DC bias voltage in a range from 0.502 × AVDD to 0.522 × AVDD for optimal characteristics"* → **2.510–2.610 V** at AVDD 5 V. As drawn, the INA1650's `REF A/B` tie to `AGND_REF`, so its output common mode is **0 V** — the ADC inputs sit **2.51 V below their specified window**, and the negative half of every waveform swings **below AVSS**. This is not a margin question; it is the wrong operating point. | **The fix is at the REF pins, not at the ADC.** Drive `REF A/B` from a **buffered ~2.56 V** and the INA1650's output common mode lands in the window by construction. **Note what is NOT the fix:** a divider on REF. T1-67 is explicit — REF *"must be driven from a low impedance"* — and F36 drew the distinction the hard way: **FB is inside a loop that regulates it; REF believes whatever it sees.** A divider here would be the REF-pin rule violated at one remove, which is exactly the shape the operator predicted. **Also not `VMID_OUT`**: the INA1650's buffered mid-rail is the mid-point of *its own* ±13V5_A supply, i.e. 0 V — the right pin for the wrong voltage. **Needs a buffer from +5V_A**, and every OPA1656 unit on the DAC sheets is already spoken for, so this is a new part |
 | **V-04** | ✅ | **CLOSED — ADC side, from the same read.** **MCLK = 512fs** (DCKS pin low, the default) for fs = 32/44.1/48 kHz, so the 24.576 MHz XO is exactly 512fs at 48 kHz and matches the DAC side (T1-26). **Plus a sequencing fact that belongs in BRINGUP.md:** *"After exiting reset (PDN pin L→H) upon power-up, the AK5574 is in power-down state **until MCLK is input**."* **The clock tree must be running before §7.2 step 5a releases PDN** — a fourth member of the F20/F30 family, where a [HARD] sequence step omits a device's readiness precondition | — |

@@ -99,9 +99,51 @@ to the wrong ASRC slot polls perfectly while delivering silence.
 
 ---
 
-## 4. Open items that will land here
+## 4. Checks added 2026-08-16, from the schematic-capture session
 
-- `+3V6_BT` LDO sizing once the BM83's real peak current is read *(F31 [VERIFY] a)*.
-- Confirmation that `BAT_IN` may be supplied directly with no battery *(F31 [VERIFY] b)* —
-  **if the datasheet requires the charger path for battery-less designs, this escalates.**
-- V-16 disorderly-shutdown transient measurement, which anchors the mute-depth requirement.
+**Before the first `PDN` release — MCLK must already be running** *(V-04, §7.2 step 5a-pre)*.
+Scope MCLK **at the ADC pin**, not at the buffer output. The AK5574 stays in power-down until
+MCLK is input, so a dead clock tree presents as "the ADC never responds on I2C" — which reads
+like a bus fault and is not one. **This is satisfied by rail ordering, so the check is a
+verification, not a sequencing step**; if it ever fails, the cause is upstream of firmware.
+
+**Rail testpoints TP1–TP13** carry their §7.1 names on silk. One namespace across silk, schematic
+and this file, so bring-up is a multimeter walking a checklist. *(They are real components now —
+they were bare labels until ERC caught it, and a label has no footprint.)*
+
+**The `I2C_ALERT_N` wire-OR** carries TMP461 `ALERT` and PCF8574 `INT`. A low line means *"go read
+I2C"* and does not say which device — read both. **`RAILMON_ALERT` is deliberately separate**: a
+rail fault is the urgent one and must not need a bus transaction to identify, because the bus may
+be what is failing.
+
+**I2C address sweep at first power** — expect exactly **0x10, 0x11, 0x12, 0x20, 0x48, 0x49**.
+Anything else, or a missing 0x12, means the AK4458 address straps are wrong. *(0x12 was a real
+collision found by re-emitting the §9 map; both DACs answered at 0x11.)*
+
+**+5V_A is now the fourth monitored rail** *(F46)*, replacing the deleted +3V3_A. It feeds all
+three converters' `AVDD` directly, so it explains more field symptoms than any other single
+analog voltage.
+
+**Mute walk, with the rails deliberately collapsed** — not an orderly shutdown:
+1. Kill +5V_D only → the photoMOS LED dies → **series opens**. Verify the path is broken.
+2. Kill −13V5_A only → gate bias dies → **shunt closes**. Verify the residual is shorted.
+3. Neither step involves the MCU. If either needs firmware, the topology was built wrong.
+
+**CCIF twin-tone (19 + 20 kHz) is the acceptance test that SEES the mute shunt's off-capacitance
+and the input ESD clamps' nonlinearity** — both 1 kHz and 20 kHz THD are blind to them. Two
+independent mechanisms, one measurement.
+
+---
+
+## 5. Open items that will land here
+
+- V-16 disorderly-shutdown transient measurement, which anchors the mute-depth requirement **and
+  picks between the DN2540 and LND150 shunt candidates** — the stack is DAC residual × series-open
+  isolation × shunt divider × amp mute latency, judged against the CCIF distortion budget.
+- V-27: the LM5156-Q1 / LM61460-Q1 **pulse-skip onset current and its repetition rate**. Neither
+  datasheet states it. Bounded by analysis, not closed — the analog rails idle near 50 mA against
+  a 200 mA budget, i.e. permanently at ~25 % load.
+- **V-29's multi-pulse load dump was closed BY ANALYSIS**, using §12's own escape clause. If a
+  chamber test ever happens, this is the line it validates.
+- ~~`+3V6_BT` sizing~~ and ~~`BAT_IN` without a battery~~ — **both closed** (F31): 59 mA worst
+  case against a 300 mA LDO, and the datasheet blesses any host rail as the source.
