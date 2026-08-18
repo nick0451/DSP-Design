@@ -4,7 +4,7 @@
 # PG->EN divider with its arithmetic, and a testpoint per rail. Passive networks (inductors,
 # bulk/bypass caps, feedback dividers) are the NEXT pass -- same convention the DSP sheet
 # follows. Feedback pins carry a named net rather than a no-connect so nothing is undispositioned.
-import os, re, uuid
+import math, os, re, uuid
 
 HW = os.path.dirname(os.path.abspath(__file__))
 DEST = os.path.join(HW, "01_power.kicad_sch")
@@ -751,22 +751,58 @@ for _i, _r in enumerate(TESTPOINTS):
 
 body = [place(*p) for p in PLACE]
 # Testpoints live in their own column clear of every device row, not tucked between them.
+NOTE8 = (
+    "+5V_A MUST STAY LINEARLY REGULATED -- AND THE REASON LIVES ON THE DAC SHEET, WHICH IS\n"
+    "WHY IT IS WRITTEN HERE, WHERE THE PROPOSAL TO CHANGE IT WILL ARRIVE (M15).\n"
+    "\n"
+    "  U6 (LT3045) supplies +5V_A, which is AVDD/VREF for BOTH AK4458s. AKM p.50, verbatim:\n"
+    "    'This FIR filter attenuates out of band noise and may reduce degradation of the\n"
+    "     analog characteristics caused by a switching regulator, etc. BEST PERFORMANCE\n"
+    "     SHOULD BE ACHIEVED BY CLEAN LINEAR REGULATED AVDD/VREF POWER SUPPLIES AND THE\n"
+    "     DEFAULT SETTING OF THE FIR2-0 BITS. THESE CONDITIONS ARE INCLUDED IN THE ANALOG\n"
+    "     CHARACTERISTICS SPECS.'\n"
+    "\n"
+    "  SO THE DACs' 115 dB IS SPECIFIED UNDER TWO CONDITIONS AT ONCE: a linear AVDD/VREF\n"
+    "  AND FIR2-0 = 000 (its default, 0CH). We satisfy both -- but only the FIRST is\n"
+    "  visible on this sheet, and the second is a register nobody is looking at.\n"
+    "\n"
+    "  THE HAZARD IS AN ENTIRELY ORDINARY COST SUGGESTION: 'replace U6 with a buck'.\n"
+    "  That is cheaper and more efficient, and it INVALIDATES THE CONDITION UNDER WHICH\n"
+    "  THE 115 dB WE BUDGET AGAINST IS SPECIFIED -- and it turns FIR2-0 from a defaulted\n"
+    "  register into a live decision on a different sheet. AKM's non-default FIR settings\n"
+    "  exist precisely to buy performance back WHEN THE RAIL IS A SWITCHER.\n"
+    "\n"
+    "  IF U6 EVER BECOMES A SWITCHER: FIR2-0 must be re-evaluated against Table 20 and the\n"
+    "  S12 acceptance numbers re-derived. DO NOT TREAT THAT AS AN EFFICIENCY EDIT.\n"
+    "  (Adversary 026. Same shape as the F52 charge-pump note and the CLKOUT note -- the\n"
+    "   number is written where the PROPOSAL lands, not where the part lives.)\n"
+)
+
 # The previous layout interleaved them with the passive rows, which is what made the
 # collision above possible in the first place.
 for i, (nx, ny, txt) in enumerate([(150.0, 200.0, NOTE), (150.0, 250.0, NOTE2),
                                    (560.0, 560.0, NOTE3), (560.0, 700.0, NOTE4),
                                    (560.0, 760.0, NOTE5), (40.0, 820.0, NOTE6),
-                                   (560.0, 900.0, NOTE7)]):
+                                   (560.0, 900.0, NOTE7), (40.0, 1010.0, NOTE8)]):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')
+
+# F53: page DERIVED from content extent and ASSERTED, never declared. This sheet carried
+# (paper "A3") = 420x297 mm while content ran past y = 1000 mm, so every note below the fold
+# was clipped out of the PDF export -- invisibly. A count is a receipt; open the page.
+_XY = [(float(t.split('(at ')[1].split()[0]), float(t.split('(at ')[1].split()[1]))
+       for t in body if '(at ' in t]
+PAPER_W = math.ceil((max(x for x, _ in _XY) + 60) / 10) * 10
+PAPER_H = math.ceil((max(y for _, y in _XY) + 60) / 10) * 10
+assert PAPER_W <= 1200 and PAPER_H <= 1200, f"page {PAPER_W}x{PAPER_H} exceeds KiCad limits"
 
 sch = f'''(kicad_sch
 \t(version {VER})
 \t(generator "eeschema")
 \t(generator_version "10.0")
 \t(uuid "{SHEET_UUID}")
-\t(paper "A3")
+\t(paper "User" {PAPER_W} {PAPER_H})
 \t(title_block
 \t\t(title "ODSP-12 :: Power and Sequencing")
 \t\t(date "2026-08-16")

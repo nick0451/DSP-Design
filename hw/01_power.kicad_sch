@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "30f627ad-a9e9-5437-aad8-0725e0ebaa00")
-	(paper "A3")
+	(paper "User" 760 1070)
 	(title_block
 		(title "ODSP-12 :: Power and Sequencing")
 		(date "2026-08-16")
@@ -9298,6 +9298,36 @@ where a number is load-bearing the EFFECTIVE value is what the calculation uses.
 		(at 560.07 900.4300000000001 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "d8f36cfc-a118-571f-b47c-d26c521c28c9")
+	)
+	(text "+5V_A MUST STAY LINEARLY REGULATED -- AND THE REASON LIVES ON THE DAC SHEET, WHICH IS
+WHY IT IS WRITTEN HERE, WHERE THE PROPOSAL TO CHANGE IT WILL ARRIVE (M15).
+
+  U6 (LT3045) supplies +5V_A, which is AVDD/VREF for BOTH AK4458s. AKM p.50, verbatim:
+    'This FIR filter attenuates out of band noise and may reduce degradation of the
+     analog characteristics caused by a switching regulator, etc. BEST PERFORMANCE
+     SHOULD BE ACHIEVED BY CLEAN LINEAR REGULATED AVDD/VREF POWER SUPPLIES AND THE
+     DEFAULT SETTING OF THE FIR2-0 BITS. THESE CONDITIONS ARE INCLUDED IN THE ANALOG
+     CHARACTERISTICS SPECS.'
+
+  SO THE DACs' 115 dB IS SPECIFIED UNDER TWO CONDITIONS AT ONCE: a linear AVDD/VREF
+  AND FIR2-0 = 000 (its default, 0CH). We satisfy both -- but only the FIRST is
+  visible on this sheet, and the second is a register nobody is looking at.
+
+  THE HAZARD IS AN ENTIRELY ORDINARY COST SUGGESTION: 'replace U6 with a buck'.
+  That is cheaper and more efficient, and it INVALIDATES THE CONDITION UNDER WHICH
+  THE 115 dB WE BUDGET AGAINST IS SPECIFIED -- and it turns FIR2-0 from a defaulted
+  register into a live decision on a different sheet. AKM's non-default FIR settings
+  exist precisely to buy performance back WHEN THE RAIL IS A SWITCHER.
+
+  IF U6 EVER BECOMES A SWITCHER: FIR2-0 must be re-evaluated against Table 20 and the
+  S12 acceptance numbers re-derived. DO NOT TREAT THAT AS AN EFFICIENCY EDIT.
+  (Adversary 026. Same shape as the F52 charge-pump note and the CLKOUT note -- the
+   number is written where the PROPOSAL lands, not where the part lives.)
+"
+		(exclude_from_sim no)
+		(at 39.37 1009.65 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "608478f1-7de5-51fb-a15e-2f9ca3f33f2f")
 	)
 	(embedded_fonts no)
 )
