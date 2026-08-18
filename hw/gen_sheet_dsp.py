@@ -361,9 +361,15 @@ CLKNOTE2 = (
     "  7.09 ps by 7x. JITTER IS NOT THIS OSCILLATOR'S BINDING CRITERION -- duty and\\n"
     "  frequency stability over -20..+70 degC are. S3 [HARD] does say LOW-JITTER XO, so\\n"
     "  relaxing that is the OPERATOR'S call, not a design economy to be taken quietly.\\n"
-    "  CLKOUT_DSP is 12/106 ps cycle-to-cycle RMS -- four orders above the buffer, which is\\n"
-    "  why 'drop the LMK and fan out from CLKOUT' is not available. (Cycle-to-cycle RMS is\\n"
-    "  NOT aperture jitter and they do not interconvert; the gap survives anyway.)\\n"
+    "  'DROP THE LMK AND FAN OUT FROM CLKOUT' IS NOT AVAILABLE -- AND HERE IS THE\n"
+    "  ARITHMETIC, NOT JUST THE VERDICT. A verdict invites challenge; a verdict with its\n"
+    "  arithmetic attached answers the challenge in advance (adversary 010).\n"
+    "    ADAU1466 CLKOUT jitter = 12 typ / 106 ps max, CYCLE-TO-CYCLE RMS (Table 6, p.9).\n"
+    "    Budget = 7.09 ps RMS for 121 dB at 20 kHz.   106 / 7.09 = 15x OVER, ON THE RAW\n"
+    "    FIGURE, BEFORE any metric conversion is attempted at all.\n"
+    "    Cycle-to-cycle RMS is NOT aperture jitter and the two DO NOT INTERCONVERT -- but\n"
+    "    no c2c-to-aperture relationship is favourable enough to recover 15x, let alone\n"
+    "    the four orders of magnitude against the buffer. THE GAP SURVIVES THE CAVEAT.\n"
 )
 
 CLKNOTE3 = (

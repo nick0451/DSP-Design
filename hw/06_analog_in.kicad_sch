@@ -7604,5 +7604,11 @@
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "25448ae9-43e7-59b3-8350-cf81822fef73")
 	)
+	(text "R_S FORMS A DIVIDER WITH THE CONVERTER'S INPUT RESISTANCE. THE GAIN ERROR IS REAL,\nSMALL, IN THE SAFE DIRECTION -- AND IT DOUBLES IF ANYONE RETUNES R_S UPWARD.\n\n  The 10R isolation resistors above are not free. Each forms a voltage divider with\n  whatever shunts the load capacitance, and here that shunt is the AK5574's own input\n  resistance -- 3.0 / 3.6 / 4.2 kOhm min/typ/max (p.9, figure read).\n\n      error = R_S / (R_L + R_S),  R_S = 10R\n        R_L 3.0k (min)   0.3322 %   -0.0289 dB\n        R_L 3.6k (typ)   0.2770 %   -0.0241 dB\n        R_L 4.2k (max)   0.2375 %   -0.0207 dB\n        bound on channel-to-channel spread   0.0947 %\n\n  IT ATTENUATES, so headroom GROWS rather than shrinks -- negligible against the\n  5.0 % FS margin, and 61x inside the converter's own 0.5 dB interchannel gain\n  mismatch. NOTE WHAT THE SPREAD FIGURE IS: it is the min-to-max PART bound, so it\n  BOUNDS channel-to-channel mismatch rather than predicting it -- channels inside one\n  device track far better than the datasheet's production window.\n\n  THE REASON IT IS WRITTEN DOWN AT ALL: TI's own recommendation is R_S = 10 to 20 Ohm,\n  and AT 20R THE ERROR IS 0.5525 % -- it DOUBLES, still inside TI's advice. This is the\n  term that gets silently doubled by someone tuning the filter who never computed it.\n  DO NOT RAISE R_S WITHOUT RE-RUNNING THIS LINE.\n\n  TWO VENDORS CONVERGE ON 10R FROM OPPOSITE ENDS OF THE INTERFACE -- AKM specifies it\n  in its own ADC-pin network, TI recommends 10-20R for capacitive-load isolation. That\n  agreement is the cheapest defence of a part that looks deletable.\n\n  AND DO NOT COPY TI'S WORKED EXAMPLE, IT IS INTERNALLY INCONSISTENT (adversary 010,\n  arithmetic confirmed here): 7.3.8 states 0.2 % at R_L = 10k with R_S = 20R -- correct,\n  20/10020 = 0.1996 % -- then states the error 'increases to 7.5 %' at R_L = 600R.\n  But 20/620 = 3.2258 %. 7.5 % would need R_S = 48.6 Ohm. Both examples cannot hold at\n  R_S = 20R. USE THE FORMULA, NOT THE DATASHEET'S NUMBER.\n"
+		(exclude_from_sim no)
+		(at 758.19 151.13 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "aa4ecad0-c74e-5151-841b-37766c9f36b4")
+	)
 	(embedded_fonts no)
 )

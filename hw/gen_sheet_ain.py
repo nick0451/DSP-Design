@@ -286,6 +286,7 @@ R_BP        = 10.0e6
 C1, C2      = 100e-6, 22e-9
 C_F         = 620e-12                     # leg N feedback pole
 R_S, C_SS, C_D = 10.0, 100e-12, 15e-9     # T1-103, AKM's own ADC-pin network
+R_ADC = (3.0e3, 3.6e3, 4.2e3)             # AK5574 input resistance, min/typ/max (p.9)
 NG_N        = 1 + R_F / R_IN              # 1.5 -- the price of gain 0.5 from a 1x source
 RA_PAR      = R_A * R_B / (R_A + R_B)
 
@@ -959,8 +960,57 @@ NOTE11 = (
      cm_resid(0.01) * 1e3,
      WIN_HALFWIDTH / cm_resid(0.01), cm_resid(0.01) * 1e3)
 
+
+# Adversary 010. TI raises this term in OPA320 7.3.8 and then gets its own worked example
+# wrong, so the mechanism is taken and the number is computed here.
+def rs_err(rl):  return R_S / (rl + R_S)
+
+NOTE12 = (
+    "R_S FORMS A DIVIDER WITH THE CONVERTER'S INPUT RESISTANCE. THE GAIN ERROR IS REAL,\n"
+    "SMALL, IN THE SAFE DIRECTION -- AND IT DOUBLES IF ANYONE RETUNES R_S UPWARD.\n"
+    "\n"
+    "  The 10R isolation resistors above are not free. Each forms a voltage divider with\n"
+    "  whatever shunts the load capacitance, and here that shunt is the AK5574's own input\n"
+    "  resistance -- 3.0 / 3.6 / 4.2 kOhm min/typ/max (p.9, figure read).\n"
+    "\n"
+    "      error = R_S / (R_L + R_S),  R_S = 10R\n"
+    "        R_L 3.0k (min)   %.4f %%   %+.4f dB\n"
+    "        R_L 3.6k (typ)   %.4f %%   %+.4f dB\n"
+    "        R_L 4.2k (max)   %.4f %%   %+.4f dB\n"
+    "        bound on channel-to-channel spread   %.4f %%\n"
+    "\n"
+    "  IT ATTENUATES, so headroom GROWS rather than shrinks -- negligible against the\n"
+    "  %.1f %% FS margin, and %.0fx inside the converter's own 0.5 dB interchannel gain\n"
+    "  mismatch. NOTE WHAT THE SPREAD FIGURE IS: it is the min-to-max PART bound, so it\n"
+    "  BOUNDS channel-to-channel mismatch rather than predicting it -- channels inside one\n"
+    "  device track far better than the datasheet's production window.\n"
+    "\n"
+    "  THE REASON IT IS WRITTEN DOWN AT ALL: TI's own recommendation is R_S = 10 to 20 Ohm,\n"
+    "  and AT 20R THE ERROR IS %.4f %% -- it DOUBLES, still inside TI's advice. This is the\n"
+    "  term that gets silently doubled by someone tuning the filter who never computed it.\n"
+    "  DO NOT RAISE R_S WITHOUT RE-RUNNING THIS LINE.\n"
+    "\n"
+    "  TWO VENDORS CONVERGE ON 10R FROM OPPOSITE ENDS OF THE INTERFACE -- AKM specifies it\n"
+    "  in its own ADC-pin network, TI recommends 10-20R for capacitive-load isolation. That\n"
+    "  agreement is the cheapest defence of a part that looks deletable.\n"
+    "\n"
+    "  AND DO NOT COPY TI'S WORKED EXAMPLE, IT IS INTERNALLY INCONSISTENT (adversary 010,\n"
+    "  arithmetic confirmed here): 7.3.8 states 0.2 %% at R_L = 10k with R_S = 20R -- correct,\n"
+    "  20/10020 = 0.1996 %% -- then states the error 'increases to 7.5 %%' at R_L = 600R.\n"
+    "  But 20/620 = %.4f %%. 7.5 %% would need R_S = %.1f Ohm. Both examples cannot hold at\n"
+    "  R_S = 20R. USE THE FORMULA, NOT THE DATASHEET'S NUMBER.\n"
+) % (rs_err(R_ADC[0]) * 100, 20 * math.log10(1 - rs_err(R_ADC[0])),
+     rs_err(R_ADC[1]) * 100, 20 * math.log10(1 - rs_err(R_ADC[1])),
+     rs_err(R_ADC[2]) * 100, 20 * math.log10(1 - rs_err(R_ADC[2])),
+     (rs_err(R_ADC[0]) - rs_err(R_ADC[2])) * 100,
+     (1 - TARGET / FS_MIN) * 100,
+     0.5 / abs(20 * math.log10(1 - (rs_err(R_ADC[0]) - rs_err(R_ADC[2])))),
+     20.0 / (R_ADC[1] + 20.0) * 100,
+     20.0 / 620.0 * 100, 600.0 * 0.075 / (1 - 0.075))
+
+
 _NOTE_ORDER = [NOTE1, NOTE2, NOTE3, NOTE4, NOTE5, NOTE6,
-               NOTE7, NOTE8, NOTE9, NOTE10, NOTE11]
+               NOTE7, NOTE8, NOTE9, NOTE10, NOTE11, NOTE12]
 
 
 
