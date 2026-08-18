@@ -12,13 +12,71 @@ Last updated: 2026-08-16
 
 ## 0. Where we are
 
+### ⏱ LIVE STATUS — 2026-08-17, commit `10e23fa`. **Rewrite this block, do not append to it.**
+
+**Position:** all ten sheets drawn · **ERC 27** · 543 instance refs, no duplicates · working tree clean.
+`06_analog_in` carries F50's copper (158 instances); `02_dsp` carries the §3 clock tree (11 devices).
+**No footprints exist.** G0-L untouched.
+
+**THE NEXT ACTION, one line:** read OPA2320's **C_L-vs-phase-margin curve at 100 pF** in
+`datasheets/opa2320.pdf` Typical Characteristics. It is the **only** open leg of F52's gate and the
+document is already held.
+
+**Then, in order:** `PLLFILT` loop filter (design, undrawn) → ERC punch list (`MON_*` ×4 and
+`U13_COMP` are design; the rest are F28 dispositions) → F53 sweep (**8 generators still declare A3**)
+→ footprints → Blocks D/E.
+
+### 🔴 WITH THE OPERATOR — decisions, not work. Nothing below is mine to take.
+
+| # | Decision |
+|---|---|
+| **F58(a)** | §12 channel-separation criterion. Proposed ≥ 70 dB @ 1 kHz one-channel-driven **with the four-coherent figure recorded beside it** (−85.7 vs −73.7 dB) |
+| **F58(b)** | Inter-channel gain matching: a **board** criterion or a **calibration** one? Per C4 it is trimmable in the DSP, so it may not belong in §12 at all |
+| **F61** | Mute shunt: **24 singles**, a dual depletion FET in one package, or revisit DN2540. §6.4 [HARD] wants a pair; LND150 is a single |
+| **F62** | `SYNCE` in the boot sequence — the RSTN path. Plus the 244 ns residual as a product property |
+| **F56** | Needs an oscillator specified **tighter than 45/55 %**. CCHD-575's −20…+70 °C option is the near-miss; ASDMB's *default order code is 0…+70 °C* |
+| **F63** | BAV99 manufacturer must be pinned on the BOM (`bav99.pdf` is Diotec; cloned PN) |
+| **V-10** | AKM vs TI converters |
+
+**Datasheets still wanted:** an oscillator with **≤ ±2 % duty**; the **range-switch relay**; the
+**remote-out high-side switch**. *The operator gathers these on request and asks to be bugged — never
+build a workaround around a missing document.*
+
+### 📮 BUS LEDGER — check this before writing to the bus
+
+Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
+
+| Sent by us (`inbox/`) | Received (`outbox/`) |
+|---|---|
+| 002, 003, 006 | 001, 004, 005, 007, 008 |
+
+**⚠ WE OWE A REPLY.** 007 and 008 are **dispositioned in this file and in commits, but no bus message
+has been sent for either.** Next message is **009** and must cover both — including, per bus rule 3,
+anything not addressed. Their standing offer: they will read any datasheet at figure level if asked.
+
+### 🧠 CONTEXT DISCIPLINE — this project is designed to be compacted, repeatedly
+
+**Everything load-bearing is in files. Context is scratch space; drop it freely.**
+
+1. **Never read a whole generator.** `grep -n` for an anchor line, then edit **by line index**.
+   The note strings hold a literal `
+`, so string-matching them from a heredoc fails on escaping —
+   use `chr(92)` or line indices. This cost several rounds before it was written down.
+2. **Generators print their own load-bearing numbers.** Run one and read stdout rather than
+   re-deriving (**M22** — prose numbers get read back from the module, never recalled).
+3. **Datasheets: locate with `pdftotext`, confirm with `pdftoppm` render.** Never promote a
+   load-bearing number on an extraction (**M2**), and state which of values / structure / conditions /
+   citation the read covered (**M20**).
+4. **Verification is three commands**, not a re-read: ERC count · netlist walk · M17 refdes audit.
+5. **A finding is not done until it is in §7.** If it only exists in a chat reply, it is lost.
+
 ### RESUME HERE — read order after a context compaction
 
 Everything needed is **in the repo**; nothing load-bearing lives only in conversation.
 
 | # | File | What it gives you |
 |---|---|---|
-| 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules |
+| 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules, **§10 compaction contract** |
 | 2 | **`STATE.md` §0** (here) | Position, next action, session boundary |
 | 3 | `STATE.md` §5 | **The ledger. Read M1–M22 before any datasheet or file work. M19 governs review-agent findings** |
 | 4 | `REQUIREMENTS.md` **v1.7** | The authority. Cite by section **and** version |

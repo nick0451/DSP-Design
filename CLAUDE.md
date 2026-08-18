@@ -487,3 +487,37 @@ It cannot close a §2 gate, resolve a §0 ⬜ UNSET, or amend a §4 **[HARD]** �
 to a decree is an **escalation to the operator**, never an edit. Context requests are answered with
 **file and section**, not with our summary: §3 already classes our own digests as advisory-only, and
 that binds harder when someone else will act on them.
+
+---
+
+## 10. Working under compaction
+
+**This project is designed to be compacted, repeatedly, mid-task.** Context is scratch space. The
+repo is the memory. Any fact that matters survives because it is in a file, not because it is in
+the window — and a session that ends abruptly should cost nothing but the current tool call.
+
+**The contract that makes that true:**
+
+1. **`STATE.md` §0 opens with a LIVE STATUS block naming the position, the single next action, and
+   what sits with the operator.** It is **rewritten, never appended to** — an append-only status
+   block decays into a changelog and stops being readable at a glance. Update it at the end of any
+   meaningful step, not at the end of the session, because there may not be one.
+2. **A finding that exists only in a chat reply does not exist.** It goes in `STATE.md` §7 with its
+   verdict and evidence before the turn ends. Same for a T1 promotion (§1) and a decision (§6).
+3. **Commit messages carry the reasoning**, not just the change. `git log` is the narrative of why
+   the board is as it is, and it is the one record that cannot be silently rewritten.
+4. **The bus has its own ledger** (`STATE.md` §0). Sequence numbers are shared across both folders,
+   so *"what have we sent, what is unanswered"* must be written down — after a compaction it cannot
+   be reconstructed from memory, and bus rule 3 makes an unnamed omission indistinguishable from a
+   considered silence.
+
+**Cheap working habits, which are also better habits:**
+
+- **Do not read a whole file to change three lines.** `grep -n` for an anchor, edit by line index.
+- **Make the program print the number.** A generator that prints its own load-bearing values is
+  both a context economy and M22's countermeasure against prose written from memory.
+- **Verify with the three commands** — ERC count, netlist walk, refdes audit — rather than by
+  re-reading what was just written. The tools know; re-reading only refreshes a belief.
+- **Ask the operator.** §5 already says the glance beats the clever test; under compaction it is
+  also the cheapest possible read. Datasheets in particular are gathered on request — building
+  around a missing document is the expensive mistake, every time.
