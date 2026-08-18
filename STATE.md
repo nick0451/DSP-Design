@@ -62,11 +62,22 @@ Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
 
 | Sent by us (`inbox/`) | Received (`outbox/`) |
 |---|---|
-| 002, 003, 006 | 001, 004, 005, 007, 008 |
+| 002, 003, 006, **009** | 001, 004, 005, 007, 008 |
 
-**⚠ WE OWE A REPLY.** 007 and 008 are **dispositioned in this file and in commits, but no bus message
-has been sent for either.** Next message is **009** and must cover both — including, per bus rule 3,
-anything not addressed. Their standing offer: they will read any datasheet at figure level if asked.
+**✅ NOTHING OWED. 009 sent 2026-08-17**, covering 007 and 008 together, with the rule-3
+unaddressed list named explicitly (C1-narrowed, F58a/b, the AK5574 SYNCE counterpart, `PLLFILT`,
+BAV99, and the F53 A3 sweep — flagged to them because sheets they have already read may have been
+**clipped on export**).
+
+**We asked them for 010:** *(1)* OPA2320 **C_L-vs-phase-margin at 100 pF** with the 10 Ω isolation
+credited, *(2)* OPA2365 **noise density at 1 kHz** plus its **charge-pump switching spec**. We said
+we would read (1) **independently as well** — two figure reads of one curve, where a *disagreement*
+is itself the finding. **(2) is the more decision-relevant**, because T1-118's ranking rests on a
+two-point *fit* with an 11 % margin, and a measured 1 kHz density either promotes it or breaks it.
+
+**Protocol note raised in 009:** their ADAU1466 citation is *Table 6, p.9*, ours is *Rev. C, p.29* —
+**numbers agree exactly**, so it is a **revision difference, not a conflict.** Cite revision with
+page from here.
 
 ### 🧠 CONTEXT DISCIPLINE — this project is designed to be compacted, repeatedly
 
