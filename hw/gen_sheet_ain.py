@@ -161,16 +161,16 @@ ADC = {
     # digital
     "16": "MCLK_ADC", "25": "TDM_IN0_BCLK", "26": "TDM_IN0_LRCLK", "27": GND,   # TDMIN unused
     "28": "TDM_IN0_DATA", "29": NC, "30": "ADC_OVF",
-    "24": GND,            # MSN low = SLAVE. S3 [HARD]: the DSP owns BCLK/LRCLK.
+    "24": GND,            # MSN low = SLAVE. S3 [HARD]. THE ONLY MODE PIN THE PART READS (p.56).
     "20": "ADC_PDN_N", "15": GND,                          # TEST has an internal pull-down
     "31": "I2C0_SDA", "33": "I2C0_SCL", "32": GND, "34": GND,   # CAD1:CAD0 = 00 -> 0x10
     "41": GND,            # PSN low  } T1-50: I2C mode needs BOTH
     "42": "+3V3_D",       # I2C high }
     "21": GND, "22": GND, "23": GND,                       # PW0-2
-    "35": GND, "36": GND, "37": GND, "38": "+3V3_D",     # SLOW/SD normal; DIF1-0 = 10 (F69)
-    "39": "+3V3_D", "40": GND,                             # TDM0=H/TDM1=L -> TDM1-0=01 = TDM128
-    "43": GND, "44": "+3V3_D",                             # DP off, HPFE on
-    "45": "+3V3_D", "46": GND,                             # LDOE on (internal 1.8 V); ODP INERT (F68)
+    "35": GND, "36": GND, "37": GND, "38": "+3V3_D",     # ALL INERT in I2C mode -- see NOTE13
+    "39": "+3V3_D", "40": GND,                             # INERT; consistent with TDM1-0=01
+    "43": GND, "44": "+3V3_D",                             # INERT; consistent with DP=0, HPFE=1
+    "45": "+3V3_D", "46": GND,                             # LDOE REAL (no reg equiv); ODP inert
     "17": "+3V3_D", "18": GND, "19": "VDD18_ADC",          # VDD18 is an LDO OUTPUT -- F28 note
 }
 PLACE.append(("U40", "ODSP12:AK5574", 520, 130, "AK5574EN", {k: v for k, v in ADC.items() if k in G1}, 1, G1))
@@ -1011,27 +1011,35 @@ NOTE12 = (
 
 
 NOTE13 = (
-    "AK5574 MODE CONFIGURATION -- THREE CATEGORIES OF PIN, AND ONLY ONE OF THEM WORKS.\n"
+    "AK5574 MODE CONFIGURATION: ONE SENTENCE GOVERNS ALL OF IT, AND IT IS NOT WHERE\n"
+    "YOU WOULD LOOK. THE PART READS EXACTLY ONE MODE PIN.\n"
     "\n"
-    "  READ AT FIGURE LEVEL, 190-200 dpi, doc 015016764-E-03: Table 5 p.33, Table 9 p.36,\n"
-    "  Register Map p.62, ODP prose p.46. THIS BLOCK IS NOT STRAPPABLE THE WAY IT LOOKS.\n"
+    "  AK5574 p.56, 'Operation Mode Control', VERBATIM:\n"
+    "    'In serial control mode, register settings are prioritized so that ALL PIN\n"
+    "     SETTINGS EXCEPT THE MSN PIN SETTING ARE IGNORED.'\n"
     "\n"
-    "  1. PIN-ONLY, HONOURED IN BOTH CONTROL MODES -- MSN, LDOE, PSN, I2C.\n"
-    "     Not in the register map at all. MSN=GND (slave) and LDOE=+3V3 are SAFE.\n"
+    "  WE RUN I2C = SERIAL CONTROL MODE. SO:\n"
+    "    MSN (24)   REAL. Selects SLAVE. The one honoured mode pin -- and the one that\n"
+    "               matters most, because F65's autonomous LRCK phase-detect self-reset\n"
+    "               EXISTS ONLY IN SLAVE MODE.\n"
+    "    LDOE (45)  REAL. No register equivalent -- selects the internal 1.8 V LDO.\n"
+    "    PDN (20)   REAL. Hardware reset, not a mode pin.\n"
+    "    DIF1-0 (37,38) - TDM1-0 (39,40) - DP (43) - HPFE (44) - SD (36) - SLOW (35)\n"
+    "    ODP (46)   ALL INERT. The part does not read them. They are set CONSISTENT\n"
+    "               with the register values -- NOT to select them. F28 wants every pin\n"
+    "               at a defined level, and consistency is cheap insurance for a control\n"
+    "               mode we never use. DO NOT READ THEM AS CONFIGURATION.\n"
     "\n"
-    "  2. PIN *AND* REGISTER BIT -- DIF1-0, TDM1-0, DP, HPFE, SD, SLOW. The datasheet\n"
-    "     writes 'pins (bits)' throughout. WHICH GOVERNS IN I2C MODE IS OPEN (T2), so\n"
-    "     THESE ARE STRAPPED CORRECTLY *AND* MUST BE WRITTEN BY FIRMWARE. Belt and braces\n"
-    "     is not laziness here -- it is the only disposition that is right either way.\n"
+    "  HOW THIS WAS FOUND, BECAUSE THE SEARCH ORDER IS THE LESSON: p.46 says the ODP\n"
+    "  pin is ignored in serial mode. That INSTANCE was read three times and treated as\n"
+    "  a quirk of ODP. THE RULE IS TEN PAGES EARLIER, IN THE SECTION ABOUT CONTROL MODE\n"
+    "  RATHER THAN THE SECTION ABOUT THE FUNCTION. Reading about the thing found the\n"
+    "  exception; reading about the MODE found the rule. (Adversary 028.)\n"
     "\n"
-    "  3. PIN-ONLY, NO REGISTER EQUIVALENT, AND IGNORED IN SERIAL MODE -- ODP. p.46:\n"
-    "     'In serial control mode, the data output is Optimal Data Placement mode\n"
-    "     regardless of the ODP pin setting.'  WE RUN I2C, SO ODP=GND IS INERT. The pad\n"
-    "     stays (it is correct if control mode ever changes) but DO NOT BELIEVE IT.\n"
-    "     CONSEQUENCE: Optimal Data Placement RE-PACKS slots when channels are powered\n"
-    "     down (PW4-1) or summed (MONO2-1). Fixed would not. IF FIRMWARE EVER POWERS\n"
-    "     DOWN AN ADC CHANNEL OR ENABLES SUMMATION, THE TDM SLOT MAP MOVES AND THE DSP\n"
-    "     SLOT MAP DOES NOT. That is a S4 [HARD] violation arriving through firmware.\n"
+    "  CONSEQUENCE FOR THE RECORD: the DIF strap changed TWICE (F67, F69) and BOTH\n"
+    "  CHANGES WERE FUNCTIONALLY INERT. F67 was NOT a [HARD] violation in copper -- the\n"
+    "  pin selects nothing. It was an ANNOTATION asserting a function the pin does not\n"
+    "  perform, which is real but a different defect.\n"
     "\n"
     "  F67/F69 -- THE DIF STRAPS WERE WRONG, AND THE FIX ITSELF NEEDED A SECOND PASS.\n"
     "  THIS LINE HAS NOW CHANGED TWICE. Reading it, distrust it and check the table.\n"
