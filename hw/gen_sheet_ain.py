@@ -167,10 +167,10 @@ ADC = {
     "41": GND,            # PSN low  } T1-50: I2C mode needs BOTH
     "42": "+3V3_D",       # I2C high }
     "21": GND, "22": GND, "23": GND,                       # PW0-2
-    "35": GND, "36": GND, "37": GND, "38": GND,            # SLOW/SD/DIF0/DIF1
-    "39": "+3V3_D", "40": GND,                             # TDM0/TDM1 -> TDM4, 32-bit
+    "35": GND, "36": GND, "37": "+3V3_D", "38": "+3V3_D",  # SLOW/SD normal; DIF1-0 = 11 (F67)
+    "39": "+3V3_D", "40": GND,                             # TDM0=H/TDM1=L -> TDM1-0=01 = TDM128
     "43": GND, "44": "+3V3_D",                             # DP off, HPFE on
-    "45": "+3V3_D", "46": GND,                             # LDOE on (internal 1.8 V), ODP off
+    "45": "+3V3_D", "46": GND,                             # LDOE on (internal 1.8 V); ODP INERT (F68)
     "17": "+3V3_D", "18": GND, "19": "VDD18_ADC",          # VDD18 is an LDO OUTPUT -- F28 note
 }
 PLACE.append(("U40", "ODSP12:AK5574", 520, 130, "AK5574EN", {k: v for k, v in ADC.items() if k in G1}, 1, G1))
@@ -1009,8 +1009,54 @@ NOTE12 = (
      20.0 / 620.0 * 100, 600.0 * 0.075 / (1 - 0.075))
 
 
+
+NOTE13 = (
+    "AK5574 MODE CONFIGURATION -- THREE CATEGORIES OF PIN, AND ONLY ONE OF THEM WORKS.\n"
+    "\n"
+    "  READ AT FIGURE LEVEL, 190-200 dpi, doc 015016764-E-03: Table 5 p.33, Table 9 p.36,\n"
+    "  Register Map p.62, ODP prose p.46. THIS BLOCK IS NOT STRAPPABLE THE WAY IT LOOKS.\n"
+    "\n"
+    "  1. PIN-ONLY, HONOURED IN BOTH CONTROL MODES -- MSN, LDOE, PSN, I2C.\n"
+    "     Not in the register map at all. MSN=GND (slave) and LDOE=+3V3 are SAFE.\n"
+    "\n"
+    "  2. PIN *AND* REGISTER BIT -- DIF1-0, TDM1-0, DP, HPFE, SD, SLOW. The datasheet\n"
+    "     writes 'pins (bits)' throughout. WHICH GOVERNS IN I2C MODE IS OPEN (T2), so\n"
+    "     THESE ARE STRAPPED CORRECTLY *AND* MUST BE WRITTEN BY FIRMWARE. Belt and braces\n"
+    "     is not laziness here -- it is the only disposition that is right either way.\n"
+    "\n"
+    "  3. PIN-ONLY, NO REGISTER EQUIVALENT, AND IGNORED IN SERIAL MODE -- ODP. p.46:\n"
+    "     'In serial control mode, the data output is Optimal Data Placement mode\n"
+    "     regardless of the ODP pin setting.'  WE RUN I2C, SO ODP=GND IS INERT. The pad\n"
+    "     stays (it is correct if control mode ever changes) but DO NOT BELIEVE IT.\n"
+    "     CONSEQUENCE: Optimal Data Placement RE-PACKS slots when channels are powered\n"
+    "     down (PW4-1) or summed (MONO2-1). Fixed would not. IF FIRMWARE EVER POWERS\n"
+    "     DOWN AN ADC CHANNEL OR ENABLES SUMMATION, THE TDM SLOT MAP MOVES AND THE DSP\n"
+    "     SLOT MAP DOES NOT. That is a S4 [HARD] violation arriving through firmware.\n"
+    "\n"
+    "  F67 -- THE DIF STRAPS WERE WRONG AND ARE NOW FIXED. Table 9 rows 24-27, TDM128\n"
+    "  slave: DIF1-0 = 00 is 24-bit MSB-JUSTIFIED. S4 [HARD] requires 32-BIT SLOTS, which\n"
+    "  is row 27, DIF1-0 = 11 (32-bit I2S, LRCK falling edge, BICK 128fs = 6.144 MHz).\n"
+    "  Pins 37/38 were both GND. THE COMMENT ON THE TDM LINE SAID '32-bit' WHILE THE\n"
+    "  PINS THAT SET BIT LENGTH SAID 24 -- TDM1-0 sets the multiplex mode, DIF1-0 sets\n"
+    "  the word length, and the annotation had attached the claim to the wrong pair.\n"
+    "\n"
+    "  REQUIRED REGISTER WRITES (F66), in this order, EVERY PDN CYCLE (Note 26):\n"
+    "     02H = 0x37   CKS3-0=0110 (512fs Normal) | DIF1-0=11 (32-bit I2S) | HPFE=1\n"
+    "     03H = 0x20   TDM1-0=01   (TDM128 = TDM4, our S4 map)\n"
+    "     then CHANNEL RESET -- RSTN=0 then 1 (or PW4-1=0H). RSTN does NOT clear\n"
+    "     registers (Note 25), so write-then-reset is self-consistent.\n"
+    "     then, datasheet ordering: A STABLE CLOCK AFTER RELEASING THE RESET.\n"
+    "\n"
+    "  REJECTED, RECORDED SO IT STAYS RE-OPENABLE (M12): Table 5 CKS3-0 = 1111 is an\n"
+    "  AUTO clock mode covering 8 kHz-768 kHz, which would cover us without an explicit\n"
+    "  commitment. NOT TAKEN, and the reason is F65 rather than ignorance: an auto mode\n"
+    "  must RE-detect, and a transient LRCK disturbance could re-detect into a DIFFERENT\n"
+    "  mode. Under an explicit mode the part can only resynchronise phase within the\n"
+    "  mode it was told. DETERMINISM IS THE REASON.\n"
+)
+
 _NOTE_ORDER = [NOTE1, NOTE2, NOTE3, NOTE4, NOTE5, NOTE6,
-               NOTE7, NOTE8, NOTE9, NOTE10, NOTE11, NOTE12]
+               NOTE7, NOTE8, NOTE9, NOTE10, NOTE11, NOTE12, NOTE13]
 
 
 

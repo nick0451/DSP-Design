@@ -2027,14 +2027,14 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "e6245c86-1a02-53ed-871a-020d43362326")
 	)
-	(global_label "GND"
+	(global_label "+3V3_D"
 		(shape bidirectional)
 		(at 556.26 293.37 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "0439ef87-3437-5235-90a7-08a36770b285")
 	)
-	(global_label "GND"
+	(global_label "+3V3_D"
 		(shape bidirectional)
 		(at 556.26 295.91 0)
 		(fields_autoplaced yes)
@@ -7609,6 +7609,12 @@
 		(at 758.19 151.13 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "aa4ecad0-c74e-5151-841b-37766c9f36b4")
+	)
+	(text "AK5574 MODE CONFIGURATION -- THREE CATEGORIES OF PIN, AND ONLY ONE OF THEM WORKS.\n\n  READ AT FIGURE LEVEL, 190-200 dpi, doc 015016764-E-03: Table 5 p.33, Table 9 p.36,\n  Register Map p.62, ODP prose p.46. THIS BLOCK IS NOT STRAPPABLE THE WAY IT LOOKS.\n\n  1. PIN-ONLY, HONOURED IN BOTH CONTROL MODES -- MSN, LDOE, PSN, I2C.\n     Not in the register map at all. MSN=GND (slave) and LDOE=+3V3 are SAFE.\n\n  2. PIN *AND* REGISTER BIT -- DIF1-0, TDM1-0, DP, HPFE, SD, SLOW. The datasheet\n     writes 'pins (bits)' throughout. WHICH GOVERNS IN I2C MODE IS OPEN (T2), so\n     THESE ARE STRAPPED CORRECTLY *AND* MUST BE WRITTEN BY FIRMWARE. Belt and braces\n     is not laziness here -- it is the only disposition that is right either way.\n\n  3. PIN-ONLY, NO REGISTER EQUIVALENT, AND IGNORED IN SERIAL MODE -- ODP. p.46:\n     'In serial control mode, the data output is Optimal Data Placement mode\n     regardless of the ODP pin setting.'  WE RUN I2C, SO ODP=GND IS INERT. The pad\n     stays (it is correct if control mode ever changes) but DO NOT BELIEVE IT.\n     CONSEQUENCE: Optimal Data Placement RE-PACKS slots when channels are powered\n     down (PW4-1) or summed (MONO2-1). Fixed would not. IF FIRMWARE EVER POWERS\n     DOWN AN ADC CHANNEL OR ENABLES SUMMATION, THE TDM SLOT MAP MOVES AND THE DSP\n     SLOT MAP DOES NOT. That is a S4 [HARD] violation arriving through firmware.\n\n  F67 -- THE DIF STRAPS WERE WRONG AND ARE NOW FIXED. Table 9 rows 24-27, TDM128\n  slave: DIF1-0 = 00 is 24-bit MSB-JUSTIFIED. S4 [HARD] requires 32-BIT SLOTS, which\n  is row 27, DIF1-0 = 11 (32-bit I2S, LRCK falling edge, BICK 128fs = 6.144 MHz).\n  Pins 37/38 were both GND. THE COMMENT ON THE TDM LINE SAID '32-bit' WHILE THE\n  PINS THAT SET BIT LENGTH SAID 24 -- TDM1-0 sets the multiplex mode, DIF1-0 sets\n  the word length, and the annotation had attached the claim to the wrong pair.\n\n  REQUIRED REGISTER WRITES (F66), in this order, EVERY PDN CYCLE (Note 26):\n     02H = 0x37   CKS3-0=0110 (512fs Normal) | DIF1-0=11 (32-bit I2S) | HPFE=1\n     03H = 0x20   TDM1-0=01   (TDM128 = TDM4, our S4 map)\n     then CHANNEL RESET -- RSTN=0 then 1 (or PW4-1=0H). RSTN does NOT clear\n     registers (Note 25), so write-then-reset is self-consistent.\n     then, datasheet ordering: A STABLE CLOCK AFTER RELEASING THE RESET.\n\n  REJECTED, RECORDED SO IT STAYS RE-OPENABLE (M12): Table 5 CKS3-0 = 1111 is an\n  AUTO clock mode covering 8 kHz-768 kHz, which would cover us without an explicit\n  commitment. NOT TAKEN, and the reason is F65 rather than ignorance: an auto mode\n  must RE-detect, and a transient LRCK disturbance could re-detect into a DIFFERENT\n  mode. Under an explicit mode the part can only resynchronise phase within the\n  mode it was told. DETERMINISM IS THE REASON.\n"
+		(exclude_from_sim no)
+		(at 758.19 227.33 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "fd87bd86-0505-51b7-aa84-32cc86462f58")
 	)
 	(embedded_fonts no)
 )
