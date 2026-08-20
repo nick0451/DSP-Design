@@ -450,6 +450,44 @@ reconstructed exactly.
    the datasheet, and the datasheet revision goes in `STATE.md` §1 next to the fact.
 10. **A [VERIFY] resolved is a T1 promotion with a citation**, recorded in `STATE.md` §8 — not a
     mental note.
+11. **A shared margin is recorded at BOTH ends — the analysis that depends on the value, and the
+    place the value is defined.** *(Added 2026-08-20 by operator instruction. **This is a NEW rule,
+    not an amendment to an existing convention** — see the note below.)*
+
+    When a value defends a **[HARD]** line jointly with others, or defends one at all while having
+    been chosen for an unrelated purpose, the consequence-check belongs in **two** places:
+
+    - at the **derivation or analysis** that depends on it — which we already do; and
+    - as a **back-reference at the value's own point of definition**, because a note only the
+      analysis can see does not reach the person changing the value.
+
+    **Why:** a property owned in one place and load-bearing in another is invisible to both. Its
+    owner does not know it is load-bearing; the analysis that depends on it does not own it.
+    **Every review of either location passes, because both locations are individually correct.**
+    Two live cases: `R_IN` was chosen to set gain (13.28 dB) and is the current-limiting element
+    protecting the OPA1656 input in F84; the INA1650's internal 500 kΩ was a consequence of a part
+    chosen for CMRR and is the operating protection in F79. Neither was selected to protect
+    anything.
+
+    **This is M7 extended, not a new idea:** *a design rationale is also a test.* A consequence
+    written at one end only is a test that can be executed from one end only.
+
+    **Stated limit — it works for values we own.** A vendor parameter has no point-of-definition in
+    our documents to annotate, so its coupling can only live in the analysis that depends on it.
+    That case is a workaround, not a satisfied rule, and it should be labelled as one where it
+    occurs.
+
+    > **Provenance note, recorded because it is the more important half.** This rule reached the
+    > operator as *"a one-clause amendment to convention 4, which descends from M7a
+    > ('consequences check BOTH PARTIES')."* **Both citations are wrong. There is no convention 4
+    > in this repo** — the only numbered conventions are three sheet-local ones for `01_power` —
+    > **and M7a says something else entirely** (*"the convention caught its own author"*, about
+    > written arithmetic being checkable). **The reviewer was quoting its own local reconstruction
+    > of this file, which has diverged**, and *I propagated the phantom into `STATE.md` by
+    > recording the argument without checking its citations* — M23, in a state document. The
+    > **substance** was sound and survives on its own evidence; the **provenance** did not, and a
+    > rule installed under a false citation is a rule nobody can later trace. **Cite this file by
+    > reading it.**
 
 ---
 
