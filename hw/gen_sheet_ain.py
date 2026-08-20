@@ -1119,6 +1119,47 @@ def _stack(notes, x0, y0, gap=12.0, hmax=1000.0):
     return out
 NOTES = _stack(_NOTE_ORDER, 650.0, 40.0)
 
+
+# --- M3 GUARD: a series-pair's COMMON pin must never sit on a power net ---------------
+# Adversary 036, after F76. F76 put the signal on pin 2 of all 16 BAV99 clamps and a RAIL on
+# pin 3 -- the K1A2 common node -- which left one diode inert and the other conducting
+# CONTINUOUSLY from +13V5_A into the input. ERC could not see it: all three pins are typed
+# `passive`, so the electrical-type check has nothing to disagree with.
+#
+# The invariant is cheap and needs no vendor knowledge beyond "which pin is the middle one":
+# a series pair's midpoint is a SIGNAL node by definition, or the part is not a clamp.
+COMMON_PIN = {"Diode:BAV99": "3"}          # libid -> the K1A2 / centre terminal
+POWER_NETS = {GND, "+13V5_A", "-13V5_A", "+5V_A", "+3V3_D", "+3V3_A", "+5V_D",
+              "+1V2_CORE", "VDD18_ADC", "+6V2_A", "VBATT_PROT", "+3V3_PLL", "+3V3_CLK"}
+
+def assert_common_pins_are_signals(place, tag=""):
+    bad = []
+    for entry in place:
+        ref, libid, _x, _y, _val, nets = entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]
+        pin = COMMON_PIN.get(libid)
+        if pin and nets.get(pin) in POWER_NETS:
+            bad.append(f"{ref} ({libid}) pin {pin} -> {nets.get(pin)}")
+    if bad:
+        raise AssertionError(
+            f"COMMON-PIN GUARD{tag}: a series pair's centre terminal is on a power net "
+            f"({len(bad)} instance(s)). A midpoint is a signal node by definition:\n  "
+            + "\n  ".join(bad))
+    return len(bad)
+
+# M9: a guard that has never fired on the real defect is not verified. Feed it F76's exact
+# wiring before trusting it on the fixed copper.
+_neg = [(e[0], e[1], e[2], e[3], e[4],
+         ({**e[5], "2": e[5]["3"], "3": e[5]["2"]} if e[1] == "Diode:BAV99" else e[5]))
+        for e in PLACE]
+try:
+    assert_common_pins_are_signals(_neg, " [NEGATIVE TEST]")
+    raise SystemExit("GUARD IS DEFECTIVE: it passed F76's own wiring (M9).")
+except AssertionError as _e:
+    _fired = str(_e).count("pin 3 ->")
+    print(f"  common-pin guard: negative test FIRED on {_fired} instances (M9 satisfied)")
+assert_common_pins_are_signals(PLACE)
+print("  common-pin guard: live copper CLEAN")
+
 body  = [place(*p) for p in PLACE]
 for i, (nx, ny, txt) in enumerate(NOTES):
     body.append(f'\t(text "{txt}"\n\t\t(exclude_from_sim no)\n\t\t(at {snap(nx)} {snap(ny)} 0)\n'
