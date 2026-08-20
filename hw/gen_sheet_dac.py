@@ -104,6 +104,19 @@ def e96_up(t):
             v = m * (10 ** dec) / 10.0
             if v >= t * (1 - 1e-12) and (best is None or v < best): best = v
     return best
+# *** BACK-REFERENCE (M7a / convention 4, adversary 045). R_IN IS NOT ONLY A GAIN PART. ***
+# It is the current-limiting element that keeps the OPA1656 input inside its abs-max when
+# +13V5_A collapses while the AK4458 keeps driving from the surviving +5V_A (F84/S4):
+#     AK4458 outputs sit at VREFH/2 (p.85, verbatim: 'centered around VREFH/2') = 2.5 V.
+#     +13V5 dead -> V+ = 0 -> abs max is (V+)+0.5 = +0.5 V -> overshoot 2.0 V.
+#     2.0 V / 2.21k = 0.905 mA against the OPA1656's +/-10 mA input limit -> 11x inside.
+# F39 records the rail ORDERING as the protection. It is not: the rail guarantee is between
+# +/-15V5, and the op-amps run on +/-13V5 behind two dissimilar LDOs (F84/S2). THIS RESISTOR
+# IS THE PROTECTION, and it was chosen to set gain.
+#
+# *** A GAIN CHANGE MOVES A FAULT MARGIN. Re-run the line above before altering RIN. ***
+# Note the margin is RATIOMETRIC to +5V_A, since the DAC bias is VREFH/2 -- a rail change
+# moves it too, in the same direction as the overshoot.
 RIN = e96(2.2e3)
 # 4.5 Vrms is a [HARD] FLOOR, not a target, so Rf ROUNDS OUTWARD -- the same rule CLAUDE.md
 # S7 states for grid quantization, applied to a resistor. Nearest-E96 gave 10k -> 4.479 Vrms,
@@ -252,6 +265,16 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
         "  S6.2 [HARD]       = 4.5 Vrms before clip into 10 kOhm\\n"
         "  -> required gain  = %.3f x = %.2f dB\\n"
         "  Rin = %s, Rf = %s per leg -> ACTUAL gain %.3f x, output %.3f Vrms (%+.2f dB vs 4.5)\\n"
+        "\n"
+        "  *** R_IN IS ALSO A FAULT-PATH PART, AND THE GAIN DERIVATION IS THE ONLY PLACE\n"
+        "  *** THAT WOULD CATCH A CHANGE TO IT. (M7a back-reference, adversary 045.)\n"
+        "  If +13V5_A collapses while the AK4458 keeps driving from the surviving +5V_A,\n"
+        "  the DAC holds this op-amp input at VREFH/2 = 2.5 V while V+ has gone to 0 --\n"
+        "  2.0 V above the (V+)+0.5 abs max. R_IN is what limits the resulting current:\n"
+        "        2.0 V / Rin = ~0.9 mA   against the OPA1656s +/-10 mA input limit -> 11x\n"
+        "  F39 records the RAIL ORDERING as the protection. It is not (F84): that guarantee\n"
+        "  is between +/-15V5, and these op-amps run on +/-13V5 behind two dissimilar LDOs.\n"
+        "  A GAIN CHANGE MOVES A FAULT MARGIN. Re-run the line above before altering Rin.\n"
         "\\n"
         "V-06 CLOSES, AND THE [HARD] LINE CLEARS ON THE DATASHEET'S NUMBER:\\n"
         "  OPA1656 output swing = (V-)+0.25 .. (V+)-0.25, i.e. +/-13.25 V on +/-13V5_A rails.\\n"

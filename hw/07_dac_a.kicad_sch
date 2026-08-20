@@ -3857,7 +3857,17 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "6e5a6341-69b8-5070-bb26-c08c990d10a1")
 	)
-	(text "OUTPUT STAGE, DERIVED FROM BOTH VERIFIED ENDPOINTS -- neither end assumed.\n  AK4458 full scale = 2.8 Vpp differential = 0.9899 Vrms   (V-05, at AVDD 5 V)\n  S6.2 [HARD]       = 4.5 Vrms before clip into 10 kOhm\n  -> required gain  = 4.546 x = 13.15 dB\n  Rin = 2.21k, Rf = 10.2k per leg -> ACTUAL gain 4.615 x, output 4.569 Vrms (+0.13 dB vs 4.5)\n\nV-06 CLOSES, AND THE [HARD] LINE CLEARS ON THE DATASHEET'S NUMBER:\n  OPA1656 output swing = (V-)+0.25 .. (V+)-0.25, i.e. +/-13.25 V on +/-13V5_A rails.\n  4.5 Vrms needs 6.36 V peak.  13.25 / 6.36 = 2.08x -> 6.4 dB of headroom.\n  The swing spec is quoted at RL = 2 kOhm; S6.2 loads 10 kOhm, i.e. LIGHTER, so the\n  real margin is at least this. NOT marginal, and not assumed.\n\nV-06 POSTSCRIPT (F48's question asked of this stage): OPA1656 input abs max is\n  (V-)-0.5 .. (V+)+0.5 = +/-14.0 V, the same form that caught the input sheet. Here it\n  is NOT at risk: the op-amp inputs sit inside the feedback loop, driven only by the\n  AK4458's outputs, which are bounded by its own AVDD (5 V). THE MUTE ELEMENTS ARE\n  DOWNSTREAM OF THE OUTPUT PIN, so no mute transient reaches an input. The one exposed\n  pin is OUT, and its abs max is 'output short-circuit: continuous'.\n\n*** THE [HARD] FLOOR IS DEFENDED JOINTLY BY THREE INDEPENDENTLY-OWNED VALUES. ***
+	(text "OUTPUT STAGE, DERIVED FROM BOTH VERIFIED ENDPOINTS -- neither end assumed.\n  AK4458 full scale = 2.8 Vpp differential = 0.9899 Vrms   (V-05, at AVDD 5 V)\n  S6.2 [HARD]       = 4.5 Vrms before clip into 10 kOhm\n  -> required gain  = 4.546 x = 13.15 dB\n  Rin = 2.21k, Rf = 10.2k per leg -> ACTUAL gain 4.615 x, output 4.569 Vrms (+0.13 dB vs 4.5)\n
+  *** R_IN IS ALSO A FAULT-PATH PART, AND THE GAIN DERIVATION IS THE ONLY PLACE
+  *** THAT WOULD CATCH A CHANGE TO IT. (M7a back-reference, adversary 045.)
+  If +13V5_A collapses while the AK4458 keeps driving from the surviving +5V_A,
+  the DAC holds this op-amp input at VREFH/2 = 2.5 V while V+ has gone to 0 --
+  2.0 V above the (V+)+0.5 abs max. R_IN is what limits the resulting current:
+        2.0 V / Rin = ~0.9 mA   against the OPA1656s +/-10 mA input limit -> 11x
+  F39 records the RAIL ORDERING as the protection. It is not (F84): that guarantee
+  is between +/-15V5, and these op-amps run on +/-13V5 behind two dissimilar LDOs.
+  A GAIN CHANGE MOVES A FAULT MARGIN. Re-run the line above before altering Rin.
+\nV-06 CLOSES, AND THE [HARD] LINE CLEARS ON THE DATASHEET'S NUMBER:\n  OPA1656 output swing = (V-)+0.25 .. (V+)-0.25, i.e. +/-13.25 V on +/-13V5_A rails.\n  4.5 Vrms needs 6.36 V peak.  13.25 / 6.36 = 2.08x -> 6.4 dB of headroom.\n  The swing spec is quoted at RL = 2 kOhm; S6.2 loads 10 kOhm, i.e. LIGHTER, so the\n  real margin is at least this. NOT marginal, and not assumed.\n\nV-06 POSTSCRIPT (F48's question asked of this stage): OPA1656 input abs max is\n  (V-)-0.5 .. (V+)+0.5 = +/-14.0 V, the same form that caught the input sheet. Here it\n  is NOT at risk: the op-amp inputs sit inside the feedback loop, driven only by the\n  AK4458's outputs, which are bounded by its own AVDD (5 V). THE MUTE ELEMENTS ARE\n  DOWNSTREAM OF THE OUTPUT PIN, so no mute transient reaches an input. The one exposed\n  pin is OUT, and its abs max is 'output short-circuit: continuous'.\n\n*** THE [HARD] FLOOR IS DEFENDED JOINTLY BY THREE INDEPENDENTLY-OWNED VALUES. ***
 S12 measures at the RCA, AFTER the mute series element, so the Zout divider eats from
 the same margin the gain provides. The inequality, and it must be re-fired if ANY of
 the three moves:

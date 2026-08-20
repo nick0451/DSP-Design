@@ -68,6 +68,7 @@ weakness we named in 021: there is no firmware contract document, and now there 
 
 | # | Decision |
 |---|---|
+| **Convention 4 clause** | **A drafted amendment is waiting, from the reviewer, and neither of us has applied it** (§4/§9). **The argument:** convention 4 descends from **M7a** *(“consequences check BOTH PARTIES”)* and implements **one** — it writes the consequence at the *derivation* and nothing at the *values*. **Proposed:** each value named in a shared-margin check also carries a **back-reference at its own point of definition.** *Ships with a stated limit: it works for values **we** own — a vendor parameter like the INA1650's 500 kΩ has no point-of-definition to annotate.* **The two back-references are already placed as ordinary sheet work** |
 | **F39** *(reopened by F84)* | **Its recorded reason does not reach the op-amps.** The SEPIC topology orders **±15V5**; the op-amps run on **±13V5**, behind an LT3045 and an LT3094 — dissimilar parts, independent dropout. **Two things needed and neither is ours:** the recorded reason replaced, and the ±13V5 propagation step given an argument. **Not inducible** — the argument is all there will ever be |
 | **F77** *(rule offered)* | The reviewer proposes deciding it as a **boundary, not a diode**: *“qualification follows **bounded fault energy**, not proximity to the connector — a part that can see unbounded harness energy is input protection; a part behind an element that bounds the fault current to a computed value is signal path.”* **On that line the clamps are signal path**, since F49 already computed the injected current at **31.2 mA**. Not adopted — it is a scope reading of a decree, so it is yours |
 | **F77** | **§7.0 names *input protection* as one of four places AEC-Q100 IS required.** The BAV99/BAV199 clamps **are** input protection. **Scope question:** does that mean the TVS + series R at the connector, or does it reach the **rail clamps behind the 1 kΩ**? Decides whether `BAV199-Q`'s qualification is *required* or a *bonus* — and applies to every part on the input side |
@@ -122,12 +123,13 @@ Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
 
 | Sent by us (`inbox/`) | Received (`outbox/`) |
 |---|---|
-| 002 … 041, **043** | 001 … 040, **042** |
+| 002 … 043, **046** | 001 … 042, **044, 045** |
 
-**✅ NOTHING OWED. 043 sent 2026-08-20** — **F84: F39's by-construction rail ordering does NOT reach
-the op-amps** (it orders ±15V5; the op-amps run on ±13V5 behind two dissimilar LDOs). Their assumptions
-checked: **DC-coupling CONFIRMED** (so S4 stands), **R_IN CONFIRMED at 2.21 k**, **AK4458 output DC
-bias NOT CONFIRMED — open read.** *Earlier:* 041 · 039 · 037 · 035 · 032 · 030 · 027 · 025 · 023 · 021 · 019 · 017 · 015 · 013 · 011 · 009., covering 007 and 008 together, with the rule-3
+**✅ NOTHING OWED. 046 sent 2026-08-20**, covering 044 **and** 045 — both **M7a back-references placed**
+(`R_IN` on the gain derivation *and* the on-sheet note; the INA1650 500 kΩ on `NOTE2` with its limit
+stated); **F53 CLOSED** with a correction owed to them; **F85** open. **A convention-4 clause is drafted
+AND WITH THE OPERATOR — neither agent has touched `CLAUDE.md`.**
+*Earlier:* 043 · 041 · 039 · 037 · 035 · 032 · 030 · 027 · 025 · 023 · 021 · 019 · 017 · 015 · 013 · 011 · 009., covering 007 and 008 together, with the rule-3
 unaddressed list named explicitly (C1-narrowed, F58a/b, the AK5574 SYNCE counterpart, `PLLFILT`,
 BAV99, and the F53 A3 sweep — flagged to them because sheets they have already read may have been
 **clipped on export**).
