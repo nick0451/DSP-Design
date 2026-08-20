@@ -213,7 +213,7 @@ for n in CH:
         # +/-13V5_A rails, so the junctions sit ~12 V outside the +/-1.3 V signal swing and
         # their nonlinear capacitance never modulates it. This is ALSO the ESD element.
         PLACE.append((f"D{n}{leg}", "Diode:BAV99", 165, y, "BAV99",
-                      {"1": "-13V5_A", "2": a, "3": "+13V5_A"}))
+                      {"1": "-13V5_A", "2": "+13V5_A", "3": a}))
         # Antialias: single-pole per leg into the ADC, differential pole across the pair.
         P += [passive("C", 190, y, "1n", a, GND)]
     # Relay shorts BOTH legs' Rspk to ground together -- one part, two poles, so the two legs
@@ -369,8 +369,8 @@ for n in CH:
     # Clamps at the two op-amp inputs -- the ONLY nodes on this stage that a +/-13V5_A fault
     # can reach. Leg N's sits on a virtual earth, so it carries no signal and contributes no
     # nonlinear capacitance at all; leg P's sees signal but from a 1k source (NOTE7).
-    PLACE.append((f"D{409 + n}", "Diode:BAV99", 215, yb, "BAV99", {"1": GND, "2": ni, "3": "+5V_A"}))
-    PLACE.append((f"D{413 + n}", "Diode:BAV99", 215, yb + 14, "BAV99", {"1": GND, "2": pi, "3": "+5V_A"}))
+    PLACE.append((f"D{409 + n}", "Diode:BAV99", 215, yb, "BAV99", {"1": GND, "2": "+5V_A", "3": ni}))
+    PLACE.append((f"D{413 + n}", "Diode:BAV99", 215, yb + 14, "BAV99", {"1": GND, "2": "+5V_A", "3": pi}))
     ref = f"U{44 + n}"
     OA1, OA2, OA3 = (geometry(gs.OPAMP_ADCDRV, i) for i in (1, 2, 3))
     assert set(OA1) | set(OA2) | set(OA3) == set(PINGEO["ODSP12:OPAMP_ADCDRV"]), "opamp units"

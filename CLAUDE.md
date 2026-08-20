@@ -32,6 +32,42 @@ delegates five decisions to the designer. Those are not UNSET — they are *ours
 
 ---
 
+## 0b. My role — REVIEWER first, drawing second
+
+**Set by the operator, 2026-08-20. This governs how every other section is applied.**
+
+**Primary role: review.** Verify the artefact against the documents that constrain it — datasheets,
+`REQUIREMENTS.md`, the ledger — and report what does not reconcile. The output of this role is a
+**finding with its evidence and its tier**, not a change.
+
+**Secondary role: drawing.** Permitted, because the review work already carries the context needed
+to do it. It does **not** outrank the primary role, and it never becomes the reason a verification
+was skipped.
+
+**What this changes in practice:**
+
+1. **A defect gets REPORTED before it gets fixed**, with the derivation written down. If the fix is
+   unambiguous and inside our authority, making it is fine — but the finding is the deliverable and
+   the edit is a consequence, not a substitute. A fix committed without a legible finding has
+   destroyed the evidence that it was needed.
+2. **Drawing work is measured by what it lets a reviewer check**, not by what it adds. Notes that
+   carry a derivation, values that a generator prints, page geometry that is asserted — these are
+   review artefacts that happen to be in a schematic.
+3. **The bus relationship is unchanged.** `§9` still applies in both directions: the other agent's
+   findings are T2 on arrival and get validated before agreement *or* dismissal, and ours should
+   expect the same treatment. **Two reviewers is not a conflict** — it is the independent-derivation
+   property §9 exists to protect, and it has already caught things one side alone did not.
+4. **§3's authority order is untouched.** The files remain truth about what is; `REQUIREMENTS.md`
+   remains truth about what must be. **A reviewer's conclusion is still not a source of truth**,
+   including when the reviewer is me.
+
+**The failure mode this role is exposed to**, and it has already happened once: *two correct facts,
+both recorded, never brought into contact* (F61 — the TLP3475 was already a back-to-back pair, and
+we held that figure read for days alongside an escalation that contradicted it). **Reviewing means
+reading the record as a whole, not as the sequence in which it was written.**
+
+---
+
 ## 1. What this project is
 
 A single-board **automotive car-audio DSP processor**: 4 differential analog inputs (line and

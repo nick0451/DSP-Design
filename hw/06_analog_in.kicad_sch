@@ -2358,14 +2358,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "c749d522-6d06-516b-82d9-ce5c1e7fe3cd")
 	)
-	(global_label "ATT1_P"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 39.37 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "05273873-c66f-5ddb-b275-1a39581f31ac")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT1_P"
 		(shape bidirectional)
 		(at 165.1 44.45 0)
 		(fields_autoplaced yes)
@@ -2396,14 +2396,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "7e756ef2-c3d0-5856-9b04-d80e401bf3dc")
 	)
-	(global_label "ATT1_N"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 62.230000000000004 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "5a614057-7516-5e61-8d39-6a397bd6065e")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT1_N"
 		(shape bidirectional)
 		(at 165.1 67.31 0)
 		(fields_autoplaced yes)
@@ -2495,14 +2495,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "7b9a5457-ee71-50fd-861d-a9b4f6da3d4c")
 	)
-	(global_label "ATT2_P"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 100.33 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "fbd1776c-a255-5c50-9272-a56fe976b6cd")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT2_P"
 		(shape bidirectional)
 		(at 165.1 105.41 0)
 		(fields_autoplaced yes)
@@ -2533,14 +2533,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "0f612b66-4c84-5217-8a67-48a07fb3fc68")
 	)
-	(global_label "ATT2_N"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 121.92 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "d73fd00a-276e-5dc6-b852-e4ac5f8a8814")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT2_N"
 		(shape bidirectional)
 		(at 165.1 127.0 0)
 		(fields_autoplaced yes)
@@ -2632,14 +2632,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "2e1fad2b-2e3b-5a6c-9cd4-81867f2532e7")
 	)
-	(global_label "ATT3_P"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 160.02 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "c3b11451-7953-5eb4-9ea3-cf184bfb8fa0")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT3_P"
 		(shape bidirectional)
 		(at 165.1 165.1 0)
 		(fields_autoplaced yes)
@@ -2670,14 +2670,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "af4c62e2-0d81-5da9-b00c-fa56fd2f327c")
 	)
-	(global_label "ATT3_N"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 181.61 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "31e2b7bb-0976-5195-a041-3433e45c5d42")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT3_N"
 		(shape bidirectional)
 		(at 165.1 186.69 0)
 		(fields_autoplaced yes)
@@ -2769,14 +2769,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "e9c4f315-e8d0-5718-a861-783edef05cda")
 	)
-	(global_label "ATT4_P"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 219.71 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "dbbf781d-f5bb-5e4f-9650-f47aeb48a293")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT4_P"
 		(shape bidirectional)
 		(at 165.1 224.79 0)
 		(fields_autoplaced yes)
@@ -2807,14 +2807,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "2a7af043-92bc-5b86-9b42-c2f730ba4a32")
 	)
-	(global_label "ATT4_N"
+	(global_label "+13V5_A"
 		(shape bidirectional)
 		(at 172.72 242.57 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "22a425bc-41e3-5c70-b3a4-7e54dbebb65c")
 	)
-	(global_label "+13V5_A"
+	(global_label "ATT4_N"
 		(shape bidirectional)
 		(at 165.1 247.65 0)
 		(fields_autoplaced yes)
@@ -3110,14 +3110,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "2496dfcb-6e20-5d48-b615-626457b85d2a")
 	)
-	(global_label "LS1_NI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 539.75 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "3ba8fd5b-fbdf-59bc-8088-53a6d278e234")
 	)
-	(global_label "+5V_A"
+	(global_label "LS1_NI"
 		(shape bidirectional)
 		(at 214.63 544.83 0)
 		(fields_autoplaced yes)
@@ -3148,14 +3148,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "fbbeca4e-5a59-5f1d-b34c-d8d809b42d3e")
 	)
-	(global_label "LS1_PI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 553.72 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "8fcb8397-4400-5c33-824a-e2c5d336160c")
 	)
-	(global_label "+5V_A"
+	(global_label "LS1_PI"
 		(shape bidirectional)
 		(at 214.63 558.8 0)
 		(fields_autoplaced yes)
@@ -3293,14 +3293,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "b10cfa8d-576b-5de9-9d76-b9b9ed835566")
 	)
-	(global_label "LS2_NI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 640.08 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "84f43f08-788d-5016-bf53-f3e9310bed73")
 	)
-	(global_label "+5V_A"
+	(global_label "LS2_NI"
 		(shape bidirectional)
 		(at 214.63 645.16 0)
 		(fields_autoplaced yes)
@@ -3331,14 +3331,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "5c735a1b-72cd-512d-83b1-8c071752f558")
 	)
-	(global_label "LS2_PI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 654.05 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "5600fa7c-8cce-5429-82c8-2e910a4e56d4")
 	)
-	(global_label "+5V_A"
+	(global_label "LS2_PI"
 		(shape bidirectional)
 		(at 214.63 659.13 0)
 		(fields_autoplaced yes)
@@ -3476,14 +3476,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "b45e982e-1a92-5556-a26d-b5f388580a4f")
 	)
-	(global_label "LS3_NI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 740.41 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "e89d97c3-4e49-5d98-a4d3-d86df0d0ae27")
 	)
-	(global_label "+5V_A"
+	(global_label "LS3_NI"
 		(shape bidirectional)
 		(at 214.63 745.49 0)
 		(fields_autoplaced yes)
@@ -3514,14 +3514,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "4ff3619e-93f4-5ade-935f-c92fd09c3c7b")
 	)
-	(global_label "LS3_PI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 754.38 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "591162d0-5247-59d6-96ae-9f30c8062bfc")
 	)
-	(global_label "+5V_A"
+	(global_label "LS3_PI"
 		(shape bidirectional)
 		(at 214.63 759.46 0)
 		(fields_autoplaced yes)
@@ -3659,14 +3659,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "f778d9cb-cdc5-5e83-a239-573cb3f7cdcd")
 	)
-	(global_label "LS4_NI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 839.47 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "2befd44d-6adc-57e2-87fc-36e7aad900d6")
 	)
-	(global_label "+5V_A"
+	(global_label "LS4_NI"
 		(shape bidirectional)
 		(at 214.63 844.5500000000001 0)
 		(fields_autoplaced yes)
@@ -3697,14 +3697,14 @@
 		(effects (font (size 1.27 1.27)) (justify right))
 		(uuid "36e2d72d-0254-5716-89df-f74beba7e53c")
 	)
-	(global_label "LS4_PI"
+	(global_label "+5V_A"
 		(shape bidirectional)
 		(at 222.25 853.44 0)
 		(fields_autoplaced yes)
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "b2a708c3-7fd8-5386-9d4b-a44277931a93")
 	)
-	(global_label "+5V_A"
+	(global_label "LS4_PI"
 		(shape bidirectional)
 		(at 214.63 858.52 0)
 		(fields_autoplaced yes)
