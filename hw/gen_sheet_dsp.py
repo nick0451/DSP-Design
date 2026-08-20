@@ -508,14 +508,42 @@ def stack_notes(items, gap=6.0):
         w, h = note_extent(t)
         out.append((x, y, t, w, h)); y += h + gap
     return out
+# ADVERSARY 038: THIS CHECK USED TO BE INLINE, AND THAT IS WHY IT WENT TWELVE LEGS WITHOUT A
+# NEGATIVE TEST. I had claimed it was untestable -- 'I would have to defeat the stacker to test
+# the checker' -- which was wrong, and my own F78 guard disproved it the same morning: you do
+# not defeat the producer, you HAND THE CHECKER FABRICATED DATA. It could not be handed anything
+# while it was welded to the stacker's output, so the fix was to move the seam, not to write a
+# cleverer test.
+#
+#   A GUARD THAT CAN ONLY BE TESTED BY BREAKING ITS PRODUCER HAS BEEN WRITTEN AT THE WRONG LAYER.
+#
+# Signature is now (list of boxes) -> ok, so it takes DATA rather than generator state.
+def assert_no_note_overlap(boxes, tag=""):
+    for _a in range(len(boxes)):
+        for _b in range(_a + 1, len(boxes)):
+            ax, ay, aw, ah = boxes[_a][0], boxes[_a][1], boxes[_a][3], boxes[_a][4]
+            bx, by, bw, bh = boxes[_b][0], boxes[_b][1], boxes[_b][3], boxes[_b][4]
+            if ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah:
+                raise AssertionError(
+                    f"NOTE BOX OVERLAP{tag}: note {_a} at ({ax:.0f},{ay:.0f}) {aw:.0f}x{ah:.0f} "
+                    f"intersects note {_b} at ({bx:.0f},{by:.0f}). Two notes can overlap while "
+                    f"the PAGE still fits, which is why the page-extent assert does not see this.")
+    return len(boxes)
+
+# M9 NEGATIVE TEST, at last. Two fabricated boxes that must intersect, and the same two pulled
+# apart -- no stacker involved in either direction, which was the whole point.
+_ov_bad  = [(0.0, 0.0, "a", 50.0, 20.0), (10.0, 10.0, "b", 50.0, 20.0)]   # must FAIL
+_ov_good = [(0.0, 0.0, "a", 50.0, 20.0), (0.0, 21.0, "b", 50.0, 20.0)]    # must PASS
+try:
+    assert_no_note_overlap(_ov_bad, " [NEGATIVE TEST]")
+    raise SystemExit("OVERLAP GUARD IS DEFECTIVE: it passed two boxes that plainly intersect (M9).")
+except AssertionError:
+    pass
+assert_no_note_overlap(_ov_good, " [POSITIVE CONTROL]")
+print("  overlap guard: negative test FIRED, positive control PASSED (M9 satisfied)")
+
 NOTES = stack_notes(NOTES)
-for _a in range(len(NOTES)):
-    for _b in range(_a + 1, len(NOTES)):
-        ax, ay, _t, aw, ah = NOTES[_a]; bx, by, _t2, bw, bh = NOTES[_b]
-        assert not (ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah), (
-            f"NOTE BOX OVERLAP: note {_a} at ({ax:.0f},{ay:.0f}) {aw:.0f}x{ah:.0f} intersects "
-            f"note {_b} at ({bx:.0f},{by:.0f}). Two notes can overlap while the PAGE still fits, "
-            f"which is why the page-extent assert does not see this.")
+assert_no_note_overlap(NOTES)
 NOTES = [(x, y, t) for x, y, t, _w, _h in NOTES]
 
 def notes():
