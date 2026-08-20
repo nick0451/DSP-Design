@@ -253,6 +253,27 @@ CLKR = "+3V3_CLK"
 FANOUT = [("3", "MCLK_DSP", "R50"), ("8", "MCLK_ADC", "R51"),
           ("5", "MCLK_DAC_A", "R52"), ("7", "MCLK_DAC_B", "R53")]
 
+# --- PLL loop filter (PLLFILT, pin 16) ------------------------------------------------
+# ADI Figure 16 "PLL Filter", Rev. C p.30, RENDERED 200 dpi -- adopted VERBATIM, not designed.
+# The datasheet does not invite a loop-filter design: it gives one network and a tolerance
+# rule, and our operating point IS its stated design centre. Same reasoning as the library
+# policy's "vendor footprint verbatim where one exists".
+#
+# TOPOLOGY, and the part a from-memory design gets wrong: THE FILTER RETURNS TO PVDD, NOT
+# TO GROUND. Two parallel paths between PVDD (pin 15) and PLLFILT (pin 16):
+#     PVDD --150pF-- PLLFILT           (direct shunt)
+#     PVDD --5.6nF-- MID --4.3k-- PLLFILT
+#
+# Table on the same page confirms our operating point is ADI's NOMINAL, not an extrapolation:
+#     MCLK 24.576 MHz -> predivider 8 -> PLL input 3.072 MHz -> feedback x96 -> 294.912 MHz
+# and the text says the recommended filter is FOR "a nominal 3.072 MHz PLL input and a
+# 294.912 MHz system clock output" -- exactly us -- adding "this filter works for the full
+# frequency range of the PLL".
+PLL_MID = "PLL_LF_MID"
+cplace("C61", "Device:C", 430, 200, "150p C0G 5%", {"1": "+3V3_PLL", "2": "PLLFILT"})
+cplace("C60", "Device:C", 460, 185, "5n6 C0G 5%", {"1": "+3V3_PLL", "2": PLL_MID})
+cplace("R60", "Device:R", 490, 200, "4k3 1%", {"1": PLL_MID, "2": "PLLFILT"})
+
 cplace("Y1", "ODSP12:XO_LVCMOS", 60, 200, "PLACEHOLDER F56 -- 24.576 MHz",
        {"1": "XO_OE", "2": GND, "3": "CLK_24M576", "4": CLKR})
 cplace("R54", "Device:R", 30, 200, "1k", {"1": CLKR, "2": "XO_OE"})
@@ -270,6 +291,53 @@ for i, (_p, net, ref) in enumerate(FANOUT):
 # ---- sheet notes: defences placed where the mistake would be made (F28 principle) ----
 
 # ---- clock-tree notes: the seven published criteria, in copper and in writing ----
+PLLNOTE = (
+    "PLL LOOP FILTER -- ADOPTED VERBATIM FROM ADI FIGURE 16, NOT DESIGNED. AND THE ONE\n"
+    "THING A FROM-MEMORY DESIGN GETS WRONG: IT RETURNS TO PVDD, NOT TO GROUND.\n"
+    "\n"
+    "  Source: ADAU1462/ADAU1466 Rev. C p.30, Figure 16 'PLL Filter', RENDERED 200 dpi.\n"
+    "\n"
+    "      PVDD (15) --+---- 5n6 ----+                 C60  5n6  C0G 5%\n"
+    "                  |             |                 C61  150p C0G 5%\n"
+    "                150p          4k3                 R60  4k3  1%\n"
+    "                  |             |\n"
+    "   PLLFILT (16) --+-------------+\n"
+    "\n"
+    "  WHY VERBATIM RATHER THAN DERIVED: the datasheet does not invite a loop-filter\n"
+    "  design. It gives ONE network plus a tolerance rule, and OUR OPERATING POINT IS ITS\n"
+    "  STATED DESIGN CENTRE -- not an extrapolation from it. Same page, same table:\n"
+    "     MCLK 24.576 MHz -> predivider 8 -> PLL input 3.072 MHz -> x96 -> 294.912 MHz\n"
+    "  and the text specifies the filter FOR 'a nominal 3.072 MHz PLL input and a 294.912\n"
+    "  MHz system clock output', adding 'this filter works for the full frequency range of\n"
+    "  the PLL'. Deriving our own would be replacing a characterised network with an\n"
+    "  uncharacterised one to no end. (Library policy's 'vendor part verbatim', applied to\n"
+    "  a circuit instead of a footprint.)\n"
+    "\n"
+    "  TOLERANCE IS A SPECIFICATION HERE, NOT A PREFERENCE. Verbatim: 'Because the centre\n"
+    "  frequency and bandwidth of the loop filter is determined by the values of the\n"
+    "  included components, use high accuracy (low tolerance) components. Components that\n"
+    "  are valued within 10% of the recommended component values and with a 15% OR LOWER\n"
+    "  TOLERANCE are suitable.' So: 5% C0G on both caps and 1% on the resistor clear it\n"
+    "  with room. C0G RATHER THAN X7R IS THE POINT -- X7R's voltage coefficient would move\n"
+    "  the loop bandwidth with the PLLFILT bias, which is exactly the parameter the\n"
+    "  sentence above says is set by these values. A 10% X7R part meets the tolerance\n"
+    "  number on paper and misses its intent.\n"
+    "\n"
+    "  PLLFILT BIAS is internally generated, 'typically between 1.65 V and 2.10 V' (p.30).\n"
+    "  Against PVDD = +3V3_PLL that is ~1.2-1.65 V across the network. No stress, and it is\n"
+    "  why a 16 V C0G part is ample.\n"
+    "\n"
+    "  *** LAYOUT CONSTRAINT, ADI p.197, VERBATIM -- THIS IS A BLOCK D/E INPUT: ***\n"
+    "  'To minimize jitter, connect the single resistor and two capacitors in the PLL\n"
+    "   filter to the PLLFILT and PVDD pins with SHORT TRACES.'\n"
+    "  Three parts, both pins, short. It is the only placement instruction ADI gives for\n"
+    "  this network and it is a jitter argument, so it outranks tidiness.\n"
+    "\n"
+    "  NOTE PVDD IS ITS OWN NET (+3V3_PLL, F33) AND IS RESOLVED ON THE POWER SHEET. The\n"
+    "  filter's PVDD end must land on THAT rail, not on a convenient +3V3_D -- the whole\n"
+    "  point of the separate net is that the PLL's supply reference is not the digital one.\n"
+)
+
 CLKNOTE1 = (
     "S3 [HARD] CLOCK TREE -- ONE XO, ONE FANOUT, FOUR POINT-TO-POINT LINKS. NO DAISY CHAIN.\n"
     "\n"
@@ -420,6 +488,7 @@ NOTES = [
     (150.0, 62.0, CLKNOTE1),
     (150.0, 70.0, CLKNOTE2),
     (150.0, 78.0, CLKNOTE3),
+    (150.0, 86.0, PLLNOTE),
 ]
 
 # C2: OVERFLOW AND OVERLAP ARE DIFFERENT FAILURES OF THE SAME FAMILY, AND A CHECK FOR ONE IS
