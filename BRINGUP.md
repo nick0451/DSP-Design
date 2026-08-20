@@ -161,6 +161,37 @@ independent mechanisms, one measurement.
 
 ---
 
+## 4b. INDUCED TESTS — the fault paths, because reasoning is all we have until they run
+
+**Added 2026-08-20 (adversary 040 / F83).** Every check below justifies a *closed* finding whose
+argument rests on a **behaviour, not a value** — a state the board is designed never to enter.
+**F76 is why this section exists:** the input clamps were miswired for the entire life of the
+design, and F48's justification could not be tested because the state that would exercise it was
+unreachable. Nothing detected that. **A closed finding whose mechanism has never run is not a
+verified one.**
+
+**These are one-time, cheap, and they convert reasoning into observation. Do them before the
+acceptance sequence, not after.**
+
+| # | Induce | Expect | Verifies |
+|---|---|---|---|
+| **4b.1** | Drive an analog input hard toward each rail through a current-limited source (target the F49 case, ~31 mA) | Node clamps at **V_rail + V_F ≈ 14.4 V**, *not* inside ±14 V. **That is correct** — protection is by **current limiting**, not voltage clamping. Confirm the INA1650 survives and that its input current stays sub-µA | **F48 / F49 / F76 / F79.** F79 corrected the recorded mechanism; this is the first time the clamp will ever have conducted |
+| **4b.2** | Kill `MUTE_BIAS_N` / de-energise the mute with signal present | Output goes quiet **by construction**, both series and shunt. Measure residual against the §12 mute-depth line | **§6.4 [HARD] zero-energy mute.** Justified *entirely* by behaviour when power dies |
+| **4b.3** | Cut power abruptly (pull the connector) at full output | No audible pop; remote-out drops **first**. §7.4 is the only path that survives a pulled connector | **§7.2/§7.3/§7.4.** The orderly sequence does not test this |
+| **4b.4** | Pull each `PG` low individually; hold `EN` and confirm the sequence refuses to advance | Downstream rails stay off. **Verifies what holds when the sequence does *not* run** | **F34 / F20 / F30 sequencing preconditions** |
+| **4b.5** | Interrupt `LRCK` briefly during playback | AK5574 self-resets and resynchronises (T1-132: live only in **slave** mode, which `MSN` = GND selects). **Note the discontinuity — nothing on this board reports it** | **F65.** A circuit that only acts on an anomaly, and which nothing watches |
+| **4b.6** | Power up with each mode strap left floating in turn | No behavioural change — **all six are inert in I2C control mode** (T1-132). If anything *does* change, T1-132's scope reading is wrong | **F68 / T1-132.** A negative test for a claim we made from one sentence |
+
+**Two that cannot be induced on a bench, recorded so nobody mistakes absence for coverage:**
+
+- **F39's rail-cascade ordering** — *"−15V5 cannot outlive +15V5, so the op-amp rails fail in the
+  only safe order by construction."* You cannot easily make −15V5 outlive +15V5 on a bench, so **the
+  by-construction argument is load-bearing forever** and deserves a second reader rather than a test.
+- **F1 / SM8S load-dump capability** — §12's table is an *analysis*, not a measurement, and
+  unsuppressed pulse 5 is not something to reproduce on a desk. The bounded claim stands as written.
+
+---
+
 ## 5. Open items that will land here
 
 - V-16 disorderly-shutdown transient measurement, which anchors the mute-depth requirement **and
