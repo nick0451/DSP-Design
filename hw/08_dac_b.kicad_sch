@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "ec9595e4-25d5-53c7-9e9d-3843d2f4357e")
-	(paper "A3")
+	(paper "User" 610.0 520.0)
 	(title_block
 		(title "ODSP-12 :: DAC B -- AK4458 #2, AOUT7-12")
 		(date "2026-08-16")

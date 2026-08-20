@@ -6,6 +6,7 @@
 # The stock RF_Module:ESP32-S3-WROOM-1 symbol is SELF-CONTAINED (no extends) and its pin 13/14
 # are already named USB_D-/USB_D+, which is the [HARD] GPIO19/20 reservation pre-encoded.
 import os, re, uuid
+import math
 
 HW = os.path.dirname(os.path.abspath(__file__))
 DEST = os.path.join(HW, "03_control.kicad_sch")
@@ -302,12 +303,22 @@ for i, (nx, ny, txt) in enumerate([(620.0, 120.0, NOTE1), (620.0, 300.0, NOTE2),
                 f'\t\t(effects (font (size 1.27 1.27)) (justify left top))\n'
                 f'\t\t(uuid "{u(f"n{i}")}")\n\t)')
 
+# F53 SWEEP 2026-08-20: page DERIVED from content and ASSERTED, never declared.
+# Measured before the fix: this sheet's content overran (paper "A3") = 420x297 mm,
+# so the PDF export silently clipped everything past the frame -- including notes the
+# reviewer has been quoting back at us. A count is a receipt; open the page.
+_XY = [(float(a), float(b)) for a, b in
+       re.findall(r'\(at ([-\d.]+) ([-\d.]+)', chr(10).join(body))]
+PAPER_W = math.ceil((max(x for x, _ in _XY) + 40) / 10) * 10
+PAPER_H = math.ceil((max(y for _, y in _XY) + 40) / 10) * 10
+assert PAPER_W <= 1200 and PAPER_H <= 1200, f'page {PAPER_W}x{PAPER_H} exceeds KiCad limits'
+
 sch = f'''(kicad_sch
 \t(version {VER})
 \t(generator "eeschema")
 \t(generator_version "10.0")
 \t(uuid "{SHEET_UUID}")
-\t(paper "A3")
+\t(paper "User" {PAPER_W:.1f} {PAPER_H:.1f})
 \t(title_block
 \t\t(title "ODSP-12 :: Control -- ESP32-S3, USB-C debug, sequencing nets")
 \t\t(date "2026-08-16")

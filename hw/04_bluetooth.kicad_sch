@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "374f430d-a844-5e13-9313-d3f7c1ad567c")
-	(paper "A3")
+	(paper "User" 480.0 500.0)
 	(title_block
 		(title "ODSP-12 :: Bluetooth -- BM83SM1, I2S slave on SDATA_IN1")
 		(date "2026-08-16")

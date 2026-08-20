@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "a7b3bc54-7502-5072-8392-2bc1c501476e")
-	(paper "A3")
+	(paper "User" 660.0 480.0)
 	(title_block
 		(title "ODSP-12 :: Control -- ESP32-S3, USB-C debug, sequencing nets")
 		(date "2026-08-16")
