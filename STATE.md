@@ -14,26 +14,23 @@ Last updated: 2026-08-16
 
 ### ⏱ LIVE STATUS — 2026-08-20. **Rewrite this block, do not append to it.**
 
-**★ ROLE CHANGED, 2026-08-20 — read `CLAUDE.md` §0b FIRST. PRIMARY ROLE IS REVIEW; drawing is
-secondary and never a substitute for a legible finding.** Set by the operator.
+**★ ROLE: REVIEW is primary, drawing secondary — `CLAUDE.md` §0b.**
 
-**Position:** ten sheets · **ERC 26** · no footprints · G0-L untouched. **`PLLFILT` drawn** (T1-135,
-verbatim from ADI Figure 16). **F76 FOUND AND FIXED — all 16 rail clamps had the signal on the
-wrong BAV99 pin and diode 2 was conducting CONTINUOUSLY from the +13.5 V rail into the input.**
-ERC was 26 before and after: **it cannot see this class at all.**
+**Position:** ten sheets · **ERC 26** · **NO FOOTPRINTS EXIST** · G0-L untouched. `PLLFILT` drawn.
+**F53 closed** — nine sheets, zero clipping. **F76 fixed** (16 clamps on the wrong pin) with an
+M9-negative-tested guard (F78). `CLAUDE.md` gained **§8.11** (shared margins recorded at both ends).
 
-**THE NEXT ACTION, one line:** chase the **`kicad-cli` annotation warning** — *“schematic has
-annotation errors”* on netlist export, first seen 2026-08-20. Unexplained, and **M17 exists because
-generated sheets bypass the annotator.**
+**⚠ THE HONEST TREND, named to the reviewer in 052:** **ten ledger entries (M23–M29) against five
+findings this week, and the last four exchanges produced NO findings at all.** Not waste — M27 gave
+us the negative test that verified two guards, M28 gave six induced bench tests. **But the ratio is
+moving one way, and the last two exchanges were about the exchange.**
 
-**Then, in order:** **F53 sweep — 7 generators still declare A3** (every note below the fold has
-been invisible in every PDF export, reviewer's included; `01_power` is the worked example) → ERC
-punch list (26: 20 `isolated_pin_label`, 6 `pin_not_driven`) → footprints → Blocks D/E.
+**THE NEXT ACTION, one line:** **start the footprint pass.** It is the largest untouched deliverable,
+and by M28's own logic it is where the F76 class lives unexercised — **F60's LND150 has no numbered
+pin table and `MUTE_DEPFET` has no vendor pinout at all.**
 
-**⚠ STILL NEEDS THE OPERATOR:** the **§4 and §3 [HARD] amendments** relayed through the bus need
-**direct confirmation** (§9 places review outside the authority order precisely so a decree cannot
-arrive through it) · **F61** (24 FETs buy *redundancy*, now correctly framed) · **F63** — reviewer
-now recommends **`BAV199-Q` (Nexperia)**, superseding their own BAV99-AQ pin · **F68** · **F60/V-15**.
+**Then:** ERC punch list (26: 20 `isolated_pin_label`, 6 `pin_not_driven`) → **F85** (`kicad-cli`
+annotation warning, five causes ruled out, unexplained) → Blocks D/E.
 
 ### 🔴 WITH THE OPERATOR
 
@@ -126,14 +123,15 @@ Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
 
 | Sent by us (`inbox/`) | Received (`outbox/`) |
 |---|---|
-| 002 … 048, **050** | 001 … 047, **049** |
+| 002 … 050, **052** | 001 … 049, **051** |
 
-**✅ NOTHING OWED. 050 sent 2026-08-20 — their urgent item CLEARED: BOTH §12 negative claims VERIFIED,
-so F58(a)/(b) are REAL and your rulings on them stand.** Their reconstruction audit accepted (**~50
-unverified ledger citations; `convention 4` also propped up F67 and F39/F84 as *support*, not just the
-amendment**). **`R-nn` prefix adopted** on their side, ending the collision class. **F88 raised — the
-stale `DO-218AB` label is in `REQUIREMENTS.md` §12 too, which §4 forbids us editing.**
-*Earlier:* 048 · 046 · 043 · 041 · 039 · 037 · 035 · 032 · 030 · 027 · 025 · 023 · 021 · 019 · 017 · 015 · 013 · 011 · 009., covering 007 and 008 together, with the rule-3
+**✅ NOTHING OWED. 052 sent 2026-08-20** — **M29 logged**: repetition (not location) is what manufactures
+confidence, and a reconstruction fails in **two** directions — lossy for negative claims, **OVER-ORGANISED
+for positive ones** (their copy has *eleven* numbered conventions; this repo has three). **And I named a
+trend to them:** ten ledger entries against five findings this week, with **the last four exchanges
+producing no findings at all** — while **no footprints exist** and F60/`MUTE_DEPFET` sit in the F76
+class, unexercised.
+*Earlier:* 050 · 048 · 046 · 043 · 041 · 039 · 037 · 035 · 032 · 030 · 027 · 025 · 023 · 021 · 019 · 017 · 015 · 013 · 011 · 009., covering 007 and 008 together, with the rule-3
 unaddressed list named explicitly (C1-narrowed, F58a/b, the AK5574 SYNCE counterpart, `PLLFILT`,
 BAV99, and the F53 A3 sweep — flagged to them because sheets they have already read may have been
 **clipped on export**).
@@ -172,7 +170,7 @@ Everything needed is **in the repo**; nothing load-bearing lives only in convers
 |---|---|---|
 | 1 | `CLAUDE.md` | The constitution. §0 UNSET, §4 channel policy, §5 tiers, §8 working rules, **§10 compaction contract** |
 | 2 | **`STATE.md` §0** (here) | Position, next action, session boundary |
-| 3 | `STATE.md` §5 | **The ledger. Read M1–M28 before any datasheet or file work. M19 governs review-agent findings** |
+| 3 | `STATE.md` §5 | **The ledger. Read M1–M29 before any datasheet or file work. M19 governs review-agent findings** |
 | 4 | `REQUIREMENTS.md` **v1.7** | The authority. Cite by section **and** version |
 | 5 | `hw/README.md` | Tool paths, build/verify commands, KiCad-10 format traps |
 | 6 | `STATE.md` §7 / §8 / §9 | Findings (F1–F63), [VERIFY] (V-01…V-30), I2C bus map |
@@ -1162,6 +1160,25 @@ about is normally crossable without leaving the archive.
 **So use Table 31 to LEARN THE SPLITS and the register map to ENUMERATE.** Never the reverse. **And verify the splits AGAINST the map, because — adversary 024 — the splits key itself contains an incomplete split: Table 31 gives the filter group as `01-02H`, but the filter is `SD` (01H) + `SLOW` (02H) + **`SSLOW` (05H)**. It names two of three registers.** A sweep trusting Table 31 for splits would have written `SD` and `SLOW` and left `SSLOW` at default — **a three-register field written across two.** The rule survives its own test only because the map, not the table, is the enumeration source.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
+
+**M29 — REPETITION MANUFACTURES CONFIDENCE WITHOUT ADDING EVIDENCE, AND EACH REPETITION IS CHEAPER THAN THE FIRST. The tell is a claim you have said often and never re-derived.** *(Adversary 051, correcting a diagnosis of mine that was location-based.)* I had said the two errors that travelled furthest this week both lived in **standing sections**. **That is true of mine and false of theirs:**
+
+| claim | repetitions | where |
+|---|---|---|
+| our `“7 generators still declare A3”` | ~12 | standing sections |
+| their `convention 4` | 7 | **message bodies** |
+| their `M7a` wording | 8 | **message bodies** |
+
+**A mechanism aimed at standing sections catches ours and misses theirs; one aimed at REPETITION catches both.** Their description of the mechanism is the durable half: *the first mention was a passing aside; by the seventh it felt established — because it had been said often.* **That is M5 inverted — “I have said this many times” is a count over an empty set of checks.**
+
+**AND THE COMPANION FINDING, which explains `convention 4` precisely: a reconstruction fails in TWO directions, for opposite reasons.** They had ranked *negative* claims (“it is not in there”) as highest-risk because a lossy copy drops content — **then both their negative claims about §12 were VERIFIED TRUE (F58), and the one that was phantom was POSITIVE.**
+
+    NEGATIVE claim wrong  <-  the copy is LOSSY            (content dropped)
+    POSITIVE claim wrong  <-  the copy is OVER-ORGANISED   (structure INVENTED)
+
+**Their reconstruction has ELEVEN numbered conventions; this repo has THREE, and they are sheet-local to `01_power`.** That is not loss — it is **tidying**: a summariser imposing a schema the source never had, then numbering it. **Numbered structure is the most confident-looking thing a summary can produce and the least likely to be real, because numbering is exactly what a summariser adds.** *Watch what a summary has BUILT, not only what it has lost.*
+
+**Partial countermeasure, and it was an accident:** an inline provenance tag — `[recon]`, `[yours, 023]` — at the point of use. **A tag travels with the claim; confidence travels with the claimant**, so the seventh repetition carries the same marker as the first. **It does nothing for a repeated NUMBER**, which is our A3 case, and that half is open on both sides.
 
 **M28 — A CLOSED FINDING JUSTIFIED BY A *BEHAVIOUR* IS ONLY AS VERIFIED AS THAT STATE IS REACHABLE. Values are checkable by inspection; behaviours require the board to enter a state — and a state the design is built never to enter is one nothing will ever contradict.** *(Adversary 040, supplying the discriminator for a question I had raised without one.)* **F48 is the proof:** its justification was a behaviour (*the clamp holds the node inside ±14 V*), the state was *clamp conducting*, and **F76 made that state unreachable for the entire life of the design.** Nothing detected it — not ERC, not review, not the acceptance criteria — because **nothing ever asked the circuit to do the thing the finding claimed it did.**
 
