@@ -395,7 +395,18 @@ most force to the `pcbnew` Python API, which has broken across major versions be
 
   **Verification is an adversarial pass, not a glance:** each footprint rasterised over the
   datasheet's land-pattern drawing and compared, logged per part in `STATE.md`. The operator
-  personally eyeballs exactly five — **ADAU1466 LQFP, AK5574, AK4458, AK4118A, BM83SM1 keepout.**
+  personally eyeballs exactly five — ~~**ADAU1466 LQFP, AK5574, AK4458, AK4118A, BM83SM1 keepout.**~~
+  **⚠ THIS LIST IS STALE ON TWO COUNTS, found 2026-08-20 (adversary 057). It is corrected for FACT
+  below and the replacement choice is left to the operator, because WHICH five get eyeballed is
+  theirs, not ours:**
+  1. **“ADAU1466 LQFP” — there is no LQFP.** F17: every orderable model is 72-lead **LFCSP**
+     `CP-72-6` with a 5.3 mm exposed pad. The package named here does not exist.
+  2. **“AK4118A” — the part is not on the board.** F26 deleted it *and* the WM8804; S/PDIF RX and
+     TX are integrated in the ADAU1466. **A footprint was about to be spent on it.**
+  **Factually forced set: ADAU1466 LFCSP · AK5574 · AK4458 · BM83SM1 keepout — four.**
+  **Open for the operator: what, if anything, is the fifth.** *(The BM83SM1 keepout and the
+  SM8S land are the two footprint items with a stated electrical consequence, so the SM8S is
+  the obvious candidate — but that is a suggestion, not a decision.)*
   That is the respin set; the rest is passives and SOICs.
 
   Applies to symbols too, in a different currency: a wrong footprint is a respin, a wrong **pin

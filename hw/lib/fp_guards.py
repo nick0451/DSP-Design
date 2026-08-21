@@ -37,6 +37,41 @@ def assert_pad_set_matches_pins(symbol_pins, footprint_pads, refdes, tag=""):
 # `passive`, so ERC has nothing to disagree with and the netlist exports cleanly.
 # A TVS whose tab lands on the cathode net is a dead short across the part facing the
 # battery.
+# --- G2b: an EXPOSED PAD's correct net is not always a value ---------------------------
+# Adversary 057. The three parts about to be drawn have exposed pads under THREE DIFFERENT
+# conventions, so a single "tab -> twin's net" assertion would either fire wrongly or need
+# an exemption -- and an exemption is how a guard stops guarding.
+#
+#   FIXED      ADAU1466 EP -> GND, mandatory. And note the trap: the pin table's Type column
+#              says "None" while the same row's description says "must be grounded". The
+#              machine-readable field and the human-readable field DISAGREE, and a generator
+#              reading the type gets "no electrical function" for a mandatory ground.
+#   EITHER-OR  AK5574 EP: "must be open or connected to the ground" (p.4). Both legal.
+#   EITHER-OR  AK4458 EP: same wording, DIFFERENT CONSEQUENCE -- grounded buys 20 degC of
+#   +RATING    operating range (-40..+105 grounded vs -40..+85 open, p.7). The constraint is
+#              not on the net at all: it is that the net choice and the TEMPERATURE RATING
+#              must agree, and they live in different documents. Not guarded here; recorded.
+EP_RULE = {
+    "ODSP12:ADAU1466": ("fixed", {"GND"},
+                        "Rev C p.18/p.21 -- MUST be grounded; pin-table Type says 'None'"),
+    "ODSP12:AK5574":   ("either", {"GND", None},
+                        "p.4 -- 'must be open or connected to the ground'"),
+    "ODSP12:AK4458":   ("either", {"GND", None},
+                        "p.7 -- open = -40..+85 C, grounded = -40..+105 C. CHOICE, not value"),
+}
+
+
+def assert_exposed_pad(libid, ep_net, refdes, tag=""):
+    if libid not in EP_RULE:
+        return None
+    kind, allowed, why = EP_RULE[libid]
+    if ep_net not in allowed:
+        raise FootprintDefect(
+            f"G2b{tag} {refdes} ({libid}): exposed pad on {ep_net!r}; permitted "
+            f"{sorted(x or 'unconnected' for x in allowed)}. {why}")
+    return kind
+
+
 BONDED = {                      # libid -> [(tab_pad, twin_pad, what the datasheet says)]
     "ODSP12:DN2540_SOT89":   [("4", "2", "Table 3-2: pin 2 Drain, pin 4 Drain")],
     "ODSP12:SM8S_DO218AC":   [("TAB", "A", "doc 98647 p.1: 'Polarity: heatsink is anode'")],
@@ -109,8 +144,15 @@ def self_test(verbose=True):
     _must_fire(lambda: assert_rated_land("ODSP12:SM8S_DO218AC", 14.0, 10.0, "D1"), "G3")
     assert_rated_land("ODSP12:SM8S_DO218AC", 15.30, 10.70, "D1")                 # control
 
+    # G2b -- the three exposed-pad conventions, from 057.
+    _must_fire(lambda: assert_exposed_pad("ODSP12:ADAU1466", None, "U1"), "G2b-adau-open")
+    _must_fire(lambda: assert_exposed_pad("ODSP12:AK5574", "+5V_A", "U40"), "G2b-ak5574")
+    assert_exposed_pad("ODSP12:ADAU1466", "GND", "U1")            # control
+    assert_exposed_pad("ODSP12:AK5574", None, "U40")              # control: open is legal
+    assert_exposed_pad("ODSP12:AK4458", "GND", "U60")             # control: grounded is legal
+
     if verbose:
-        print("  footprint guards: G1/G2/G3 negative tests ALL FIRED, controls passed "
+        print("  footprint guards: G1/G2/G2b/G3 negative tests ALL FIRED, controls passed "
               "(M9 satisfied)")
         print("  UNCOVERED, by design: pad-1 orientation -- no data-shaped test exists")
     return True
