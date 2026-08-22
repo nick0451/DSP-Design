@@ -46,6 +46,13 @@ Retrieved 2026-08-15.
 | **AP2127** LDO | `AP2127_Diodes.pdf` | 24 | `D48C96AC985D348A` | diodes.com — **closes V-23 and F36** |
 | **USBLC6-2** ESD array | `usblc6-2.pdf` | 20 | `BC30154F310CD631` | st.com Doc ID 11265 — operator-supplied. **Closes V-30** |
 
+| **TLP3475** photoMOS — **Rev 12.0** | `TLP3475.pdf` | 11 | *(see repo)* | toshiba.com **2026-04-24** — **CURRENT, and the revision every figure read has actually used** |
+| **TLP3475** photoMOS — ~~Rev 10.0~~ | `TLP3475_datasheet_en_20230524-1079958.pdf` | 12 | *(see repo)* | toshiba.com **2023-05-24** — **superseded; held for the elimination record** |
+
+**⚠ TWO TLP3475 REVISIONS ARE HELD AND THEY ARE NOT INTERCHANGEABLE AS CITATIONS (F101).** Rev 12.0 **adds four typ values** to §11 Switching Characteristics — `t_ON` 130/65 µs, `t_OFF` 40/50 µs — which **Rev 10.0 leaves BLANK**. Every **max** figure, `C_OFF`, `R_ON`, the absolute maxima and all characteristic curves are **identical**, so **no arithmetic depends on which is read**. **But a typ value cited to Rev 10.0 does not exist there** — and *“40”* appears in both documents, as **µs** typ in 12.0 and as **ps** (`ERT`) in 10.0, which is exactly what let a mis-citation survive a re-read. **Cite the revision, not the part.**
+
+**AND NEITHER REVISION MAKES A QUALIFICATION CLAIM.** `grep -ci "AEC|Q101|Q100|qualif"` returns **0** on both, and both list *“equipment used for automobiles”* under **Unintended Use**. **Twelve of these sit in the signal path** — see F102. *Scope (M12): this establishes the datasheet makes no claim and disclaims the use; it does NOT establish that no qualification exists elsewhere.*
+
 All twenty-seven are manufacturer-published documents, not aggregator copies — but note the last
 row is an **EDN article reprinted by Vishay**, which is context, not a specification, and must not
 be cited as one.
@@ -77,7 +84,7 @@ applies to topology exactly as it applies to pin numbers.
 | **SM8S24CAHM3** *(bidirectional)* | **Optional improvement, not a blocker (F45).** Would restore seamless reverse and retire the F43 polarity hazard. Doc 98647 covers the **unidirectional** series only, so a CA series lives under a different doc number — **unverified, not disproven** (M12) | Open. Same land pattern either way, so the swap is a value change rather than a respin |
 | **PNP pass transistor** | **New requirement** — the ADAU1466's internal regulator drives an external PNP (T1-21). Dissipates ~1 W at max program | Part not selected; needed only if F18 goes the internal-regulator way |
 | **24.576 MHz XO** | T1-D03 clock master | Part not finalised (SiT8208 vs CCHD-575 class) — fetch once chosen |
-| **TLP3475** photoMOS | **V-14**, mute series element | Candidate only; fetch with the part decision |
+| ~~**TLP3475** photoMOS~~ | ~~**V-14**, mute series element~~ | **HELD — and TWO REVISIONS are in `datasheets/`. See the Held table and F101.** V-14 closed |
 | Depletion FET | **V-15**, mute shunt | Part not selected |
 | **WM8804**, **TJA1051T-Q1** | DNP on v1 | Deferred deliberately — no capture dependency |
 
