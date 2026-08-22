@@ -1905,6 +1905,76 @@ found fifteen.
 
 ## 7. Findings register
 
+### F112 ⛔⛔ STOP-THE-LINE — §7.0's +70 °C IS EXCEEDED BY SOAK BEFORE THE UNIT IS SWITCHED ON — 2026-08-22
+
+**F105 asked which ambient +70 °C meant. The operator answered with the environment instead, and the
+environment does not fit either reading.**
+
+**T1, operator's direct observation of the actual deployment:** **110 °F (43.3 °C) outdoor ambient,
+vehicle parked in an OPEN LOT, 8–10 hours, Oklahoma summer.**
+
+**T2, vehicle-soak literature — recalled, NOT a datasheet, and this is the number that most wants
+measuring:** a closed vehicle in sun plateaus at **+22 to +30 °C above outdoor ambient** within
+60–90 minutes.
+
+    outdoor 43.3 C  +22 C  ->  cabin air  65.3 C  (150 F)   typical
+    outdoor 43.3 C  +28 C  ->  cabin air  71.3 C  (160 F)   conservative
+    outdoor 43.3 C  +30 C  ->  cabin air  73.3 C  (164 F)   worst reported
+
+**Then self-heating, once powered:** a 5–12 W board in a sealed enclosure adds **+10 to +20 °C** over
+local ambient. **Worst realistic operating case is the driver returning after a 9-hour soak and
+switching on into a 65–73 °C cabin.**
+
+> **§7.0's +70 °C is exceeded by SOAK ALONE, with the unit OFF, on a typical day in the stated
+> deployment. It is not a margin question. The decree does not describe the environment.**
+
+**The industry has already answered this exact question.** **AEC-Q100 Grade 3 is −40…+85 °C and is
+defined as the PASSENGER COMPARTMENT grade** — the +85 °C number exists *because* of the
+parked-car-in-sun case. **Our decree sits 15 °C below the grade the industry created for our
+application.**
+
+## What this invalidates — four items, two of them CLOSED
+
+| Part | Rating | At +85 °C internal |
+|---|---|---|
+| **AK5574**, back tab **OPEN** | **−40…+70 °C** (T1-112) | **FAILS** |
+| **AK5574**, back tab **to VSS** | −40…+105 °C | 20 °C margin |
+| **AK4458**, pad **open** | −40…+85 °C (F93) | **zero margin** |
+| **AK4458**, pad **grounded** | −40…+105 °C | 20 °C margin |
+| **TLP3475 ×12**, signal path | **+85 °C recommended** (F103) | **zero margin, and every parameter characterised at 25 °C only** |
+| **SiT1605 XO** | **−40…+85 °C Industrial** (T1-136) | **zero margin — REOPENS F56, which closed on this part** |
+
+**★ TWO EXPOSED-PAD DECISIONS ARE NO LONGER FREE CHOICES.** F93 recorded the AK4458 pad as *"a
+defaulted choice worth 20 °C — both clear the −20…+70 decree."* **That sentence was true only under
+the decree that just failed.** **Both AKM pads must be grounded**, and the AK5574's is the harder
+case because **tab-open is −40…+70 °C, which fails even the CURRENT decree at zero margin.**
+
+**★ AND THE GRADE POLICY NOW CONTRADICTS THE ENVIRONMENT.** §7.0 decrees *"Not an AEC-Q board.
+Industrial grade throughout the signal path."* **Industrial grade tops out at +85 °C.** At an
++85 °C internal design point, **"industrial grade" has zero margin BY DEFINITION** — the policy and
+the environment cannot both stand as written.
+
+## Disposition — ESCALATED, not applied
+
+**`CLAUDE.md` §4 puts environment changes in the escalate class and forbids us editing
+`REQUIREMENTS.md` to resolve a finding.** Recommendation, for the operator's decree:
+
+1. **Restate §7.0 as INTERNAL AMBIENT AT THE PART**, closing F105's original ambiguity in the same
+   stroke.
+2. **Set the operating design point at +85 °C internal**, matching AEC-Q100 Grade 3.
+3. **Require signal-path and thermally-significant parts rated to +105 °C**, so the design point has
+   real margin instead of zero. This is the clause that resolves the grade contradiction.
+4. **Ground both AKM exposed pads.** Forced by (2), free to do, and it buys 20 °C on each.
+
+**★ AND MEASURE IT, because the +22…+30 °C soak rise is the only T2 in the chain.** A logging
+thermometer left in the car — **in the intended mounting location** — for one working day converts
+the whole analysis to T1 for about $20. **`CLAUDE.md` §5: the operator's glance beats the clever
+test, and here the operator owns the actual vehicle in the actual climate.** **Recorded as
+`BRINGUP.md` 4b.8.**
+
+**F105 is superseded by this finding** — it asked which of two readings was meant; the answer is
+that **neither reading of +70 °C survives contact with the deployment.**
+
 ### F109 ⛔ NO PLACED SYMBOL CARRIES A FOOTPRINT — THE NETLIST EXPORTS **0 OF 536** — 2026-08-22
 
 **Found while starting the footprint pass, before drawing anything. T1 — `kicad-cli` output, not
