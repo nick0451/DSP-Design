@@ -112,6 +112,35 @@ def assert_rated_land(libid, drawn_w, drawn_h, refdes, tol=0.05, tag=""):
     return (w, h)
 
 
+# --- G4: PROVENANCE, because pad-1 orientation is not testable but its PROVENANCE is ----
+# Adversary 059. We had both recorded pad-1 orientation as uncovered: the information lives in a
+# package drawing's index marker, which is geometry, not a table. True of the ORIENTATION. NOT
+# true of whether anybody checked it.
+#
+#   ipc_generated   pin 1 is fixed by the standard -> correct BY CONSTRUCTION. Record that
+#                   construction was used; no marker needed.
+#   vendor_supplied orientation is the vendor's and the risk transfers with it.
+#   hand_built      the ONLY case where a human placed pad 1, and the only one needing a marker.
+#
+# THIS IS A WEAKER GUARANTEE THAN G1-G3 AND IS LABELLED AS SUCH: it cannot tell you a hand-built
+# footprint is RIGHT. It can only tell you nobody looked. It converts a silent gap into a visible
+# one rather than closing it.
+SOURCES = {"vendor_supplied", "ipc_generated", "hand_built"}
+
+
+def assert_footprint_provenance(refdes, source, verified_by=None, tag=""):
+    if source not in SOURCES:
+        raise FootprintDefect(
+            f"G4{tag} {refdes}: unknown provenance {source!r}; expected one of {sorted(SOURCES)}")
+    if source == "hand_built" and not verified_by:
+        raise FootprintDefect(
+            f"G4{tag} {refdes}: HAND-BUILT with no orientation-verification marker. Pad-1 "
+            f"orientation is not machine-checkable, so the hand-built path must carry a "
+            f"signature saying a human checked it. This does not prove it is right -- it "
+            f"proves someone looked.")
+    return source
+
+
 # --- M9 NEGATIVE TESTS: each guard is fed a real defect before it is trusted -----------
 def _must_fire(fn, label):
     try:
@@ -151,10 +180,19 @@ def self_test(verbose=True):
     assert_exposed_pad("ODSP12:AK5574", None, "U40")              # control: open is legal
     assert_exposed_pad("ODSP12:AK4458", "GND", "U60")             # control: grounded is legal
 
+    # G4 -- provenance. Hand-built with no marker must fire; the other two paths need none.
+    _must_fire(lambda: assert_footprint_provenance("U99", "hand_built"), "G4-unsigned")
+    _must_fire(lambda: assert_footprint_provenance("U99", "guessed"), "G4-unknown-source")
+    assert_footprint_provenance("U1", "ipc_generated")                       # control
+    assert_footprint_provenance("U30", "vendor_supplied")                    # control
+    assert_footprint_provenance("Q1", "hand_built", verified_by="operator")  # control
+
     if verbose:
-        print("  footprint guards: G1/G2/G2b/G3 negative tests ALL FIRED, controls passed "
+        print("  footprint guards: G1/G2/G2b/G3/G4 negative tests ALL FIRED, controls passed "
               "(M9 satisfied)")
-        print("  UNCOVERED, by design: pad-1 orientation -- no data-shaped test exists")
+        print("  PARTIAL: pad-1 orientation -- G4 checks PROVENANCE, not geometry.")
+        print("           It proves someone looked, not that they were right.")
+        print("  UNCOVERED: BM83SM1 keepout (V-12, geometry); repeated numbers")
     return True
 
 
