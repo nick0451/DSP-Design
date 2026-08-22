@@ -1907,6 +1907,178 @@ found fifteen.
 
 ## 7. Findings register
 
+### ✅✅ THREE OPERATOR DECREES — 2026-08-22. **T1 by decree.** Consequences below; two need attention.
+
+#### D-1 · CLOCK: the ÷2 architecture is LOCKED IN
+
+**Decree:** *"the change feels pretty unavoidable, i like your solution; lets lock it in."*
+**Resolves F113.** A **49.152 MHz** oscillator at an ordinary **45/55 %** duty, **divided by two** on
+the board. Duty at the converters becomes a property of the divider, not of the purchased part.
+
+**★ IT ALSO SOLVES THE TEMPERATURE HALF FOR FREE.** The 48/52 constraint was what forced us toward
+`SiT7601` (no distributor stock). **With the divider the entire 45/55 catalogue reopens — including
+`SiT1618` at −40…+125 °C, in the standard range.** *Two problems, one change.*
+
+**⚠ `REQUIREMENTS.md` §3 IS [HARD] AND NAMES a single 24.576 MHz XO. THE EDIT IS THE OPERATOR'S.**
+`CLAUDE.md` §4 forbids us editing it to resolve a finding, exactly as with the v1.8 amendments.
+**Recorded here as T1-by-decree and actioned in the schematic; the requirements text still says
+24.576 MHz until the operator changes it.**
+
+**⚠ THE DIVIDER PART IS NOT YET CHOSEN, AND WILL NOT BE CHOSEN FROM MEMORY.** `LMK1C1104` is a
+plain 1:4 buffer with an output enable and **no divider** (T1-30/T1-68), so this is a **two-part**
+chain:
+
+    XO 49.152 MHz (45/55)  ->  divide-by-2  ->  LMK1C1104 1:4 fanout  ->  DSP + ADC + DAC MCLK
+
+**A D-flip-flop with Q-bar fed back to D gives 50/50 by construction** — that is the mechanism the
+whole decision rests on — **but whether a given single-gate flip-flop exposes Q-bar is a pin-table
+question, and `CLAUDE.md` §8.9 says no pin enters the schematic from memory.** **Next datasheet
+task.** Jitter is not a selection criterion (§3 as amended) and we hold 140× margin, so the added
+stage is affordable.
+
+**Order preserved:** divide FIRST, then fan out — so the DSP and both converters take the same
+divided edge and §3's *no daisy-chaining* still holds.
+
+#### D-2 · TEMPERATURE: not direct sun; cabin ≤ 160 °F; **parts rated 85 °C**
+
+**Decree:** *"it's not exposed to direct sun; the car won't get above 160F, so let's use 85 celcius
+as our parts rating."* **160 °F = 71.1 °C.** **Supersedes my +85 °C-ambient recommendation in F112**
+— the operator has better information about the actual installation than my literature figure, and
+§5 makes that the stronger evidence.
+
+**✅ SETTLED IMMEDIATELY: both AKM exposed pads must be GROUNDED.** The AK5574's tab-open rating is
+**−40…+70 °C** (T1-112) — **below the decreed 71.1 °C cabin, so tab-open fails on the operator's own
+number.** Grounded gives −40…+105 °C. **F93's "defaulted choice" is now forced, and it costs
+nothing.**
+
+**⚠ WHAT THIS DOES NOT COVER, AND IT IS NOW THE BINDING TERM: SELF-HEATING.**
+71.1 °C cabin against an 85 °C part rating leaves **13.9 °C** for the enclosure's internal rise.
+
+     5 W board, sealed enclosure  ->  +10 C  ->  81 C   OK, 4 C spare
+    12 W board, sealed enclosure  ->  +20 C  ->  91 C   EXCEEDS an 85 C part
+
+> **So "parts rated 85 °C" is satisfiable only if the enclosure holds its internal rise under about
+> 14 °C.** That is a **mechanical** question — **Block E, ⬜ UNSET** — and it is now load-bearing on
+> a parts decision, which is exactly the two-ended coupling `CLAUDE.md` §8.11 exists for.
+> **Recorded at both ends.** *No action now; it becomes real at enclosure selection.*
+
+**⚠ STILL MARGINAL: the TLP3475** (12×, signal path) is **+85 °C recommended**, so at the decreed
+cabin plus any self-heating it sits at or over its recommended limit — **and every parameter we use
+is characterised at 25 °C only.** **F103 stays open on the hot end, now with a number attached.**
+
+#### D-3 · CABIN NOISE: 60–80 dB
+
+**Decree:** *"In cabin noise is around 60-80db for any given car."* **Consistent with the measured
+data** (CAVEMOVE: 60–66 dB(A) at 40 km/h, 65–70 at 90 km/h) and **supersedes my idle figure as the
+representative driving condition.**
+
+**⚠ ONE CAVEAT, AND IT CUTS THE OTHER WAY.** **The power-down pop happens at ignition-off — engine
+stopped, vehicle stationary, HVAC off.** That is the **quietest** moment the car ever has, not the
+60–80 dB driving case. **Measured idle with the fan off is 42–49 dB(A)**, so **the transient we are
+specifying against is heard with roughly 20–30 dB LESS masking than the driving figure implies.**
+*Not an objection — the decree is right about cabin noise in general. It is that the pop criterion's
+worst case is the one moment the general figure does not describe.*
+
+### F97 → PROPOSAL READY. THE ANSWER IS A **WEIGHTING FILTER**, NOT A BANDWIDTH — 2026-08-22
+
+**Operator instruction: *“defer to existing designs as a reference so we aren't overdoing it.”*
+Done — and the precedent search returned a better answer than a number.**
+
+## The three missing words, answered by precedent
+
+| §12's gap | What the industry does | Strength |
+|---|---|---|
+| **bandwidth** | 20 Hz–20 kHz, **AES17 brickwall** LPF + 20 Hz HPF | **unanimous** — every source |
+| **peak vs RMS** | **PEAK.** *“RMS detection is meaningless for a transient event”* | **decisive**, TI and AP both state it outright |
+| **source condition** | **silent / zero input**, captured across the transition | unanimous — the pop exists *“even if ‘0’ data is input”* |
+
+## ★ But the load-bearing discovery is that BANDWIDTH WAS THE WRONG QUESTION
+
+**TI's own acceptance mask (SLEA044 Table 2, limits converted and reproduced here, T1):**
+
+    100 Hz    -39.4 dBV  =  10.715 mV
+    2.63 kHz  -67.8 dBV  =   0.407 mV      spread = 26.3x
+
+> **My “the answer moves by a factor of 25” was right, and here it is sitting inside a real vendor
+> specification.** **TI does not resolve it by picking a bandwidth. It resolves it with a
+> FREQUENCY-DEPENDENT MASK** — and the modern datasheets collapse that mask into a single number
+> **by applying a weighting filter.** **A 10 mV low-frequency thump and a 0.4 mV midband tick are
+> equally audible; one unweighted number over 20 Hz–20 kHz cannot say so, whichever bandwidth you
+> choose.**
+
+**And the weighting is not arbitrary — it encodes the ear's own law.** Psychoacoustic threshold rises
+**3 dB per halving of duration** (Moore, *Springer Handbook of Acoustics* §13.1; Plomp & Bouman, JASA
+31:749) = **9.97 dB/decade**, reproduced here. **ITU-R BS.468-4's quasi-peak meter de-weights a 1 ms
+burst by 13.5 dB and follows ~9 dB/decade — the meter was BUILT to imitate temporal integration.**
+That is why a weighted quasi-peak reading is the right instrument for a transient and an A-weighted
+RMS is not.
+
+## ★ AND A SECOND FINDING THE SEARCH DID NOT REACH FOR: WE MEASURE IN THE WRONG PLACE
+
+**Every industry pop number — 5–7 mV typ across six automotive TI parts — is measured at the
+SPEAKER, after the amplifier. §12 measures at OUR RCA OUTPUT, before it.** The two differ by the
+downstream amp's voltage gain, **which we do not specify and do not control.**
+
+    our 10 mV at RCA, referred to the speaker:
+      amp gain 10 dB ->  31.6 mV    4.5x  looser than TI typ
+      amp gain 16 dB ->  63.1 mV    9.0x
+      amp gain 20 dB -> 100.0 mV   14.3x
+      amp gain 26 dB -> 199.5 mV   28.5x
+
+> **§12's 10 mV looks conservative and is not. Referred to where audibility actually lives it is
+> 4.5–28× LOOSER than what real automotive silicon achieves — and the multiplier is a number the
+> installer chooses, not us.** **A criterion at our output is meaningless without a stated
+> referral.** *This is the “domain” half of F97, and it is worse than under-specified: it is
+> specified at a point where the answer does not live.*
+
+## Two framings, and a recommendation
+
+**(A) Keep 10 mV, but scope it as a DC-STEP / LF limit.** **Citable** — SLEA044 p.12: *“the dc step
+must be less than 10.7 mV to 21.4 mV”*, and **10 mV lands almost exactly on it.** Cheap, defensible,
+keeps the number. **Blind to the midband tick**, which is what a switching mute actually makes.
+
+**(B) Weighted broadband peak — the modern convention. RECOMMENDED.**
+
+    PEAK voltage at the RCA output into 10 kOhm, input SILENT (zero data),
+    captured across the power-down transition,
+    20 Hz - 20 kHz  (AES17 brickwall LPF + 20 Hz HPF),
+    ITU-R BS.468-4 weighted, renormalised to 0 dB at 2 kHz,
+    AND a stated downstream amplifier gain the limit is referred to.
+
+**Why (B):** §12 **has already learned this exact lesson once.** The CCIF twin-tone criterion exists
+because *“both 1 kHz and 20 kHz THD are blind to nonlinear off-capacitance.”* **A bare DC-step limit
+is blind in the same way, to the same part.** ITU-R 2k is also the automotive convention — every Q1
+part found uses it.
+
+## What I am NOT doing, deliberately
+
+**No value is proposed.** I told the operator the three words must be justified from audibility
+**before** any number is on the table, and **we now know which numbers pass under which reading** —
+so proposing one here is precisely the failure that warning names. **F99 still comes first**
+(if §7.3's step order changes, the part may vanish), then F98 sizes it if it still exists.
+
+## Two cautions that must travel with any number chosen
+
+1. **Every industry pop figure is TYP. Not one is a MAX.** *“Pop is characterisation data
+   industry-wide, not a production limit.”* **Writing 10 mV as a hard acceptance gate imposes
+   something stricter IN KIND than any vendor guarantees.**
+2. **TI specs pop as a bare peak; Stapells (JASA 72(1):74, 1982) found peak SPL INCONSISTENT across
+   click shapes**, with only a 1 ms RMS measure behaving consistently. **A bare-peak spec inherits
+   that inconsistency.** The quasi-peak detector in (B) is the practical mitigation.
+
+## Supporting facts worth keeping
+
+- **No standard defines this measurement.** AES17 contains **zero** occurrences of *click*, *pop* or
+  *transient*; IEC 61606-1 has no such clause; CTA-2006 is steady-state only; **no public OEM or SAE
+  requirement exists.** **We are free to choose, and therefore obliged to.**
+- **AKM gives no number and instructs external muting — three times**, each noting the click appears
+  *“even if ‘0’ data is input.”* **Direct vendor endorsement of the series–shunt topology, and
+  confirmation there is no DAC-vendor figure to inherit.**
+- **In-car ambient, measured (CAVEMOVE, arXiv:2508.19691 Table II):** idle **42–49 dB(A)**, 90 km/h
+  65–70. **Worst case for audibility is idle, windows closed, fan off — ~42 dB(A).** HVAC at level
+  2–3 measures **60.7–77.4 dB(A)**, louder than highway road noise: **the dominant stationary masker
+  is the fan, and the user controls it, not us.**
+
 ### F63 ✅ CLOSED — THE PREMISE WAS WRONG: LOW-LEAKAGE **AND** AEC-Q101 EXISTS — 2026-08-22
 
 **F63 was framed as a conflict:** *"the low-leakage `BAV199` is not offered in the qualified suffix,
