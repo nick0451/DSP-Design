@@ -242,7 +242,23 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
         PLACE.append((f"Q{dev_idx}{k+1}", "ODSP12:MUTE_DEPFET", 420, y, "PLACEHOLDER V-15", {
             "1": "MUTE_BIAS_N", "2": f"MUTED{ch}", "3": GND}))
         P += [passive("R", 450, y, rtxt(RBO), f"MUTED{ch}", f"AOUT{ch}")]
-    # shunt gate bias, derived from -13V5_A: rails collapse -> bias dies -> shunt CLOSES
+    # shunt gate bias, derived from -13V5_A: rails collapse -> bias dies -> shunt CLOSES.
+    #
+    # *** BACK-REFERENCE (CLAUDE.md 8.11, F107). THE 1 uF IS NOT ONLY A FILTER. ***
+    # With 100k||100k it sets tau = 50 ms, and THAT is what enforces BREAK-BEFORE-MAKE between
+    # the two mute elements. S6.4 requires them to be INDEPENDENT ('neither depends on the
+    # other'), which is precisely what removes any sequenced ordering -- so nothing else in the
+    # design guarantees the relay opens before the shunt closes. This RC does:
+    #     bias -6.75 V, decays with tau = 50 ms -> pair conducts 33-75 ms after rail loss
+    #     TLP3475 t_OFF max = 0.4 ms
+    #     -> relay opens 82-188x faster than the shunt closes.
+    # If the shunt closed FIRST, a DN2540 pair (50 R) would drive the OPA1656 to 125.6 mA pk
+    # against I_SC +/-100 mA typ -- a hard clip DURING the interval S12's <10 mV pop criterion
+    # measures. (Adversary R-65 raised the hazard; the RC already closed it.)
+    #
+    # *** SHRINKING THIS CAP SHORTENS A GUARANTEE NOBODY ELSE RECORDS. Re-run the line above. ***
+    # Note also: in a COMMANDED mute the rails are up, the bias holds, and the shunt never
+    # closes at all -- only the series element operates. The overlap exists only on rail loss.
     P += [passive("R", 200, 440, "100k", GND, "MUTE_BIAS_N"),
           passive("R", 230, 440, "100k", "MUTE_BIAS_N", "-13V5_A"),
           passive("C", 260, 440, "1uF",  "MUTE_BIAS_N", GND)]
