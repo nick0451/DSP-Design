@@ -4,7 +4,7 @@
 BT audio + wireless control
 **Part number:** `ODSP12-MB-A` · **Revision scheme:** A/B/C… for fab revisions, running change
 log in git rather than rev-suffix soup
-**Doc status:** v1.7 — architecture baseline for schematic capture *(capture in progress)*
+**Doc status:** v1.8 — architecture baseline for schematic capture *(capture in progress)*
 **Audience:** EE/PCB design agent. This doc defines system-level decisions. Layout-level
 decisions (placement, routing, stackup) are delegated, but constraints flagged **[HARD]** are
 non-negotiable and constraints flagged **[VERIFY]** require confirmation against current
@@ -17,6 +17,21 @@ datasheets before capture.
 > revision history.
 
 ## Revision history
+
+**v1.8 — 2026-08-21.** **Two [HARD] amendments, both the operator's act, sent DIRECTLY rather than
+through the review bus.** Recorded here per this file's provenance note; neither agent may edit this
+document to resolve a finding, and neither did — the text below is the operator's, transcribed.
+
+| Amendment | Change | Section |
+|---|---|---|
+| **Audio interface format** | The three **converter** links — `SDATA_IN0`, `SDATA_OUT0`, `SDATA_OUT1` — are **32-bit MSB-justified, LRCK RISING edge**. **`SDATA_IN1` (BM83) is excluded**: it is 16-/24-bit I2S and can meet neither the word length nor the justification, and its format lives in the Config Tool binary. **The exclusion is not optional** — without it, a literal implementation sets that port to a format its peer cannot produce | §4 |
+| **Master oscillator** | Replaces *“low-jitter XO”*. Duty cycle **tighter than 45/55 (e.g. 48/52)** so the converters' 45–55 % is met **with the buffer in the path**; **−20…+70 °C as a BASE specification, not an order-code option**; **jitter is not a selection criterion**. *The budget is 7.09 ps RMS at 20 kHz for 121 dB and any commodity part clears it ~140× — so the old wording was satisfiable by a part that fails the real requirement* | §3 |
+
+*Closes the two rewording escalations standing since 2026-08-17 (§4 from F67/F69/F70, §3 from F56).
+Both had previously arrived RELAYED THROUGH THE REVIEW BUS and were refused on that route —
+`CLAUDE.md` §9 places review outside the authority order precisely so a decree cannot arrive through
+it. This is the same content by the correct route.*
+
 
 **v0.2 — 2026-08-15.** Operator dispositions of findings F1, F2, F5, F7, F8, F9, F10, F14
 (`STATE.md` §7). Changed text is marked *(v0.2)* at the point of use.
@@ -204,7 +219,7 @@ Single-board automotive DSP processor:
 | ~~SPDIF TX~~ | ~~WM8804~~ | **DELETED v0.8 (F26)** | superseded by the ADAU1466's integrated S/PDIF transmitter |
 | Diff line RX | **2× INA1650** *(v0.2)* | 2ch/pkg → 4 channels for 4 diff inputs | High CMRR speaker/line-level front end |
 | Output buffers | **OPA1656** *(v0.2 — OPA1612 alternate dropped)* | 2ch/pkg, 12 pkgs min | Diff-to-SE conversion + reconstruction filter. JFET input; high Zin relaxes the filter network. Filter values computed against OPA1656 only |
-| Master clock | 24.576 MHz low-jitter XO (e.g., SiTime SiT8208 or Crystek CCHD-575 class) | 3.3 V CMOS | Single clock master, see §3 |
+| Master clock | 24.576 MHz XO, **duty tighter than 45/55 (e.g. 48/52), −20…+70 °C as a base spec** *(v1.8)* | 3.3 V CMOS | Single clock master, see §3. ~~low-jitter~~ — **jitter is not a selection criterion** |
 | CAN PHY (optional) | NXP TJA1051T-Q1 | DNP stuffing option | Future head-unit / SWC integration |
 | EEPROM | 25AA1024 SPI EEPROM | DNP option | Self-boot fallback if MCU absent |
 
@@ -240,6 +255,16 @@ clock recovery, ASRC-coupled on-die.
 Single clock domain, one master, ASRCs isolate everything foreign.
 
 - Master: 24.576 MHz XO → ADAU1466 MCLK input. ADAU1466 PLL configured for fs = 48 kHz core rate.
+- **Master oscillator specification *(v1.8, operator decree — supersedes “low-jitter XO”)*.**
+  The master oscillator **shall be specified for duty cycle such that, with the fanout buffer in
+  the path, the converters' 45–55 % requirement is met** — requiring a source specified **tighter
+  than 45/55, e.g. 48/52**. It **shall be rated over −20 °C to +70 °C as a BASE SPECIFICATION, not
+  as an order-code option.** **Jitter is not a selection criterion**; the budget is cleared by any
+  commodity part.
+  > *Rationale, recorded so the clause is not re-litigated:* the jitter budget is **7.09 ps RMS at
+  > 20 kHz for 121 dB**, and any commodity part clears it by **~140×**. What binds is **duty cycle
+  > and temperature range**, neither of which the previous wording named — so the requirement as
+  > written **was satisfiable by a part that fails the real one**.
 - ADAU1466 is clock master on the **synchronous** serial ports. It generates BCLK/LRCLK for:
   AK5574 (slave), both AK4458 (slave), BM83 I2S port (BM83 configured as I2S slave).
   *(v0.2 — AK4118A removed from this list, see below.)*
@@ -273,6 +298,18 @@ Single clock domain, one master, ASRCs isolate everything foreign.
 ## 4. Serial Audio / TDM Map [HARD]
 
 fs = 48 kHz system-wide. 32-bit slots.
+
+**Audio interface format *(v1.8, operator decree)*.** The three **converter** links — `SDATA_IN0`
+(AK5574), `SDATA_OUT0` and `SDATA_OUT1` (AK4458 ×2) — use **32-bit MSB-justified format with LRCK
+RISING edge.**
+
+**`SDATA_IN1` (BM83) is EXCLUDED from this clause.** The BM83 is **16-/24-bit I2S** and can meet
+**neither** the word length nor the justification; its format is set in the **Config Tool binary**
+and is governed separately.
+
+> **The exclusion is not optional.** Without it, implementing this clause literally sets that port
+> to a format its peer cannot produce.
+
 
 | DSP Port | Direction | Peer | Format | Channels |
 |---|---|---|---|---|
