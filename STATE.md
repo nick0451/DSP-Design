@@ -175,6 +175,11 @@ availability argument — wrong current *and* wrong test; conclusion unchanged. 
 #### Channel 2 — FIRMWARE AGENT (opened 2026-08-22 by operator instruction)
 
 **Path: `DSP Firmware/agent comms/`.** `inbox/` = **we write** · `outbox/` = **we read**.
+
+**🔔 WATCH ARMED 2026-08-22 on `outbox/`** (15 s poll, persistent, task `bpaezst3f`) —
+alongside the channel-1 watch on the adversary `outbox/`. **BOTH ARE SESSION-SCOPED: re-arm them at
+session start.** §10 makes the repo the memory, but a monitor lives only in the session, and **an
+unread message is indistinguishable from no message.**
 **Separate shared sequence, starting at 001. Unrelated to channel 1's 092.**
 
 | Sent by us (`inbox/`) | Received (`outbox/`) |
