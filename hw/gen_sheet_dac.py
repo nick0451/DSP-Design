@@ -257,6 +257,20 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
     # measures. (Adversary R-65 raised the hazard; the RC already closed it.)
     #
     # *** SHRINKING THIS CAP SHORTENS A GUARANTEE NOBODY ELSE RECORDS. Re-run the line above. ***
+    # *** AND DO NOT GROW IT EITHER -- A NOTE THAT SAYS 'DO NOT SHRINK' GETS OBEYED BY GROWING. ***
+    #
+    # THIS CAP HAS THREE JOBS AND THEY DO NOT ALL WANT THE SAME VALUE (adversary R-66):
+    #   1. filter rail noise off the gate      wants LARGE  (corner 3.18 Hz at 1 uF)
+    #   2. enforce break-before-make (F107)    wants LARGE  (82-188x at 1 uF)
+    #   3. let the fail-safe shunt ARRIVE      wants SMALL  <- and it has NO stated requirement
+    #
+    # F108, computed from the drawn +/-13V5_A capacitance (22 uF bulk + 6 x 100n):
+    #   relay opens          <= 0.4 ms
+    #   op-amp rails collapse  1.5 - 6.5 ms   (S7.1 budget .. OPA1656 quiescent)
+    #   shunt begins conducting  33 - 75 ms   |  specified R_DS(ON) at ~176 ms
+    # THE SHUNT ARRIVES 5-45x AFTER THE SOURCE IS DEAD. On these numbers the series element
+    # does the whole job and the shunt never operates during the event S7.4 says it is for.
+    # Escalated -- NOT a reason to change this value unilaterally.
     # Note also: in a COMMANDED mute the rails are up, the bias holds, and the shunt never
     # closes at all -- only the series element operates. The overlap exists only on rail loss.
     P += [passive("R", 200, 440, "100k", GND, "MUTE_BIAS_N"),
