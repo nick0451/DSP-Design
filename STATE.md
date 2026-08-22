@@ -74,8 +74,19 @@ channel §9 explicitly places outside the authority order. **Two of the seven ar
 which §9 says review cannot make** — the reviewer is not claiming to; they are relaying. But the
 protocol's guard exists for exactly this shape.
 
-**→ NEEDED FROM THE OPERATOR: one line confirming these, especially the two [HARD] items.** Until
-then they are actioned where harmless and marked everywhere they are load-bearing.
+**✅✅ THE TWO [HARD] ITEMS ARE NOW SETTLED — SUPERSEDED BY DIRECT DECREE, 2026-08-22.** The
+operator issued **§4 (audio interface format)** and **§3 (oscillator duty + temperature)** as
+`REQUIREMENTS.md` **v1.8**, **sent directly rather than through review** — which is exactly the route
+§9 requires, and the reason the relayed versions were held. **The guard worked and cost nothing: the
+relay was never actioned as a decree, and the direct decree arrived four days later saying the same
+thing.** **Do not re-ask for these.**
+
+**✅ THE FIRMWARE-CONTRACT AGENT NOW EXISTS** (`DSP Firmware/`, stood up 2026-08-22). **So F62 · F65 ·
+F66 · F71 · F75 · `07H` read-modify-write · DFS-boot-only have an owner** — **ours to hand over the
+bus, not to escalate.** Channel-2 msg 001 sent; **the boot-register items are queued for 003.**
+
+**→ STILL NEEDED FROM THE OPERATOR: nothing from this table.** The five non-[HARD] rows below were
+actioned where harmless and stay marked where load-bearing.
 
 | Item | Relayed decision | Handling |
 |---|---|---|
