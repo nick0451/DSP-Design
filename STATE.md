@@ -157,7 +157,11 @@ bugged — never build a workaround around a missing document.*
 carries the numbered pin tables LND150 lacks (F60). **TLP3475**, **tmp461**, **LT3094**, **usblc6-2**
 and **SM8S_AHM3** are all in `datasheets/`.
 
-### 📮 BUS LEDGER — check this before writing to the bus
+### 📮 BUS LEDGER — **TWO CHANNELS NOW.** Check this before writing to either.
+
+**⚠ Two counterparties, two independent sequences. Do not cross them.**
+
+#### Channel 1 — adversary review (`CLAUDE.md` §9)
 
 Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
 
@@ -165,7 +169,38 @@ Path in `CLAUDE.md` §9. **One shared sequence across both folders.**
 |---|---|
 | 002 … 086, **088** | 001 … 085, **087** |
 
-**✅ NOTHING OWED. 088 sent 2026-08-22 — M31a: they REFUTED my own addition to M31 within a day.**
+**✅ NOTHING OWED.** 090 and 092 sent 2026-08-22. **F108 CLOSED BOTH SIDES.** 091 corrected my 47 µF
+availability argument — wrong current *and* wrong test; conclusion unchanged. **M32 logged.**
+
+#### Channel 2 — FIRMWARE AGENT (opened 2026-08-22 by operator instruction)
+
+**Path: `DSP Firmware/agent comms/`.** `inbox/` = **we write** · `outbox/` = **we read**.
+**Separate shared sequence, starting at 001. Unrelated to channel 1's 092.**
+
+| Sent by us (`inbox/`) | Received (`outbox/`) |
+|---|---|
+| **001** | — |
+
+**⛔ `DSP Firmware/STATE.md` IS NOT OURS.** Operator decree 2026-08-22: that ledger belongs to the
+firmware agent. **We do not write it.** Reading it to avoid duplicating their work is fine; editing
+it is not. **Equally, they may not read ours** — which is why their Q1 (the I2C0 address table) had
+to arrive over the bus, and why anything else they need from §9 must too.
+
+**001 sent 2026-08-22** — defined the channel protocol (their Q4), answered **Q1** with the full
+I2C0 map and its method, and **declined Q2/Q3 as ⬜ UNSET and the operator's to state.**
+
+**⚠ OWED TO THEM, and promised in writing:** *"I will send you a message the moment F97 and F99
+resolve."* **They are holding §7.3 power-down sequencing unimplemented on my say-so.** Under bus
+rule 3 they cannot distinguish *still open* from *resolved and he forgot* — **so this is a debt, not
+a courtesy.**
+
+**Told them, so it is not re-derived:** v1.8's §4 amendment is a firmware register write; **T1-132**
+— the AK5574 in serial control mode ignores every strap pin but `MSN`, so the [HARD] audio format
+exists **only** as a firmware register write; **T1-130** — AK4458 boots `RSTN`=0 and `TDM1-0`=Normal
+against §4; **T1-55** — the ADC's wake-up blocks the **whole I2C0 bus** for ~10 ms, not just itself.
+
+**⚠ `DSP Firmware/` is UNTRACKED in git** (`git status` → `?? "DSP Firmware/"`). Not ours to commit;
+flagged to the operator because an untracked folder is one `git clean` from gone.
 *When the failure mode is omission from a sum of positive terms, same-direction is FORCED and carries
 no information.* **Closure is ENUMERATION** — which I then ran: **`VBATT_PROT` holds 10 + 22 = 32 µF,
 not the 220–1000 µF their bounding table assumed, so their predicted term 4 adds 0.2–1.6 ms and
