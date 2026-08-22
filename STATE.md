@@ -28,8 +28,35 @@ AK4458 Table 13 Mode 12 both give **32-bit MSB, LRCK ↑, BICK 128fs**. The stra
 default-matching argument lands on the decreed value, so **019's guard resolved as intended: it
 agreed, nothing moved.** **F56 already closed on SiT1605, which satisfies §3 as amended.**
 
-**Position:** ten sheets · **ERC 26** · **ZERO FOOTPRINTS** · G0-L untouched. **Four footprint guards
-built and negative-tested** (F91/F93) before the first footprint exists.
+**Position:** ten sheets · **ERC 68, UP FROM 26, AND THE RISE IS THE GOOD NEWS** · **81 of 536
+components now carry a footprint; that number was ZERO this morning** · G0-L untouched.
+
+**★ F109 — THE FOOTPRINT PASS FOUND ITS OWN PREREQUISITE BEFORE DRAWING ANYTHING.** No placed
+symbol carried a `Footprint` property: `gen_symbols.py` wrote it into the **library symbol**, the
+sheet generators emitted instances with **only Reference and Value**, and the netlist exporter reads
+**instances**. **0 of 536 footprints exported.** *Update PCB from Schematic* would have placed
+nothing and **G1 parity was not failing — it was unmeasurable.** **Fixed and verified by tool output:
+0 → 81.** The **42 new ERC violations name the nine footprints that must now be drawn** — before the
+fix ERC could not raise them, so **the 26 was silence, not health.**
+
+**★ THE FOOTPRINT WORK QUEUE IS NOW TOOL-GENERATED, not a list I wrote:**
+
+    12x  ODSP12:TBD_V15                    <- V-15 placeholder, BLOCKED on F100/V-16
+    12x  ODSP12:Toshiba_VSON4_11-2D1A      <- TLP3475, unblocked
+     6x  ODSP12:AKM_LQFP-48_7x7mm_P0.5mm   <- AK5574 + AK4458   RESPIN SET
+     4x  ODSP12:TI_VQFN-HR-14_RJR
+     3x  ODSP12:ADI_LFCSP-72_..._EP5.3x5.3 <- ADAU1466          RESPIN SET
+     2x  ODSP12:Microchip_BM83SM1_Module   <- vendor verbatim    RESPIN SET
+     1x  ODSP12:TI_WSON-12_3x2mm_DSS
+     1x  ODSP12:ADI_DFN-12-1EP_3x3mm_P0.45mm_EP_IS_IN
+     1x  Oscillator:...SG210_4pin_3.2x2.5mm <- F111, NAME IS WRONG
+
+**Five guards** (F91/F93/F109) built and negative-tested before the first footprint exists; **G5
+fires on the live board.**
+
+**★ THE 455 REMAINING ARE NOT DRAWABLE AND THAT IS CORRECT.** R 237 · C 162 · J 22 · TP 13 · L 7 ·
+D 6 · Q 4 · SW 2 · F 1 · T 1 — **every one needs a package size, which follows from fab capability,
+⬜ UNSET Block E.** They stay empty and now stay **visibly** empty.
 
 **THE NEXT ACTION, one line:** **footprints for the pinned parts** — run every one through
 `hw/lib/fp_guards.py`.
