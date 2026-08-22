@@ -1251,6 +1251,8 @@ about is normally crossable without leaving the archive.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
 
+**M33 — A FETCH-AND-SUMMARISE READ IS NOT A DOCUMENT READ, AND IT FAILS IN THE DIRECTION THAT LOOKS AUTHORITATIVE.** *(2026-08-22, verifying a subagent's sourcing report.)* I fetched the Nexperia `BAV199-Q` datasheet through a tool that renders a page and answers questions about it with **a small fast model**. **It contradicted the subagent on three of five points — and was wrong on all three:** it reported the diodes as **common-anode** (they are *“connected in series”*), AEC-Q101 as **“not present in the available document excerpt”** (the phrase *“Qualified according to AEC-Q101”* is a bullet on page 1), and `T_amb` as **−40…+125 °C** (it is −65…+150 °C). **`pdftotext -layout` on the same file settled every point in one command.** > **The failure mode is specific: a summariser reports ABSENCE with the same confidence as presence, and “not present in the excerpt” is indistinguishable from “not in the document” to the reader.** **This is M2 at a new layer** — M2 says do not promote a load-bearing number from a text extraction; **M33 says a model’s summary of a document is a WEAKER read than the extraction, not a stronger one, because it silently discards what it did not happen to see.** **Second lesson, and the more surprising one: the subagent’s report was RIGHT on every point I checked.** Per **M19** it arrived T2 and I validated before accepting — **the validation confirmed it and refuted the tool I validated with.** *Checking the checker was the step that mattered.*
+
 **M32 — A STEADY-STATE TEST DOES NOT ANSWER A TRANSIENT QUESTION, AND IT MOST OFTEN GETS THE RIGHT ANSWER ANYWAY — WHICH IS WHY THE SHAPE SURVIVES REVIEW AFTER REVIEW.** *(Adversary 091. **Fourth instance this week**, and the first one where nothing was at stake, which is where they could finally point at it.)* **The instance:** I justified the 47 µF damping cap being fully available with *“0.68 Ω drops 32 mV at our discharge currents.”* **Two errors.** (1) **Wrong current** — 32 mV/0.68 Ω = 47 mA is the *analog rail quiescent*; `VBATT_PROT` carries the whole board's input current, **128 mA–1.02 A, dropping 87–696 mV — 3–20× what I stated.** (2) **Wrong test entirely** — the question is transient, and the answer is **τ = 0.68 Ω × 47 µF = 32 µs against a 0.5–4.1 ms event: the cap TRACKS `VBATT_PROT` and is available regardless of current.** **My conclusion was right and neither number in my reason was.** **Prior instances, same shape:** 067→069 · F94's 20 kHz column · R-66's arrival time. > **The diagnostic: if the reason cites a VOLTAGE or a CURRENT for a question about WHEN or HOW FAST, it is the wrong test — a transient question is answered by a time constant.** **And the reviewer's meta-point is the more valuable half:** *the shape survived into a place where nothing was at stake, which is where you can see it clearly — a number that mattered would have had both of us checking it.* **So low-stakes justifications are where a habitual error is VISIBLE, not where it is harmless.**
 
 **M31a — THE DIRECTION TEST IS VOID WHEN THE FAILURE MODE IS *OMISSION FROM A SUM OF POSITIVE TERMS*: there, same-direction is FORCED BY THE ARITHMETIC and carries no information. Closure comes from ENUMERATION, not from more terms.** *(Adversary 087, refuting my own addition to M31 within a day of my making it.)* I had written *“alternating = converging, same-direction = being unpacked.”* **Forgetting stored energy can only ever shorten a hold-up** — so the direction of F108's corrections was settled before either of us looked, and **the test would fire identically on a model one term from done and one four terms from done.** **M31 keeps its force only where corrections CAN go either way** — a divider ratio, a tolerance stack, anything with a subtraction in it.
@@ -1904,6 +1906,69 @@ found fifteen.
 ---
 
 ## 7. Findings register
+
+### F63 ✅ CLOSED — THE PREMISE WAS WRONG: LOW-LEAKAGE **AND** AEC-Q101 EXISTS — 2026-08-22
+
+**F63 was framed as a conflict:** *"the low-leakage `BAV199` is not offered in the qualified suffix,
+so qualified-and-low-leakage needs a different vendor."* **That is false, and the search that
+disproved it also explains where the false belief came from.**
+
+**T1 — `BAV199-Q` datasheet, Nexperia, 23 August 2021, `pdftotext -layout` on the PDF, read here:**
+
+> *"Epitaxial, medium-speed switching, double diode in a small SOT23 Surface-Mounted Device (SMD)
+> plastic package. **The diodes are connected in series.**"*
+> *"Low leakage current: **typ. 3 pA**"*
+> *"**Qualified according to AEC-Q101** and recommended for use in automotive applications"*
+
+`I_R` typ **3 nA** / max **80 nA** at `V_R` = 75 V, **T_j = 150 °C**. `T_amb`/`T_stg` **−65…+150 °C**,
+`T_j` max 150 °C — **so it is not thermally marginal under F112 by a wide margin.** Pinning: A1 · K2 ·
+**K1+A2 common node** — **the same series topology as the BAV99 it replaces, so the footprint does
+not move.**
+
+**Where the stale belief came from, and it is worth keeping:** Nexperia's **plain** `BAV199`
+datasheet states *"Product changed to non automotive. Please refer to the automotive product(s) with
+-Q."* **The un-suffixed part was actively DE-qualified and the automotive version moved to a new
+part number.** Advice written before that change reads as *"BAV199 is not automotive"* and stays
+true-sounding forever.
+
+**Sourcing, T2 — distributor listing, not verified by me:** Diodes `BAV199Q-7-F` is the same class,
+**16,886 in stock at $0.125**, while Nexperia's `BAV199-Q` is **zero stock at DigiKey**. **Diodes'
+server returns HTTP 403 to automated fetch, so their datasheet is UNREAD** — the *existence*
+question is closed T1 on Nexperia; the *vendor* choice needs that one document.
+**→ Operator: a manual download of `diodes.com/datasheet/download/BAV199.pdf` closes it.**
+
+### F113 ⚠ THE CLOCK IS THE HARDEST PART TO SOURCE, AND THE ONLY GOOD ANSWER IS NOT STOCKED — 2026-08-22
+
+**§3 as amended (v1.8) requires a source specified tighter than 45/55 %. That spec is rare, and
+F112 now adds a temperature floor on top of it.**
+
+| Part | Duty | Temp | 24.576 MHz | Stocked |
+|---|---|---|---|---|
+| **SiT1605** — *our current pick, F56* | **48/52** | **−40…+85 only** | yes | yes |
+| **SiT7601** | **48/52** | **−40…+105 / +125** | yes | **NO — not listed at DigiKey** |
+| SiT1618 | 45/55 ❌ | −40…+125 | yes | — |
+| SiT8208 | 45/55 catalog; tighter is a **factory option**, *"contact SiTime"* | — | — | — |
+
+**So the axes cross:** the only confirmed part meeting **both** duty and F112's temperature is
+**SiT7601, which has no distributor stock** — a ruggedized aerospace/defence family, factory order,
+unknown lead time, **on the single most critical component on the board.**
+
+**★ THE ELEGANT ESCAPE, AND IT IS AN ESCALATION, NOT A DECISION.** Use a **49.152 MHz** oscillator at
+an ordinary **45/55 %** and **divide by two** in the clock tree: **a ÷2 flip-flop output is ~50/50
+regardless of its input's symmetry**, so duty stops being an oscillator-sourcing problem and the
+entire 45/55 catalogue reopens — including the −40…+125 °C SiT1618.
+
+**Two things block it and neither is ours:**
+1. **§3 is [HARD] and names a single 24.576 MHz XO.** Changing the oscillator frequency is a
+   clock-architecture amendment — **`CLAUDE.md` §4 escalate class, and §4 forbids us editing
+   `REQUIREMENTS.md` to resolve a finding.**
+2. **Our fanout buffer cannot do it.** **`LMK1C1104` is a plain 1:4 buffer with an output enable
+   (T1-30, T1-68) and no divider.** The escape needs a *different* clock part, so it is a two-part
+   change, not a frequency substitution.
+
+**Recorded because it satisfies the amendment's INTENT** — the converters see 45–55 % at their pins,
+which is what §3's amendment actually protects — **by a means the amendment's wording does not
+contemplate.** That is the operator's call, not ours.
 
 ### F112 ⛔⛔ STOP-THE-LINE — §7.0's +70 °C IS EXCEEDED BY SOAK BEFORE THE UNIT IS SWITCHED ON — 2026-08-22
 
