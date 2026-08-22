@@ -77,6 +77,13 @@ for libid, (path, nm) in SRC.items():
     DEFS[libid] = blk.replace(f'(symbol "{nm}"', f'(symbol "{libid}"', 1)
     PINGEO[libid] = {p[0]: (p[1], p[2]) for p in pins}
 
+# F109: the footprint must land on the INSTANCE, not only in the library symbol.
+# The netlist exporter reads instance properties; before this, 536 of 536 exported none.
+FPMAP = {}
+for _lid, _blk in DEFS.items():
+    _m = re.search(r'\(property "Footprint" "([^"]*)"', _blk)
+    FPMAP[_lid] = _m.group(1) if _m else ""
+
 GND = "GND"; NC = None
 
 # ---------------------------------------------------------------- gain, derived
@@ -155,6 +162,7 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
 
     def place(ref, libid, x, y, val, nets, unit=1, geo=None):
         x, y = snap(x), snap(y)
+        _fp = FPMAP.get(libid, "")
         geo = geo if geo is not None else PINGEO[libid]
         missing = set(geo) - set(nets); extra = set(nets) - set(PINGEO[libid])
         assert not missing, f"{ref}: pins with no disposition (F28): {sorted(missing)}"
@@ -164,6 +172,7 @@ def build(sheet_file, title, dev_idx, chan_base, port, i2c_addr_strap):
                f'\t\t(uuid "{u("i"+ref+str(unit))}")',
                f'\t\t(property "Reference" "{ref}" (at {x} {y-22} 0) (effects (font (size 1.27 1.27))))',
                f'\t\t(property "Value" "{val}" (at {x} {y-19} 0) (effects (font (size 1.27 1.27))))',
+               f'\t\t(property "Footprint" "{_fp}" (at {x} {y} 0) (effects (font (size 1.27 1.27)) (hide yes)))',
                '\t\t(instances', '\t\t\t(project "ODSP12-MB"',
                f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "{ref}") (unit {unit}))',
                '\t\t\t)', '\t\t)', '\t)']

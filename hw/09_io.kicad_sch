@@ -2816,6 +2816,7 @@
 		(uuid "33c38110-cd20-5a49-a047-91b44cde2a97")
 		(property "Reference" "J51" (at 39.37 17.369999999999997 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA in, line" (at 39.37 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 39.37 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J51") (unit 1))
@@ -2847,6 +2848,7 @@
 		(uuid "259aa99f-fbd2-5827-8330-46a41b6e31f3")
 		(property "Reference" "J52" (at 39.37 47.849999999999994 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA in, line" (at 39.37 50.849999999999994 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 69.85 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J52") (unit 1))
@@ -2878,6 +2880,7 @@
 		(uuid "566846ee-b41e-503d-91aa-dd93ec6ffa4c")
 		(property "Reference" "J53" (at 39.37 78.33 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA in, line" (at 39.37 81.33 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 100.33 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J53") (unit 1))
@@ -2909,6 +2912,7 @@
 		(uuid "1ece6b0c-08a5-5df7-8289-885620b1f66b")
 		(property "Reference" "J54" (at 39.37 107.53999999999999 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA in, line" (at 39.37 110.53999999999999 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 129.54 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J54") (unit 1))
@@ -2940,6 +2944,7 @@
 		(uuid "c2af7c96-4df5-55c8-9c40-25705e7b29cd")
 		(property "Reference" "J60" (at 149.86 37.69 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "speaker-level in, 8-way" (at 149.86 40.69 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 149.86 59.69 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J60") (unit 1))
@@ -3013,6 +3018,7 @@
 		(uuid "1920b210-16a1-5fe4-8a23-e6c05343d49b")
 		(property "Reference" "J71" (at 260.35 17.369999999999997 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT1" (at 260.35 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 39.37 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J71") (unit 1))
@@ -3044,6 +3050,7 @@
 		(uuid "86389177-d334-5f6d-a830-8a0af64d05bd")
 		(property "Reference" "J72" (at 260.35 47.849999999999994 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT2" (at 260.35 50.849999999999994 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 69.85 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J72") (unit 1))
@@ -3075,6 +3082,7 @@
 		(uuid "a522cf6c-407d-544d-8274-de2300de2221")
 		(property "Reference" "J73" (at 260.35 78.33 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT3" (at 260.35 81.33 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 100.33 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J73") (unit 1))
@@ -3106,6 +3114,7 @@
 		(uuid "a485a759-20af-525c-9302-b53f2c2d3c9e")
 		(property "Reference" "J74" (at 260.35 107.53999999999999 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT4" (at 260.35 110.53999999999999 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 129.54 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J74") (unit 1))
@@ -3137,6 +3146,7 @@
 		(uuid "4b5d3d44-b5cb-5884-b67a-510fa4829fd1")
 		(property "Reference" "J75" (at 260.35 138.02 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT5" (at 260.35 141.02 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 160.02 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J75") (unit 1))
@@ -3168,6 +3178,7 @@
 		(uuid "ddce827a-bcc0-5242-901d-dbb747e2f595")
 		(property "Reference" "J76" (at 260.35 168.5 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT6" (at 260.35 171.5 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 190.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J76") (unit 1))
@@ -3199,6 +3210,7 @@
 		(uuid "88532ac6-88ee-5f97-b86c-a3a7b2680524")
 		(property "Reference" "J77" (at 330.2 17.369999999999997 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT7" (at 330.2 20.369999999999997 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 39.37 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J77") (unit 1))
@@ -3230,6 +3242,7 @@
 		(uuid "a3814ac2-fdaa-532d-abd9-05337d14c588")
 		(property "Reference" "J78" (at 330.2 47.849999999999994 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT8" (at 330.2 50.849999999999994 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 69.85 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J78") (unit 1))
@@ -3261,6 +3274,7 @@
 		(uuid "9e80fb3b-7d6e-57b6-9d91-bc7027a6e3e8")
 		(property "Reference" "J79" (at 330.2 78.33 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT9" (at 330.2 81.33 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 100.33 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J79") (unit 1))
@@ -3292,6 +3306,7 @@
 		(uuid "59463479-e8bf-5d85-8982-77d4c62f293a")
 		(property "Reference" "J80" (at 330.2 107.53999999999999 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT10" (at 330.2 110.53999999999999 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 129.54 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J80") (unit 1))
@@ -3323,6 +3338,7 @@
 		(uuid "cb88a110-175f-5c20-a670-ed49f1ea292c")
 		(property "Reference" "J81" (at 330.2 138.02 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT11" (at 330.2 141.02 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 160.02 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J81") (unit 1))
@@ -3354,6 +3370,7 @@
 		(uuid "4525ff34-d75a-5405-a781-28199bb90cd2")
 		(property "Reference" "J82" (at 330.2 168.5 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "RCA out AOUT12" (at 330.2 171.5 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 330.2 190.5 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J82") (unit 1))
@@ -3385,6 +3402,7 @@
 		(uuid "28936f20-8bdd-589c-8aec-6ad4764d41c1")
 		(property "Reference" "J90" (at 39.37 177.39000000000001 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "power in" (at 39.37 180.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 199.39000000000001 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J90") (unit 1))
@@ -3416,6 +3434,7 @@
 		(uuid "7cc974a8-fb80-53c4-8048-cf1ffac318e3")
 		(property "Reference" "J91" (at 100.33 177.39000000000001 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "remote in/out" (at 100.33 180.39000000000001 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 100.33 199.39000000000001 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J91") (unit 1))
@@ -3447,6 +3466,7 @@
 		(uuid "d64ba62e-d562-5ed8-bb6b-daf1731b528b")
 		(property "Reference" "R807" (at 39.37 218.03 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100k" (at 39.37 221.03 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 240.03 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R807") (unit 1))
@@ -3478,6 +3498,7 @@
 		(uuid "c5a9f5a1-7d72-51c2-95ec-cb37eb21518d")
 		(property "Reference" "R808" (at 69.85 218.03 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "33k" (at 69.85 221.03 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 69.85 240.03 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R808") (unit 1))
@@ -3509,6 +3530,7 @@
 		(uuid "63b2885e-ae57-5365-a4d3-aa73ff404e30")
 		(property "Reference" "C809" (at 100.33 218.03 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100n" (at 100.33 221.03 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 100.33 240.03 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "C809") (unit 1))
@@ -3540,6 +3562,7 @@
 		(uuid "430a186c-d7d5-5d01-92cf-f88a235a182d")
 		(property "Reference" "Q90" (at 149.86 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "MMBT3904" (at 149.86 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 149.86 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "Q90") (unit 1))
@@ -3578,6 +3601,7 @@
 		(uuid "0a9b70f5-4c00-54a1-92be-cafdc457987f")
 		(property "Reference" "R810" (at 129.54 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "10k" (at 129.54 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 129.54 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R810") (unit 1))
@@ -3609,6 +3633,7 @@
 		(uuid "014465c5-2da0-5740-8745-10b11e366621")
 		(property "Reference" "R811" (at 129.54 253.59000000000003 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100k" (at 129.54 256.59000000000003 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 129.54 275.59000000000003 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R811") (unit 1))
@@ -3640,6 +3665,7 @@
 		(uuid "322680a9-24c0-5c25-9f59-e9b5d16e72b8")
 		(property "Reference" "Q91" (at 199.39000000000001 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "60V P-FET" (at 199.39000000000001 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 199.39000000000001 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "Q91") (unit 1))
@@ -3678,6 +3704,7 @@
 		(uuid "c16cbc43-a29e-5ad6-ad04-5dc15b5ced0e")
 		(property "Reference" "R812" (at 229.87 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100k" (at 229.87 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 229.87 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R812") (unit 1))
@@ -3709,6 +3736,7 @@
 		(uuid "0e84c9e8-658b-5493-b00d-cd3874b66941")
 		(property "Reference" "R813" (at 260.35 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100R" (at 260.35 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 260.35 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R813") (unit 1))
@@ -3740,6 +3768,7 @@
 		(uuid "ecc28957-8c85-5e36-aa55-a134a11a3fb1")
 		(property "Reference" "D90" (at 289.56 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "15V" (at 289.56 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 289.56 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "D90") (unit 1))
@@ -3771,6 +3800,7 @@
 		(uuid "46ff5407-d0a4-5f7a-b8af-34ff7b9df029")
 		(property "Reference" "R814" (at 39.37 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "10R" (at 39.37 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 39.37 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R814") (unit 1))
@@ -3802,6 +3832,7 @@
 		(uuid "d8438cf4-87a9-5787-bd81-0f419b0e15b6")
 		(property "Reference" "C815" (at 69.85 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "100n" (at 69.85 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 69.85 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "C815") (unit 1))
@@ -3833,6 +3864,7 @@
 		(uuid "1377f3dc-bcf5-5d0b-803c-d8dcff8e0b8e")
 		(property "Reference" "R816" (at 100.33 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "1M" (at 100.33 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 100.33 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R816") (unit 1))
@@ -3864,6 +3896,7 @@
 		(uuid "36a4cd7e-d120-537e-89ee-de2d922f7f00")
 		(property "Reference" "R817" (at 129.54 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "0R" (at 129.54 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 129.54 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R817") (unit 1))
@@ -3895,6 +3928,7 @@
 		(uuid "475ecffa-948a-5ba7-a705-f7c378d7caa2")
 		(property "Reference" "R818" (at 170.18 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "1k" (at 170.18 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 170.18 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "R818") (unit 1))
@@ -3926,6 +3960,7 @@
 		(uuid "e21f2674-e139-570e-a108-2a766887359e")
 		(property "Reference" "D91" (at 199.39000000000001 277.72 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "green, STATUS" (at 199.39000000000001 280.72 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 199.39000000000001 299.72 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "D91") (unit 1))
@@ -3957,6 +3992,7 @@
 		(uuid "cbd89d33-9aa2-5a02-a52b-3f1aedea588c")
 		(property "Reference" "J95" (at 379.73 228.19 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "test header, 0.1in" (at 379.73 231.19 0) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "" (at 379.73 250.19 0) (effects (font (size 1.27 1.27)) (hide yes)))
 		(instances
 			(project "ODSP12-MB"
 				(path "/0d5f1a00-0000-4000-8000-000000000001/f0284b1c-b2b6-5144-bbfb-dbeb40147f7c" (reference "J95") (unit 1))

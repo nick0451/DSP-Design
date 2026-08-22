@@ -61,6 +61,13 @@ for libid, (path, nm) in SRC.items():
     DEFS[libid] = blk.replace(f'(symbol "{nm}"', f'(symbol "{libid}"', 1)   # then the parent
     PINGEO[libid] = {p[0]: (p[1], p[2]) for p in pins}
 
+# F109: the footprint must land on the INSTANCE, not only in the library symbol.
+# The netlist exporter reads instance properties; before this, 536 of 536 exported none.
+FPMAP = {}
+for _lid, _blk in DEFS.items():
+    _m = re.search(r'\(property "Footprint" "([^"]*)"', _blk)
+    FPMAP[_lid] = _m.group(1) if _m else ""
+
 GND = "GND"
 
 # ---------------------------------------------------------------- the GPIO map
@@ -208,6 +215,7 @@ def place(ref, libid, x, y, val, nets):
            f'\t\t(uuid "{u("i" + ref)}")',
            f'\t\t(property "Reference" "{ref}" (at {x} {y - 22} 0) (effects (font (size 1.27 1.27))))',
            f'\t\t(property "Value" "{val}" (at {x} {y - 19} 0) (effects (font (size 1.27 1.27))))',
+           f'\t\t(property "Footprint" "{FPMAP.get(libid, "")}" (at {x} {y} 0) (effects (font (size 1.27 1.27)) (hide yes)))' ,
            '\t\t(instances', '\t\t\t(project "ODSP12-MB"',
            f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "{ref}") (unit 1))',
            '\t\t\t)', '\t\t)', '\t)']

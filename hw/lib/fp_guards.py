@@ -141,6 +141,34 @@ def assert_footprint_provenance(refdes, source, verified_by=None, tag=""):
     return source
 
 
+# --- G5: every non-power component in the EXPORTED NETLIST carries a footprint ---------
+# F109. G1-G4 all check a footprint's CONTENT. None of them checks that the footprint is
+# REACHABLE -- and on 2026-08-22 the netlist exported 536 components with ZERO footprints,
+# because gen_symbols.py wrote the property into the LIBRARY SYMBOL and the sheet generators
+# emitted instances carrying only Reference and Value. Every content check would have passed
+# on a library nothing could reach.
+#
+# M27: this guard takes the EXPORTED NETLIST, not generator state. The generator layer is
+# where the bug was, so a guard reading generator state would have been blind to it by
+# construction -- it would have found the footprint exactly where the bug put it.
+#
+# Takes (refdes, footprint) pairs so it can be handed a known-bad netlist without running
+# kicad-cli. Power symbols (#PWR/#FLG) legitimately have none and are excluded BY PREFIX.
+def assert_netlist_footprints(components, tag="", allow_missing=()):
+    allow = set(allow_missing)
+    missing = sorted(ref for ref, fp in components
+                     if not ref.startswith("#") and not (fp or "").strip()
+                     and ref not in allow)
+    if missing:
+        raise FootprintDefect(
+            f"G5{tag}: {len(missing)} of {len(components)} components export with NO footprint: "
+            f"{missing[:8]}{' ...' if len(missing) > 8 else ''}. "
+            f"A footprint that exists in the library but not on the instance is unreachable: "
+            f"'Update PCB from Schematic' places nothing and G1 parity is not failing, it is "
+            f"UNMEASURABLE. Checking the library is the wrong test -- check the export.")
+    return len(components)
+
+
 # --- M9 NEGATIVE TESTS: each guard is fed a real defect before it is trusted -----------
 def _must_fire(fn, label):
     try:
@@ -169,6 +197,17 @@ def self_test(verbose=True):
     assert_bonded_tabs_share_net("ODSP12:TLP3475_VSON4",
                                  {"3": "AMP1_OUT", "4": "AMP1_OUT"}, "K11")      # control
 
+    # G5 -- F109's real case: the 2026-08-22 export, 536 components and not one footprint.
+    _must_fire(lambda: assert_netlist_footprints(
+        [("C102", ""), ("U51", ""), ("R2", "")]), "G5-f109")
+    # G5 -- the case a spot-check passes: ONE part missing among many that are fine.
+    _must_fire(lambda: assert_netlist_footprints(
+        [("U51", "ODSP12:AKM_LQFP-48_7x7mm_P0.5mm"), ("C102", "Capacitor_SMD:C_0603_1608Metric"),
+         ("R2", "   ")]), "G5-one-missing")
+    # controls: all present, and power symbols correctly ignored.
+    assert_netlist_footprints([("U51", "ODSP12:AKM_LQFP-48_7x7mm_P0.5mm"),
+                               ("#PWR01", ""), ("#FLG00", "")])
+
     # G3 -- a shrunken SM8S land.
     _must_fire(lambda: assert_rated_land("ODSP12:SM8S_DO218AC", 14.0, 10.0, "D1"), "G3")
     assert_rated_land("ODSP12:SM8S_DO218AC", 15.30, 10.70, "D1")                 # control
@@ -188,7 +227,7 @@ def self_test(verbose=True):
     assert_footprint_provenance("Q1", "hand_built", verified_by="operator")  # control
 
     if verbose:
-        print("  footprint guards: G1/G2/G2b/G3/G4 negative tests ALL FIRED, controls passed "
+        print("  footprint guards: G1/G2/G2b/G3/G4/G5 negative tests ALL FIRED, controls passed "
               "(M9 satisfied)")
         print("  PARTIAL: pad-1 orientation -- G4 checks PROVENANCE, not geometry.")
         print("           It proves someone looked, not that they were right.")

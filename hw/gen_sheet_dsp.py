@@ -34,6 +34,12 @@ while True:
 # "CM5IO:C_0_1". Prefixing the children too yields a file that parses, passes ERC, exports
 # a PDF and contains no components: every check says fine except the one that matters.
 adau = src[start:i + 1].replace('(symbol "ADAU1466"', '(symbol "ODSP12:ADAU1466"', 1)
+# F109: U1 is emitted by this hand-rolled block, NOT by place(), so the generic
+# FPMAP patch did not reach it -- the same defect one level down. Parsed from the
+# same block the symbol comes from, so there is one source of truth, not two.
+_m = re.search(r'\(property "Footprint" "([^"]*)"', adau)
+assert _m and _m.group(1), "ADAU1466 symbol carries no footprint"
+ADAU_FP = _m.group(1)
 
 # ---- recover pin geometry using the same math the symbol generator used ----
 import importlib.util
@@ -117,7 +123,8 @@ def sym_instance(unit):
            '\t\t(exclude_from_sim no)', '\t\t(in_bom yes)', '\t\t(on_board yes)', '\t\t(dnp no)',
            '\t\t(fields_autoplaced yes)', f'\t\t(uuid "{u(f"inst{unit}")}")',
            f'\t\t(property "Reference" "{REF}" (at {px} {py - 5} 0) (effects (font (size 1.27 1.27))))',
-           f'\t\t(property "Value" "ADAU1466WBCPZ300" (at {px} {py - 2.5} 0) (effects (font (size 1.27 1.27))))']
+           f'\t\t(property "Value" "ADAU1466WBCPZ300" (at {px} {py - 2.5} 0) (effects (font (size 1.27 1.27))))'
+           f'\t\t(property "Footprint" "{ADAU_FP}" (at {px} {py} 0) (effects (font (size 1.27 1.27)) (hide yes)))']
     for num, *_ in pins:
         out.append(f'\t\t(pin "{num}" (uuid "{u(f"p{unit}_{num}")}"))')
     out += ['\t\t(instances', '\t\t\t(project "ODSP12-MB"',
@@ -212,6 +219,13 @@ for libid, (path, nm) in CSRC.items():
     blk = blk.replace(f'(symbol "{nm}_', f'(symbol "{base}_')
     CDEFS[libid] = blk.replace(f'(symbol "{nm}"', f'(symbol "{libid}"', 1)
     CGEO[libid] = {p[0]: (p[1], p[2]) for p in pins}
+
+# F109: the footprint must land on the INSTANCE, not only in the library symbol.
+# The netlist exporter reads instance properties; before this, 536 of 536 exported none.
+FPMAP = {}
+for _lid, _blk in CDEFS.items():
+    _m = re.search(r'\(property "Footprint" "([^"]*)"', _blk)
+    FPMAP[_lid] = _m.group(1) if _m else ""
 CGEO["Device:R"] = {"1": (0.0, 3.81), "2": (0.0, -3.81)}
 
 CLABELS = {}
@@ -237,6 +251,7 @@ def cplace(ref, libid, x, y, val, nets):
            f'\t\t(uuid "{u("ci" + ref)}")',
            f'\t\t(property "Reference" "{ref}" (at {x} {y - 12} 0) (effects (font (size 1.27 1.27))))',
            f'\t\t(property "Value" "{val}" (at {x} {y - 9} 0) (effects (font (size 1.27 1.27))))',
+           f'\t\t(property "Footprint" "{FPMAP.get(libid, "")}" (at {x} {y} 0) (effects (font (size 1.27 1.27)) (hide yes)))' ,
            '\t\t(instances', '\t\t\t(project "ODSP12-MB"',
            f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "{ref}") (unit 1))',
            '\t\t\t)', '\t\t)', '\t)']
