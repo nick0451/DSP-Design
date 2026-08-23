@@ -1251,7 +1251,7 @@ about is normally crossable without leaving the archive.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
 
-**M36 — A SETTING THAT IS CORRECT BY DEFAULT AND PROTECTS A [HARD] CLAUSE IS AN INVARIANT WITH NO OWNER, AND ITS THREAT IS A FUTURE OPTIMISATION, NOT A PRESENT BUG.** *(Firmware agent bus 012, proposing that F68 and FW-011 belong on one shelf.)* **Seven such settings now exist across the two converters (I-1…I-7).** Each is **correct at power-on, backed by no hardware, reported by no error bit, and silent when violated.** **Nothing in the boot path can fail** — which is exactly why the class is dangerous: **there is no test to write, because today the code does nothing and doing nothing is correct.** > **The threat is a later change that looks like a free win:** *power down the unused ADC channels; sum two inputs for 3 dB of S/N; just set SYNCE.* **Each would pass review as an improvement and silently re-pack a [HARD] slot map or clear a fixed bit.** **Countermeasure: the shelf itself.** A consolidated list, at the register level, of settings whose correctness is an accident of the vendor's defaults — **because an invariant that lives only as an absence of code cannot be found by reading the code.**
+**M36 — A SETTING THAT IS CORRECT BY DEFAULT AND PROTECTS A [HARD] CLAUSE IS AN INVARIANT WITH NO OWNER, AND ITS THREAT IS A FUTURE OPTIMISATION, NOT A PRESENT BUG.** *(Firmware agent bus 012, proposing that F68 and FW-011 belong on one shelf.)* **Seven such settings now exist across the two converters (I-1…I-7).** Each is **correct at power-on, backed by no hardware, reported by no error bit, and silent when violated.** **Nothing in the boot path can fail** — which is exactly why the class is dangerous: **there is no test to write, because today the code does nothing and doing nothing is correct.** > **The threat is a later change that looks like a free win:** *power down the unused ADC channels; sum two inputs for 3 dB of S/N; just set SYNCE.* **Each would pass review as an improvement and silently re-pack a [HARD] slot map or clear a fixed bit.** **⚠ AMENDED SAME DAY BY FW-015, AND THE AMENDMENT IS THE SHARPER HALF: “NOTHING IN THE BOOT PATH CAN FAIL” IS TRUE OF THE NEVER-WRITE CLASS AND FALSE OF THE BOOT PATH ITSELF.** **The boot path writes exactly FOUR registers and THREE of them carry load-bearing bits that a naive write destroys** — so members living in *those* registers are **not** protected by “do not write”. **The danger is not only a future optimisation; it is the boot code written correctly the obvious way, today.** See the boot-write table below. **Countermeasure: the shelf itself.** A consolidated list, at the register level, of settings whose correctness is an accident of the vendor's defaults — **because an invariant that lives only as an absence of code cannot be found by reading the code.**
 
 **M35 — A CONSISTENCY CHECK BETWEEN TWO DATASHEETS, WITH NO THIRD INPUT, PASSES WHENEVER THE PARTS ARE SIMILAR. IT MUST CONSULT THE BOARD.** *(Firmware agent bus 008, diagnosing why F70's check could not have caught F70.)* **F70 verified that the AK5574 and the AK4458 each have a row giving 32-bit MSB / LRCK ↑ / 128 fs — and they both do.** > **The check confirmed the two parts CAN agree. It could not confirm they agree AT THE SETTINGS THIS BOARD USES, because it never consulted the board.** **`SDTI2` is grounded here, so the mode it confirmed is unusable — a fact living in the netlist, which the check never opened.** **Two parts from one vendor, deliberately similar, will almost always share SOME compatible row.** So the check had **no way to fail**, which is F109 and M34's shape a third time in one week. **The rule: a compatibility check needs THREE inputs — both datasheets AND the artefact. Two-way agreement between documents is not evidence about a board.**
 
@@ -2154,6 +2154,46 @@ bits are zero-detect flag enables that are useless here because **`DZF` is uncon
 output except the ADC's `OVF` on GPIO12.** The AK5574 has no status register at all (`00H`–`07H`,
 no flag bits); the AK4458's only status pin is `DZF`, which is unconnected and reports input-data
 zero-detect rather than anything about the part's state.
+
+### 🔒 THE BOOT-WRITE TABLE — **EVERY BOOT REGISTER IS A MASKED WRITE.** FW-015, 2026-08-22
+
+**Firmware agent, T1 from the register-definition pages named. This is the shelf's companion and
+they were right that it belongs as VALUES, not as an eighth bit: the invariant is not a bit, it is
+that these four writes are masked writes.**
+
+| Reg | Default | **NAIVE write** | What it destroys | **CORRECT** |
+|---|---|---|---|---|
+| **AK4458 `00H`** | `0x0C` | `0x01` *(release reset)* | **clears `DIF2-0` `110`→`000`, a SHADED row in Table 13 — *"not available"*** | **`0x0D`** |
+| **AK4458 `0AH`** | `0x0D` | `0x80` *(select TDM256)* | **clears `PW2`,`PW1` → four output channels OFF**; and `DEM21-0` `01`→`00` | **`0x8D`** |
+| **AK5574 `02H`** | `0x01` | `0x34` *(CKS+DIF)* | **clears `HPFE`** — high-pass filter off | **`0x35`** |
+| AK5574 `03H` | `0x00` | `0x20` | — **the one safe case, and safe BY ACCIDENT** | `0x20` |
+
+> **One of four registers contains only the field being set. The other three do not.** **A helper
+> that takes (register, value) rather than (register, mask) is a defect waiting for its first
+> use** — and every failure here is the class signature: no fault, no error bit, silent.
+
+**★ AND THE `0AH` CASE IS WORSE THAN THEY COULD SEE — their one T2, closed here.** They flagged
+`DEM21-0` `01`→`00` as *"applies a de-emphasis curve, rate unknown"*. **T1, AK4458 Table 17, p.48,
+`pdftotext -layout`, verbatim rows:**
+
+    DEM21/DEM20 = 00 -> 44.1kHz      01 -> OFF (default)      10 -> 48kHz      11 -> 32kHz
+
+> **`00` is 44.1 kHz de-emphasis — on a board that is 48 kHz [HARD] BOARD-WIDE.** *Not merely
+> de-emphasis switched on: de-emphasis switched on AT THE WRONG RATE.*
+
+**Cost, computed here from the 50/15 µs curve (zero 3183 Hz, pole 10610 Hz):**
+
+    1 kHz  -0.37 dB      3.18 kHz  -2.64 dB      10 kHz  -7.60 dB      20 kHz  -9.49 dB
+
+**≈9.5 dB of high-frequency loss on DAC2 of that part** (Table 17 assigns `DEM21-20` to DAC2),
+**from a single-byte boot write, with nothing reporting it.** *That is not a subtle degradation —
+it is a tone control nobody asked for, and §12's frequency-response acceptance would catch it only
+if the sweep is run per channel.*
+
+**Their `HPFE` decision, logged rather than inherited:** `HPFE` = `1` (HPF on, vendor default) — it
+becomes load-bearing only because `02H` must be written at all. **Reopen: if §12's sweep needs
+response below the HPF corner, or the front-end coupling makes it redundant.** *Inside their
+authority, reversible by one bit, correctly not escalated.*
 
 ### F115 ⚠ THE STOCK SOT-89 FOOTPRINT CANNOT REPRESENT THE DN2540, AND THE PINOUT PERMUTES BETWEEN ITS OWN PACKAGES — 2026-08-22
 
