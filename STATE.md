@@ -2275,6 +2275,91 @@ fifth member.*
 **ESCALATED to the operator — §7.2 is [HARD] and §4 forbids us amending it.** Firmware has written a
 conservative step 3b into `BOOT.md` meanwhile, which is safe either way.
 
+### FW-017 ⛔ **NOTHING RUNS UNTIL `0xF050` IS WRITTEN** — the clock generators and every serial port are POWERED DOWN at reset — 2026-08-22
+
+**Firmware agent bus 018, T1, ADAU1466 Rev. C Table 58 p.92. Found while closing FW-016's own T2 —
+so the fix for one silent failure exposed the next one underneath it.**
+
+**`0xF050` `POWER_ENABLE0`** carries `CLK_GEN3_PWR`…`CLK_GEN1_PWR` and `SOUT3_PWR`…`SIN0_PWR`.
+**Reset value `0x0000`.**
+
+> **Configure the clock generators, configure the serial ports, release the ADC's `PDN` — and no
+> BICK or LRCK ever appears, because the blocks are unpowered.** **The `583/fs` term still does not
+> start.** **Same symptom as FW-016, one layer further down: a wait that measures nothing.**
+
+**★ AND THE CONFIGURATION REGISTERS READ BACK CORRECTLY THE WHOLE TIME.** A readback of `0xF020`
+and `0xF200` reports *"correctly configured"* while the block is off. **Fourth instance of the class
+this week: no fault, no error bit, and the obvious verification passes.**
+
+### ✅ FW-016's T2 CLOSED FAVOURABLY — the serial ports do not need the DSP core
+
+**T1, Rev. C p.31 (Clock Generators) and p.57 (Serial Data I/O), both rendered.** The generators are
+**PLL-fed hardware driven by control registers**; the ports are configured entirely through
+`SERIAL_BYTE_x_0/_1`. **The core does not have to be executing.** **So step 3b is placeable before
+the program load and §7.2 5c's interleaving argument survives intact** — which was the consequence
+they named when they carried the T2.
+
+**Side-confirmation for FW-010:** the generator's BCLK set is **32/64/128/256/512 fs**, so
+**128 fs (ADC) and 256 fs (both DACs) are natively producible from one 48 kHz domain.** The two net
+classes are not merely required — they are directly available.
+
+### ✅ THE PLL CHAIN, DERIVED AND REPRODUCED HERE — and it is exact
+
+    MCLK 24.576 MHz / 8            = 3.072 MHz into the PLL   (p.98: "as close to 3.072 as possible")
+    x 96  (PLL_CTRL0 default 0x60) = 294.912 MHz sysclk
+    / (1024 x 6)  CLK_GEN1 N=1 M=6 = 48000.000 Hz             EXACT, no write needed for 48 kHz
+    -> 0xF001 PLL_CTRL1 = 0x0003 (divide by 8)
+
+**⚠ AND A CORRECTION TO THEIR WARNING — the trap is real, the DIRECTION is inverted.** They wrote
+that copying the datasheet's Figure 18 example gives *"1.536 MHz into the PLL … every audio rate
+exactly half."* **Reproduced here, both mismatches:**
+
+    Figure 18's divider (/4) on OUR 24.576 MHz  -> 6.144 MHz -> 589.824 MHz -> fs 96000 Hz  DOUBLE
+    OUR divider (/8) on the figure's 12.288 MHz -> 1.536 MHz -> 147.456 MHz -> fs 24000 Hz  HALF
+
+> **Copying the figure means taking its ÷4 — which on our clock gives 96 kHz, DOUBLE, not half.**
+> Their 1.536 MHz figure is the *other* mismatch: our divider applied to the example's source.
+> **Their arithmetic is internally exact and their conclusion — do not copy the example — stands
+> unchanged. Only the named consequence points the wrong way.**
+
+*Symmetric with their catch on my Table 17 pole/zero labels the same day: right numbers, wrong
+direction in the prose. **Twice in one exchange, in opposite directions, both caught.***
+
+### I-8 ✅ `FIR2-0` = `000` — the shelf entry whose reopen trigger is OUTSIDE the audio path
+
+**Verified verbatim by the firmware agent, T1, AK4458 p.50; Table 20 marks `000` (Mode 0) default;
+`FIR2-0` sits at `0CH` D2:D0.**
+
+> *"This FIR filter attenuates out of band noise and **may reduce degradation of the analog
+> characteristics caused by a switching regulator**, etc. **Best performance should be achieved by
+> clean linear regulated AVDD/VREF power supplies and the default setting of the FIR2-0 bits. These
+> conditions are included in the Analog Characteristics specs.**"*
+
+**Added to the shelf as I-8, and it is the odd one out: every other entry is reopened by something
+in the AUDIO path; I-8 is reopened by a POWER-SUPPLY change.** Replacing `U6` (LT3045) with a
+switcher invalidates one of the two conditions the 115 dB spec is written under, **and the
+non-default FIR modes exist precisely to buy that performance back** — so a defaulted register three
+sheets away becomes a live decision. **Recorded at both ends: `NOTE8` beside `U6` on the power
+sheet, and in their `BOOT.md`.**
+
+### ✅ A SCOPE-LIMIT DISCLOSURE WORTH COPYING — on verifying F116
+
+**They re-ran the F71 search rather than accepting a VOID disposition, and then stated its limit:**
+
+> *"I did NOT grep the hardware `STATE.md`. I am barred from reading it, **and a `grep` that prints
+> matching lines would be reading it.** So I have verified your claim across the bus and the parts
+> of the repo I may read — not across your ledger. That half rests on your search, which is fine,
+> **but it should be visible that it does.**"*
+
+**That distinction is exactly right and I had not drawn it: a `grep -n` over a barred file is a
+read.** **Their verification covers the bus; the ledger half rests on mine, and now both records
+say so.**
+
+**And their corollary on F116 is sharper than mine:** *"I named F71 as outstanding in four
+consecutive messages and not once did I ask what it was. **The tell available the whole time: I
+could not have said in one sentence what F71 claimed.**"* **That test is cheap, general, and
+neither of us applied it.**
+
 ### F115 ⚠ THE STOCK SOT-89 FOOTPRINT CANNOT REPRESENT THE DN2540, AND THE PINOUT PERMUTES BETWEEN ITS OWN PACKAGES — 2026-08-22
 
 **First real footprint work after D-3 decreed the DN2540. Two T1 reads, both at figure level (M2),
