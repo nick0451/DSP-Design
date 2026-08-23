@@ -1,52 +1,51 @@
-F114 + M34: our ledger carried an impossible BICK, and my bus numbering was wrong
+F70 RESOLVED: Mode 12 is a real row and the wrong row. DAC is Mode 18 / 256 fs.
 
-F114. The firmware agent (FW-006) caught an arithmetically impossible figure in
-STATE.md S0 LIVE STATUS - the block read at the start of every session - and it
-reached them from there. Not damaged in transmission; wrong at rest.
+The firmware agent read both tables and RETRACTED FW-006's arithmetic. Per S9 a
+retraction is a finding and gets the same treatment, so I validated it before
+accepting - and confirmed the load-bearing half against our own generator source
+rather than their netlist read, so there are two independent paths to it.
 
-We claimed AK5574 Table 9 row 26 and AK4458 Table 13 Mode 12 BOTH give BICK
-128fs. A TDM8 link with 32-bit slots has 256 bit-times per frame, so it cannot
-run at 128 fs. 128 fs at 32-bit slots IS TDM4.
+Their correction: AKM splits TDM128's eight channels across SDTI1-2, so it is
+four channels per pin x 32 bits = 128 bit-times. 128 fs IS correct for TDM128,
+and our two citations were correct as datasheet facts. Nothing was mistranscribed.
 
-And the refutation was already in this repo, in a file we read every session:
-CLAUDE.md S6 derived digest says TDM8 = 12.288 MHz, which is 256 fs. Two
-documents disagreed for days, both read repeatedly, neither review brought them
-into contact. That is exactly the failure CLAUDE.md S0b names as the one this
-role is exposed to, and it has now happened a second time - with the digest
-right and the ledger wrong.
+But their conclusion survives for a different reason, and the copper settles it:
+gen_sheet_dac.py:206 grounds SDTI2-4 on both DACs. Mode 12 needs SDTI2, which
+would carry pairs 3-4 - so AOUT5, AOUT6, AOUT11 and AOUT12 would receive constant
+zero. Four of twelve outputs silent with nothing reporting it.
 
-F70 REOPENED to T2. It was closed on a self-consistency check that does not
-close arithmetically. The S4 decree itself is untouched - it is the operator's
-act and does not depend on it. Only the supporting claim is withdrawn. I
-declined to send the firmware agent the two table rows they asked for, because
-I do not have either table read at figure level and would have been reciting.
+Resolution: ADC = Table 9 row 26 / TDM128 / 128 fs / 6.144 MHz. DAC = Table 13
+Mode 18 / TDM256 / 256 fs / 12.288 MHz. TDM256 puts eight 32-bit slots on SDTI1
+alone, which is exactly S4's TDM8 on the one wire the board has. NO SCHEMATIC
+CHANGE - SDTI2/3/4 at GND is correct for TDM256 and matches DCHAIN=0.
 
-The tell, now in the ledger: the word BOTH. A single figure asserted to hold
-across two different link formats is a compression, and compression is where
-distinctions die.
+And it was worse than 005 recorded: the bad figure was ONE wrong copy against
+THREE right ones - CLAUDE.md S6, STATE.md T2-01, and REQUIREMENTS S4's port
+table - with the wrong one in S0 LIVE STATUS, the block read at the start of
+every session. A majority of correct copies did not help, because nothing ever
+compared them.
 
-M34. We both allocated seq 004 within 22 seconds. My justification for one
-shared counter in bus 001 was FALSE: I wrote that per-folder numbering hides a
-loss because each side's own count still looks complete - but a lost message
-leaves the RECEIVER seeing a gap. I reasoned about the sender's view, and the
-sender is not who detects a drop. So the shared counter carried an allocation
-race in exchange for a benefit that did not exist.
+FW-010 answered: the two links do NOT share a BICK rate, and checked on their
+question - no series termination exists on any BCLK net in either generator and
+layout has not started, so nothing was ever sized against 6.144 MHz and there is
+nothing to unwind. Recorded for layout that BCLK is two net classes, not one.
 
-A gap is loud. A collision is SILENT - both folders look internally consistent,
-every number present, two messages sharing one identity. F109's shape in a
-protocol: the check passed because it could not fail.
+FW-011 logged: SDS2-0 must be 000 on both DACs. Every other value reaches into
+the grounded SDTI2 and silences channels. No hardware backstop, no error bit,
+and the failure is PARTIAL - a board where AOUT5-6 are dead and AOUT1-4 are fine
+is a very convincing analog fault. Filed with the matched-filter-modes invariant.
 
-Adopted parity, hw ODD / fw EVEN - swapped from their proposal, because the
-history and their own 005 reservation both point that way.
+M35, from their diagnosis of why F70's check could not have caught F70: a
+consistency check between two datasheets with no third input passes whenever the
+parts are similar, and two parts from one vendor will almost always share some
+compatible row. The check confirmed the parts CAN agree; it could not confirm
+they agree at the settings this board uses, because it never consulted the board.
+A compatibility check needs THREE inputs - both datasheets AND the artefact.
 
-Also logged: FW-007 (the AK4458 states the soft-mute ramp two contradictory
-ways, 85 ms vs 21.25 ms, and we take 85 on safe-direction grounds that survive
-either resolution), FW-008 (the ramp is a firmware-selectable 16:1 parameter,
-not a property of the part - D-5 stands but my 85-ms-free framing needs
-correcting to the operator), and the finding that there is NO ramp-complete
-status bit, so D-5's wait is elapsed-time and FW-007 is therefore load-bearing
-on a [HARD] step.
+Third instance this week of a check passing because it could not fail: F109's
+footprint guards, M34's message numbering, now this. Different layers, one shape.
 
-Bus 005 sent.
+Bus 007 sent with the owed F62, F65 and S4.4 figures. Flagged honestly that I
+cannot give a page number for the S4.4 citation without re-opening the page.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

@@ -24,7 +24,7 @@ MSB-justified, LRCK rising**, with **`SDATA_IN1` (BM83) explicitly excluded**. *
 selection criterion.**
 
 **F70 CLOSED and the decree VERIFIED SELF-CONSISTENT — no copper moves.** AK5574 Table 9 row 26 and
-AK4458 Table 13 Mode 12 both give **32-bit MSB, LRCK ↑** — ~~BICK 128fs~~ **⚠ THE BICK FIGURE IS WRONG, SEE F114. TDM8 at 32-bit slots is 256 fs. F70 IS REOPENED TO T2.** The strap set in F69 on the
+AK4458 Table 13 **Mode 18** both give **32-bit MSB, LRCK ↑**. **BICK DIFFERS BY LINK: ADC 128 fs / 6.144 MHz · both DACs 256 fs / 12.288 MHz (FW-010).** *~~Mode 12 / “both 128 fs”~~ — corrected 2026-08-22: Mode 12 is a real row that needs `SDTI2`, which is grounded here, so it would silence AOUT5/6/11/12. See F70 and F114. No copper changes.* The strap set in F69 on the
 default-matching argument lands on the decreed value, so **019's guard resolved as intended: it
 agreed, nothing moved.** **F56 already closed on SiT1605, which satisfies §3 as amended.**
 
@@ -1251,6 +1251,8 @@ about is normally crossable without leaving the archive.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
 
+**M35 — A CONSISTENCY CHECK BETWEEN TWO DATASHEETS, WITH NO THIRD INPUT, PASSES WHENEVER THE PARTS ARE SIMILAR. IT MUST CONSULT THE BOARD.** *(Firmware agent bus 008, diagnosing why F70's check could not have caught F70.)* **F70 verified that the AK5574 and the AK4458 each have a row giving 32-bit MSB / LRCK ↑ / 128 fs — and they both do.** > **The check confirmed the two parts CAN agree. It could not confirm they agree AT THE SETTINGS THIS BOARD USES, because it never consulted the board.** **`SDTI2` is grounded here, so the mode it confirmed is unusable — a fact living in the netlist, which the check never opened.** **Two parts from one vendor, deliberately similar, will almost always share SOME compatible row.** So the check had **no way to fail**, which is F109 and M34's shape a third time in one week. **The rule: a compatibility check needs THREE inputs — both datasheets AND the artefact. Two-way agreement between documents is not evidence about a board.**
+
 **M34 — A SHARED COUNTER WITH NO ALLOCATOR TRADES A LOUD FAILURE FOR A SILENT ONE, AND I JUSTIFIED IT BY CHECKING THE WRONG END OF THE CHANNEL.** *(Firmware agent FW-009, 2026-08-22, after we both allocated seq 004 within 22 seconds.)* **I decreed one monotonic sequence shared across both bus folders, on the stated ground that** *“per-folder numbering hides a loss, because each side's own count still looks complete.”* **That is FALSE.** With per-folder numbering a lost message leaves the **receiver** seeing a gap — **I reasoned about the SENDER's view, and the sender is not who detects a drop.** **So the shared counter carried an allocation race in exchange for a benefit that did not exist.** > **A gap is loud — a number is missing and any reader notices. A COLLISION IS SILENT: both folders look internally consistent, every number is present, and two distinct messages share one identity.** *“Reply to 004” acquires two referents and nothing complains.* **Fixed by parity — hw odd, fw even — which cannot race, keeps identifiers globally unique (the one thing the shared counter genuinely bought), and preserves per-direction drop detection.** **The reviewer's framing, kept because it generalises: this is F109's shape in a protocol — the numbering check passed because it could not fail.** **The transferable habit: when justifying a scheme by the failure it detects, name WHO detects it. I checked the end that could not.**
 
 **M33 — A FETCH-AND-SUMMARISE READ IS NOT A DOCUMENT READ, AND IT FAILS IN THE DIRECTION THAT LOOKS AUTHORITATIVE.** *(2026-08-22, verifying a subagent's sourcing report.)* I fetched the Nexperia `BAV199-Q` datasheet through a tool that renders a page and answers questions about it with **a small fast model**. **It contradicted the subagent on three of five points — and was wrong on all three:** it reported the diodes as **common-anode** (they are *“connected in series”*), AEC-Q101 as **“not present in the available document excerpt”** (the phrase *“Qualified according to AEC-Q101”* is a bullet on page 1), and `T_amb` as **−40…+125 °C** (it is −65…+150 °C). **`pdftotext -layout` on the same file settled every point in one command.** > **The failure mode is specific: a summariser reports ABSENCE with the same confidence as presence, and “not present in the excerpt” is indistinguishable from “not in the document” to the reader.** **This is M2 at a new layer** — M2 says do not promote a load-bearing number from a text extraction; **M33 says a model’s summary of a document is a WEAKER read than the extraction, not a stronger one, because it silently discards what it did not happen to see.** **Second lesson, and the more surprising one: the subagent’s report was RIGHT on every point I checked.** Per **M19** it arrived T2 and I validated before accepting — **the validation confirmed it and refuted the tool I validated with.** *Checking the checker was the step that mattered.*
@@ -1919,6 +1921,73 @@ found fifteen.
 
 > **So D-5's *“step 2 must complete before step 3”* can only be enforced by waiting a duration — and FW-007 says the datasheet states that duration two different ways.** **I costed the F99 amendment at “85.0 ms, free” as a convenience figure; the swap promoted it into the thing that decides whether the hard mute opens into silence or into a descending ramp.** **A promotion I caused and did not notice.** Recorded at both ends per §8.11.
 
+### F70 ✅ RESOLVED — **MODE 12 IS A REAL ROW AND THE WRONG ROW. THE DAC IS MODE 18 / TDM256 / 256 fs** — 2026-08-22
+
+**Firmware agent bus 008, T1, both tables rendered and read. They RETRACTED FW-006's arithmetic and
+the retraction was validated before acceptance (M19).**
+
+**Our two citations were correct as datasheet facts.** AK5574 Table 9 **row 26** and AK4458
+Table 13 **Mode 12** both genuinely give *32-bit MSB, LRCK ↑, BICK 128 fs*. **Nothing was
+mistranscribed.**
+
+**FW-006's arithmetic was wrong** — it assumed all eight TDM channels ride one data pin. **AKM
+splits them.** `AK4458` p.34: *"**TDM128 Mode** … Eight channels audio data is shifted in via the
+**SDTI1-2 pins** … BICK is fixed to 128fs."* **Four channels per pin × 32 bits = 128 bit-times.
+128 fs is correct for TDM128.**
+
+## But Mode 12 cannot run on THIS BOARD, and our own copper is what settles it
+
+**T1, confirmed here against `gen_sheet_dac.py:206` — our generator, not their report:**
+
+    "4": port + "_DATA", "5": GND, "6": GND, "7": GND,   # SDTI2-4 unused -> DVSS (T1-52)
+
+**`SDTI2` is grounded on both DACs. TDM128 needs `SDTI1` AND `SDTI2`.** Under Mode 12,
+**`SDTI2` carries pairs 3–4 — so AOUT5, AOUT6, AOUT11, AOUT12 would receive constant zero.**
+**Four of twelve outputs silent, with nothing reporting it.**
+
+## The resolution — and it reconciles completely
+
+| Link | §4 name | AKM mode | Row | BICK | at 48 kHz |
+|---|---|---|---|---|---|
+| `SDATA_IN0` → AK5574 | **TDM4** | **TDM128** (`TDM1-0`=`01`) | Table 9 **row 26** | **128 fs** | **6.144 MHz** |
+| `SDATA_OUT0/1` → AK4458 | **TDM8** | **TDM256** (`TDM1-0`=`10`) | Table 13 **Mode 18** | **256 fs** | **12.288 MHz** |
+
+**TDM256 puts eight 32-bit slots on `SDTI1` alone** — which is exactly §4's "TDM8", on the one wire
+the board actually has.
+
+**⛔ NO SCHEMATIC CHANGE. `SDTI2/3/4` at GND is CORRECT for TDM256**, and `SDTI3/4` at GND also
+matches `DCHAIN`=0 (the DACs are not daisy-chained — each has its own DSP port). **Not respin-class,
+not stop-the-line. Only the register entry moves.**
+
+## ★ AND OUR OWN RECORDS CONTRADICTED THE BAD FIGURE IN **THREE** PLACES
+
+`CLAUDE.md` §6 *(TDM8 = 12.288 MHz)* · `STATE.md` **T2-01** *(same)* · and the §4 port table itself.
+**The wrong figure lived in §0 LIVE STATUS while three other locations in the same repository held
+the right one.** **F114's lesson is stronger than first logged: it was not two documents
+disagreeing, it was one against three.**
+
+**FW-010 — the two converter links do NOT share a BICK rate.** ADC **6.144 MHz**, both DACs
+**12.288 MHz**. Same MCLK, same LRCK, same format, **different BICK by 2×**. **Checked on their
+question: NO termination or layout decision was ever taken against 6.144 MHz** — there are no series
+resistors on any BCLK net in either generator, and layout has not started. **Nothing to unwind.**
+
+### FW-011 ⚠ `SDS2-0` MUST BE `000` ON BOTH DACs — FIRMWARE INVARIANT, NO HARDWARE BACKSTOP — 2026-08-22
+
+**Firmware agent, T1, `AK4458` p.42 Table 14.** In TDM256 each `SDS2-0` value selects four
+consecutive stereo pairs from the sixteen-channel frame. **Only `000` keeps all four pairs on
+`SDTI1`; every other value reaches into `SDTI2`, which is tied to GND.**
+
+    SDS2-0 = 000 -> pairs 1,2,3,4   all on SDTI1        CORRECT
+    SDS2-0 = 001 -> pairs 2,3,4,5   pair 5 on SDTI2     one pair silent
+    SDS2-0 = 100 -> pairs 5,6,7,8   ALL on SDTI2        all eight channels silent
+
+> **Same family as FW-002/FW-003: not a fault, no error bit, silent until audio fails to appear —
+> and its failure is PARTIAL, which is worse.** *A board where AOUT5–6 are dead and AOUT1–4 are fine
+> is a very convincing analog fault.*
+
+**Joins the matched-filter-modes invariant (§5 contract item 5) as a firmware-owned property that no
+schematic can enforce and no ERC can see.** **Bit positions are T2 on their side pending a
+register-definition read.**
 ### F114 ⛔ OUR OWN LEDGER CARRIES AN ARITHMETICALLY IMPOSSIBLE BICK, AND `CLAUDE.md` CONTRADICTED IT ALL ALONG — 2026-08-22
 
 **Caught by the firmware agent (FW-006), from our transmitted summary alone — they had read neither
