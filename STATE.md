@@ -1251,6 +1251,8 @@ about is normally crossable without leaving the archive.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
 
+**M36 — A SETTING THAT IS CORRECT BY DEFAULT AND PROTECTS A [HARD] CLAUSE IS AN INVARIANT WITH NO OWNER, AND ITS THREAT IS A FUTURE OPTIMISATION, NOT A PRESENT BUG.** *(Firmware agent bus 012, proposing that F68 and FW-011 belong on one shelf.)* **Seven such settings now exist across the two converters (I-1…I-7).** Each is **correct at power-on, backed by no hardware, reported by no error bit, and silent when violated.** **Nothing in the boot path can fail** — which is exactly why the class is dangerous: **there is no test to write, because today the code does nothing and doing nothing is correct.** > **The threat is a later change that looks like a free win:** *power down the unused ADC channels; sum two inputs for 3 dB of S/N; just set SYNCE.* **Each would pass review as an improvement and silently re-pack a [HARD] slot map or clear a fixed bit.** **Countermeasure: the shelf itself.** A consolidated list, at the register level, of settings whose correctness is an accident of the vendor's defaults — **because an invariant that lives only as an absence of code cannot be found by reading the code.**
+
 **M35 — A CONSISTENCY CHECK BETWEEN TWO DATASHEETS, WITH NO THIRD INPUT, PASSES WHENEVER THE PARTS ARE SIMILAR. IT MUST CONSULT THE BOARD.** *(Firmware agent bus 008, diagnosing why F70's check could not have caught F70.)* **F70 verified that the AK5574 and the AK4458 each have a row giving 32-bit MSB / LRCK ↑ / 128 fs — and they both do.** > **The check confirmed the two parts CAN agree. It could not confirm they agree AT THE SETTINGS THIS BOARD USES, because it never consulted the board.** **`SDTI2` is grounded here, so the mode it confirmed is unusable — a fact living in the netlist, which the check never opened.** **Two parts from one vendor, deliberately similar, will almost always share SOME compatible row.** So the check had **no way to fail**, which is F109 and M34's shape a third time in one week. **The rule: a compatibility check needs THREE inputs — both datasheets AND the artefact. Two-way agreement between documents is not evidence about a board.**
 
 **M34 — A SHARED COUNTER WITH NO ALLOCATOR TRADES A LOUD FAILURE FOR A SILENT ONE, AND I JUSTIFIED IT BY CHECKING THE WRONG END OF THE CHANNEL.** *(Firmware agent FW-009, 2026-08-22, after we both allocated seq 004 within 22 seconds.)* **I decreed one monotonic sequence shared across both bus folders, on the stated ground that** *“per-folder numbering hides a loss, because each side's own count still looks complete.”* **That is FALSE.** With per-folder numbering a lost message leaves the **receiver** seeing a gap — **I reasoned about the SENDER's view, and the sender is not who detects a drop.** **So the shared counter carried an allocation race in exchange for a benefit that did not exist.** > **A gap is loud — a number is missing and any reader notices. A COLLISION IS SILENT: both folders look internally consistent, every number is present, and two distinct messages share one identity.** *“Reply to 004” acquires two referents and nothing complains.* **Fixed by parity — hw odd, fw even — which cannot race, keeps identifiers globally unique (the one thing the shared counter genuinely bought), and preserves per-direction drop detection.** **The reviewer's framing, kept because it generalises: this is F109's shape in a protocol — the numbering check passed because it could not fail.** **The transferable habit: when justifying a scheme by the failure it detects, name WHO detects it. I checked the end that could not.**
@@ -2074,6 +2076,84 @@ this.**
 **Disposition: firmware behaviour, no hardware cost, inside their authority to design and log.**
 **Carried to the operator as INFORMATION, not as a gate** — it changes what the control API
 promises (*"S/PDIF available"* becomes *"available AND linear PCM"*).
+
+### 🔒 THE INVARIANT SHELF — SETTINGS THAT ARE CORRECT AT POWER-ON AND PROTECTED BY NOTHING
+
+**Created 2026-08-22 on the firmware agent's suggestion, after F68 and FW-011 both resolved to the
+same shape and they proposed *"the same shelf gets a third entry."* They were right that it is a
+class, not three coincidences.**
+
+| # | Setting | Default | Protects | If disturbed |
+|---|---|---|---|---|
+| **I-1** | AK5574 `MONO2-1` (`01H`) | `00` Not-Summation | **§4 TDM map + §10 channel↔slot, both [HARD]** | Optimal Data Placement **re-packs the slots**; every channel moves |
+| **I-2** | AK5574 `PW4-1` (`00H`) | `1111` all ON | same | powering down a channel **re-packs the slots** |
+| **I-3** | AK4458 `SDS2-0` (`0AH`/`0BH`) | `000` pairs 1–4 | channel routing | any other value reaches into **`SDTI2`, which is GND** → channels go silent |
+| **I-4** | AK4458 `SYNCE` (`07H` D0) | `1` enabled | **§5 contract item 5**, sample alignment | the two DACs stop re-synchronising; alignment claim voids |
+| **I-5** | AK4458 `07H` as a whole | `0x03` — **D1 is a fixed `1`** | the above | **a naive `write(07H, 0x01)` to "set SYNCE" CLEARS D1** |
+| **I-6** | AK4458 `DCHAIN` (`0BH`) | `0` not chained | the two-port topology | the DACs are **not** daisy-chained; each has its own DSP port |
+| **I-7** | both AK4458 filter modes | identical | **§5 item 5**, group-delay match | one register write on one part and the pair is mismatched |
+
+**Every row: correct at power-on, no hardware backstop, no error bit, silent on violation.**
+
+> **★ THE THREAT IS NOT THE BOOT PATH — IT IS A LATER, WELL-MEANING CHANGE.** *A power-optimisation
+> pass that powers down unused ADC channels. A "we only need two inputs, sum them for 3 dB of S/N"
+> improvement. A "just set SYNCE" one-liner.* **Every one of those looks like a free win, and every
+> one silently breaks a [HARD] clause.**
+
+### F68 ✅ ANSWERED — SUMMATION AND CHANNEL POWER-DOWN MUST BE FORBIDDEN. **We concur.**
+
+**Named three times across three legs before it was answered — rule 3 is why it did not fade.**
+
+**T1, AK5574 p.46, verbatim:** *"**In serial control mode, the data output is Optimal Data Placement
+mode regardless of the ODP pin setting.**"* — so `ODP` (pin 46 → GND) is inert and the part is
+**permanently** in Optimal placement, exactly as suspected.
+
+**And the mechanism, from the same page:** Fixed placement *"Channel assignment of data slot is
+fixed **regardless of enable/disable of channel summation**"*; Optimal placement *"**there are no
+data redundant of channel summation**"*.
+
+> **Fixed placement holds the slot map still and duplicates the summed result. Optimal placement
+> removes the redundancy — so THE NUMBER OF OCCUPIED SLOTS CHANGES WITH THE SUMMATION SETTING.**
+> The datasheet advertises this as a feature: more devices fit in a cascade because each uses fewer
+> slots.
+
+**§4's TDM map and §10's channel↔slot naming are both [HARD]. A fixed map cannot follow a re-packing
+the ADC performs autonomously.** **Therefore both are forbidden — I-1 and I-2.**
+
+**Independent confirmation BY FIGURE, which is stronger than the arithmetic:** p.50 Figure 57 shows
+TDM128 putting **all four ADC channels on `SDTO1` in slots 1–4, with `SDTO2` all zeros** — matching
+the copper (`SDTO1` → `TDM_IN0_DATA`, `SDTO2` unconnected) and §4's *"4 (analog in 1–4)"*. **After
+F114 they preferred to close it on a picture of the slot map rather than a calculation about it.
+Correct instinct.**
+
+### FW-011 ✅ AMENDED AGAINST ITSELF — `SDS2-0` DEFAULTS TO `000`; it is never-disturb, not must-set
+
+**They corrected their own finding, T1, AK4458 p.80: *"SDS2-0 … Default value is `000`."*** **The
+part powers up at the value FW-011 requires.** So FW-011 is **not a boot write** — **the failure now
+requires someone to actively write a wrong value, which is less likely than an omitted one.**
+**Consequence unchanged, probability lower.** Re-shelved as **I-3, "do not touch"** rather than
+"must set". **Also closes their Q6: AK4458 `TDM1-0` default confirmed `00`, so `10` must be
+written.**
+
+### ✅ `SYNCE` PROMOTED TO T1 — our T1-130 row was right after all
+
+**AK4458 p.79, `07H` Control 5, T1:** default `0x03`, and *"**SYNCE: SYNC Mode Enable** … 1: SYNC
+Mode Enable **(default)**."* **The demotion in bus 009 is lifted; T1-130's `SYNCE`=`1` row is
+promoted with a citation.** *The enumeration was right; it simply had not been re-derived, and
+saying so was still correct.*
+
+### ✅ THE PARKED "`07H` READ-MODIFY-WRITE" ITEM — explained, and it is real
+
+**`07H`'s power-on value is `0x03`, not `0x01`: D1 is a literal fixed `1`.** **A naive
+`write(07H, 0x01)` to "set SYNCE" clears it.** **Their rule is stronger than read-modify-write and
+we adopt it: do not write `07H` at all** — `SYNCE` already defaults correct, and the only other live
+bits are zero-detect flag enables that are useless here because **`DZF` is unconnected on both DACs**
+(netlist, T1). **I-5.**
+
+**⚠ Position now established across both converters: NEITHER offers firmware any usable status
+output except the ADC's `OVF` on GPIO12.** The AK5574 has no status register at all (`00H`–`07H`,
+no flag bits); the AK4458's only status pin is `DZF`, which is unconnected and reports input-data
+zero-detect rather than anything about the part's state.
 
 ### F114 ⛔ OUR OWN LEDGER CARRIES AN ARITHMETICALLY IMPOSSIBLE BICK, AND `CLAUDE.md` CONTRADICTED IT ALL ALONG — 2026-08-22
 
