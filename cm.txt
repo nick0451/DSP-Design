@@ -1,47 +1,44 @@
-F97 DERIVED: S12 10 mV read as a broadband peak permits a 65 dB SPL pop
+D-4 decreed: two-limit pop criterion. F97 CLOSED. F99 answered - no part fixes it.
 
-The operator said plainly they did not have the knowledge to set this, which is
-a delegation, so it is derived here rather than asked for a third time. Every
-input stated; none taken from S12.
+D-4, operator decree: S12 gets TWO limits - DC step <= 10 mV, and weighted peak
+<= 0.2 mV (20Hz-20kHz AES17 brickwall, ITU-R BS.468-4 renormalised to 2 kHz,
+quasi-peak detector, silent input), both referred to a stated 10 dB downstream
+amp gain. Two rather than one because a slow 10 mV step and a fast 10 mV click
+are not the same event to the ear. REQUIREMENTS S12 still reads the old text;
+that edit is the operator act.
 
-Audibility at shutdown: click threshold in quiet 36.4 dB SPL for 100 us
-(Stapells JASA 72(1):74, 1982), temporal integration 3 dB per halving (Moore,
-Springer Handbook 13.1) puts a 1 ms event at 26.4 dB, and masking from 42 dBA
-broadband inside a 365 Hz critical band gives 24.6 dB. Masking dominates at ms
-scale, so the audible threshold is about 30 dB SPL.
+F97 CLOSED. The chain it gated is open: F99 -> F98 -> F100.
 
-Calibration against industry: TI 7 mV typ at the speaker is 40.9 dB SPL at 1 m,
-which is ABOVE that threshold. Industry-typical pop is faintly audible in a
-silent car, so no audible pop is stricter in kind than any vendor guarantees.
+F99 answered by reading S7.3 verbatim rather than from my own summary. Step 2
+engages the hard mute while programme is live. With D-4 finally providing a
+number, that can be costed: a relay opening at a full-scale peak is a 6.36 V
+step against a 0.2 mV limit - 90 dB over.
 
-Referred back through a 10 dB amp to our RCA output, with 12 channels power
-summing: inaudible is 0.183 mV, industry parity is 0.639 mV.
+No shunt resistor closes a 90 dB gap. F98 sizing, F100 crossing, V-16
+DN2540-vs-LND150 were all arithmetic on the wrong side of a cliff. The part was
+never going to be the answer. That is the finding.
 
-And S12 as written, through the same chain: 10 mV at RCA becomes 32 mV per
-channel at the speaker, 54 dB SPL per channel, 65 dB SPL total. That is the
-level of quiet speech. S12 permits a pop you could hold a conversation over -
-about 50x in voltage looser than inaudible.
+And the order as written rests on a number nobody here owns: step 1 says amps
+mute first, but S7.3 states NO DELAY between steps 1 and 2, so the sequence
+safety depends on a third-party amplifier muting before our relay opens.
+Industry parts that need such a lead time state it (TPA6304-Q1 >= 10 ms;
+TAS3251 150 samples + 0.2 ms). S7.3 names none.
 
-The reconciliation is why TI uses a MASK: a 10 mV DC step and a 10 mV fast click
-are not the same event. A slow step puts almost no energy in the audio band.
-That is why TI allows 10.7 mV at 100 Hz and 0.407 mV at 2.63 kHz. S12 10 mV is
-defensible as a DC-step limit and indefensible as a broadband peak, and as
-written it does not say which it is.
+Recommended amendment, escalated not applied: swap steps 2 and 3 in S7.3 ONLY.
+Cost 85.0 ms, the AK4458 soft-mute ramp at 48 kHz, which is free at ignition-off.
+Benefit: the relay opens with ~0 V across it, so the 6.36 V step ceases to exist
+rather than being attenuated, and the amp-latency dependency disappears.
 
-Proposed two-part criterion: (i) DC step <= 10 mV, keeping the number and citing
-SLEA044 p.12; (ii) weighted peak <= 0.2 mV, 20Hz-20kHz AES17 brickwall, ITU-R
-BS.468-4 renormalised to 2 kHz, quasi-peak detector, silent input - both
-referred to a stated 10 dB downstream amp gain. Two parts because one number
-cannot cover both failures, and S12 already learned this once: the CCIF
-criterion exists because 1 kHz and 20 kHz THD are blind to nonlinear
-off-capacitance. A DC-step limit is blind the same way to the same part.
+S7.4 must NOT change - in a collapse there is no time for a ramp and no MCU to
+run it. The orderly and disorderly paths want different orders, and that is a
+property of the paths, not an inconsistency.
 
-Warning recorded with it: 0.2 mV is ~50x tighter than the current text and may
-be expensive. That is not a reason to soften it here. If F98 finds it
-infeasible the operator should relax the REQUIREMENT knowingly, not pick a
-number because it is achievable. A criterion chosen to match what passes is the
-failure F97 was opened to prevent.
+Bus 003 sent to the firmware agent - the message promised in 001. Concurs with
+FW-002 and FW-003, accepts FW-004 substance while correcting a claim they read
+into my S4.3 that I had not made, confirms FW-005 independently, and hands over
+the seven boot-register items that had no owner until now.
 
-F99 still comes first.
+On their 03H question I declined to promote their T2 by agreeing with it - I do
+not have that page read either, and said so rather than nodding.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

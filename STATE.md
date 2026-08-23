@@ -1907,6 +1907,80 @@ found fifteen.
 
 ## 7. Findings register
 
+### ✅ D-4 · §12 POP CRITERION DECREED — TWO LIMITS — 2026-08-22. **F97 CLOSED.**
+
+**Decree:** *"two limits makes the most sense, lets move forward with that."* **T1 by decree.**
+
+    (i)  DC STEP        <= 10 mV   at the RCA output into 10 kOhm, input silent
+    (ii) WEIGHTED PEAK  <= 0.2 mV  20 Hz - 20 kHz, AES17 brickwall LPF + 20 Hz HPF,
+                                   ITU-R BS.468-4 renormalised to 0 dB at 2 kHz,
+                                   quasi-peak detector, input silent (zero data),
+                                   captured across the power-down transition
+    both referred to a stated downstream amplifier gain of 10 dB (4.5 Vrms -> 50 W / 4 ohm)
+
+**⚠ `REQUIREMENTS.md` §12 STILL SAYS *"scope-verified < 10 mV transient"*. THE EDIT IS THE
+OPERATOR'S** — §4 forbids us editing it to resolve a finding. **Recorded here as T1-by-decree and
+used as the acceptance target; the requirements text is unchanged until the operator changes it.**
+
+**F97 is CLOSED. The chain it gated is now open: F99 → F98 → F100.**
+
+### F99 ⛔ ANSWERED, AND THE ANSWER IS THAT **NO COMPONENT CAN FIX THE CURRENT ORDER** — 2026-08-22
+
+**§7.3 read verbatim from `REQUIREMENTS.md` (not from a summary):**
+
+    1. Remote-in drop detected -> remote-out released immediately (amps mute first)
+    2. Hard mute engaged
+    3. State persisted, DACs soft-muted
+    4. Rails allowed to fall
+
+**F96 confirmed: step 2 opens the series relay while programme is still live.** Now that D-4 has
+given §12 a number, that can finally be costed:
+
+    relay opens at a full-scale peak = 4.5 Vrms x sqrt(2) = 6.36 V step at our output
+    against D-4(ii)'s 0.2 mV limit                        = 90 dB OVER
+
+> **No shunt resistor closes a 90 dB gap.** **F98's entire sizing exercise — 657 Ω vs 850 Ω, the
+> crossing in F100, the DN2540-vs-LND150 decision in V-16 — was arithmetic on the wrong side of a
+> 90 dB cliff.** *The part was never going to be the answer.*
+
+## ★ And the order as written rests on a number we do not own
+
+**Step 1 says *"amps mute first"* — but §7.3 states NO DELAY between step 1 and step 2.** **The
+entire safety of the sequence depends on the external amplifier muting before our relay opens**,
+and that latency belongs to a third-party product we do not specify, cannot verify, and which the
+installer chooses. **Industry precedent for such a lead time exists** (TPA6304-Q1: *STANDBY low
+≥ 10 ms before supply removal*; TAS3251: *150 samples + 0.2 ms* = 3.3 ms at 48 kHz) — **§7.3 names
+none.**
+
+## RECOMMENDED AMENDMENT — escalated, not applied
+
+**Swap steps 2 and 3, in §7.3 ONLY:**
+
+    1. Remote-in drop detected -> remote-out released immediately
+    2. State persisted, DACs SOFT-MUTED        <- was step 3
+    3. Hard mute engaged, into digital silence  <- was step 2
+    4. Rails allowed to fall
+
+**Cost: 85.0 ms**, the AK4458's soft-mute ramp (4080/fs at 48 kHz, T1, p.49). **Free in this path** —
+ignition is off, `VBATT` is still present, the rails are held until firmware releases them, and
+nobody perceives 85 ms at shutdown.
+
+**Benefit: the relay now opens with ~0 V across it.** The 6.36 V step **does not get attenuated, it
+ceases to exist**; what remains is switching artefact alone, which is the regime D-4(ii) was written
+for. **And the dependency on the amplifier's mute latency is removed entirely** — a third-party
+number stops being load-bearing.
+
+**⛔ §7.4 MUST NOT CHANGE.** In a collapse there is no time for an 85 ms ramp and no MCU to run it;
+**de-energised = muted is the whole point, and its order is already correct.** **This is a branch in
+a [HARD] sequence — the orderly path and the disorderly path want different orders, and that is a
+property of the paths, not an inconsistency.**
+
+**What this does to the open chain:** **F98 and F100 may both dissolve** — if the relay opens into
+silence, the shunt's *transient* job largely disappears and only its **steady-state** job remains
+(killing `C_off` leakage, which §6.4 states separately and which the latency in F108 never touched).
+**V-16's DN2540-vs-LND150 decision may then be decided by leakage alone rather than by a pop budget.**
+**Not asserted — sized only after the operator rules on the order.**
+
 ### F97 ★ DERIVED FROM AUDIBILITY. **§12's 10 mV, READ AS A BROADBAND PEAK, IS ~65 dB SPL** — 2026-08-22
 
 **Operator: *“I honestly don't have a great answer given my knowledge to that; you're correct in
