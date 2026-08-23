@@ -1907,6 +1907,66 @@ found fifteen.
 
 ## 7. Findings register
 
+### ✅✅ D-5 · §7.3 STEP ORDER SWAPPED — 2026-08-22. **F99 CLOSED. THE CASCADE, TRACED HONESTLY.**
+
+**Decree:** *"I agree, swap the steps and several issues cascade out."* **T1 by decree.**
+
+    1. Remote-in drop detected -> remote-out released immediately
+    2. State persisted, DACs SOFT-MUTED         <- was step 3
+    3. Hard mute engaged, into digital silence  <- was step 2
+    4. Rails allowed to fall
+
+**§7.4 unchanged, by the same decree's scope** — the disorderly path keeps its order.
+
+**⚠ `REQUIREMENTS.md` §7.3 is [HARD] and still carries the old order. THE EDIT IS THE OPERATOR'S.**
+Third decree now recorded here and not yet in the requirements text (with D-1 §3 and D-4 §12).
+**→ Worth one editing pass rather than three separate ones.**
+
+## What actually cascades — and one thing that does NOT
+
+**✅ F100 DISSOLVES.** The crossing was *pop ≤ 657 Ω* against *THD ≥ ~850 Ω*. **The 657 Ω upper
+bound came from the orderly-path transient, which no longer exists** — so the upper bound lifts, the
+constraints stop crossing, and **any value above ~850 Ω satisfies THD with nothing pushing back.**
+*"No feasible value" was a property of the sequence, not of the board.*
+
+**✅ V-16 SETTLED.** DN2540 decreed by the operator; **F89's pin-incompatibility no longer blocks a
+footprint** because there is only one candidate. **`ODSP12:TBD_V15` can be drawn** — 12 of the 42
+outstanding footprints. **F90 still applies: singles in pairs means `MUTE_DEPFET` needs 8 pins, not
+3, because each pair puts a drain TAB on the muted output node.**
+
+**⚠ F98 IS RE-SCOPED, NOT DELETED — and this is where I must not overclaim.** The shunt keeps **two
+jobs the reorder does not touch:**
+
+1. **Steady-state `C_off` leakage.** §6.4 states this separately from the collapse behaviour, and
+   F108's latency finding never bit on it. **Unchanged.**
+2. **⛔ THE COLLAPSE PATH.** **§7.4 has no MCU and no soft-mute** — rails fall, the DAC dies, the
+   series relay opens in ≤ 0.4 ms, and **the shunt does not begin conducting until 33–75 ms
+   (F108, τ = 50 ms).** **The dying DAC reaches the output through `C_off` during that window, and
+   swapping steps 2 and 3 does nothing for it, because neither step runs.**
+
+> **So the reorder fixes the ORDERLY pop — which is what §12 measures — and leaves the DISORDERLY
+> one exactly where F108 found it.** *Two paths, two problems; the decree solved one.*
+
+**✅ BUT THAT IS THE RIGHT SPLIT, AND IT SIMPLIFIES THE ARGUMENT.** §12 is an **acceptance** criterion
+and tests the orderly transition; **§7.4 is a fault-tolerance requirement, not an acceptance test.**
+**They were being sized against a single number and should never have been** — **that conflation is
+what produced F100's phantom crossing.**
+
+## ★ F95 IS NOW THE GATING QUESTION, AND IT IS THE LAST ONE
+
+**With the orderly transient gone, the shunt is sized entirely by MUTE DEPTH — and F95's finding is
+that NO DEPTH FIGURE IN dB EXISTS.** §12 carries a **noise floor** (−105 dBV muted) and, now, a
+**transient** pair (D-4); **neither is an attenuation spec.** F95's reframing stands and is now
+un-gated:
+
+> §7.4 says the mute *"only has to suppress the **dying DAC** … usually well under −20 dBFS"* —
+> **a TRANSIENT requirement in the COLLAPSE path**, while every number previously traded priced
+> **steady-state full-scale feedthrough.**
+
+**→ The remaining question for the operator is F95's, not F98's: WHICH QUESTION DOES THE MUTE
+ANSWER?** Once that is stated, F98 is arithmetic. **F97 → F99 are closed; F100 and V-16 dissolved;
+F95 is what is left.**
+
 ### ✅ D-4 · §12 POP CRITERION DECREED — TWO LIMITS — 2026-08-22. **F97 CLOSED.**
 
 **Decree:** *"two limits makes the most sense, lets move forward with that."* **T1 by decree.**

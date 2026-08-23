@@ -1,44 +1,46 @@
-D-4 decreed: two-limit pop criterion. F97 CLOSED. F99 answered - no part fixes it.
+D-5: S7.3 steps swapped. F99 CLOSED. Cascade traced - one item does NOT dissolve.
 
-D-4, operator decree: S12 gets TWO limits - DC step <= 10 mV, and weighted peak
-<= 0.2 mV (20Hz-20kHz AES17 brickwall, ITU-R BS.468-4 renormalised to 2 kHz,
-quasi-peak detector, silent input), both referred to a stated 10 dB downstream
-amp gain. Two rather than one because a slow 10 mV step and a fast 10 mV click
-are not the same event to the ear. REQUIREMENTS S12 still reads the old text;
-that edit is the operator act.
+Operator decree: soft-mute the DACs first, then engage the hard mute into
+digital silence. S7.4 unchanged.
 
-F97 CLOSED. The chain it gated is open: F99 -> F98 -> F100.
+What cascades:
+  F100 DISSOLVES. The crossing was pop <= 657 ohm against THD >= ~850 ohm. The
+  657 upper bound came from the orderly-path transient, which no longer exists,
+  so the constraints stop crossing. No feasible value was a property of the
+  sequence, not of the board.
+  V-16 SETTLED. DN2540 decreed, so F89 pin-incompatibility no longer blocks a
+  footprint - only one candidate remains. TBD_V15 can be drawn: 12 of the 42
+  outstanding footprints. F90 still applies - singles in pairs means
+  MUTE_DEPFET needs 8 pins, not 3.
 
-F99 answered by reading S7.3 verbatim rather than from my own summary. Step 2
-engages the hard mute while programme is live. With D-4 finally providing a
-number, that can be costed: a relay opening at a full-scale peak is a 6.36 V
-step against a 0.2 mV limit - 90 dB over.
+What does NOT, and this is where I must not overclaim:
+  F98 is RE-SCOPED, not deleted. The shunt keeps two jobs the reorder cannot
+  touch - steady-state C_off leakage, and the COLLAPSE path. S7.4 has no MCU
+  and no soft-mute: rails fall, the DAC dies, the series relay opens in <=0.4 ms,
+  and the shunt does not conduct until 33-75 ms (F108, tau = 50 ms). Swapping
+  steps 2 and 3 does nothing there because neither step runs.
 
-No shunt resistor closes a 90 dB gap. F98 sizing, F100 crossing, V-16
-DN2540-vs-LND150 were all arithmetic on the wrong side of a cliff. The part was
-never going to be the answer. That is the finding.
+So the reorder fixes the ORDERLY pop, which is what S12 measures, and leaves the
+DISORDERLY one exactly where F108 found it. Two paths, two problems; the decree
+solved one.
 
-And the order as written rests on a number nobody here owns: step 1 says amps
-mute first, but S7.3 states NO DELAY between steps 1 and 2, so the sequence
-safety depends on a third-party amplifier muting before our relay opens.
-Industry parts that need such a lead time state it (TPA6304-Q1 >= 10 ms;
-TAS3251 150 samples + 0.2 ms). S7.3 names none.
+That is the right split though, and it simplifies the argument: S12 is an
+acceptance criterion testing the orderly transition, S7.4 is a fault-tolerance
+requirement and not an acceptance test. They were being sized against a single
+number and should never have been - that conflation is what produced F100 phantom
+crossing.
 
-Recommended amendment, escalated not applied: swap steps 2 and 3 in S7.3 ONLY.
-Cost 85.0 ms, the AK4458 soft-mute ramp at 48 kHz, which is free at ignition-off.
-Benefit: the relay opens with ~0 V across it, so the 6.36 V step ceases to exist
-rather than being attenuated, and the amp-latency dependency disappears.
+F95 is now the gating question and the last one: no mute-DEPTH figure in dB
+exists anywhere. S12 has a noise floor and now a transient pair; neither is an
+attenuation spec. Once the operator states which question the mute answers, F98
+is arithmetic.
 
-S7.4 must NOT change - in a collapse there is no time for a ramp and no MCU to
-run it. The orderly and disorderly paths want different orders, and that is a
-property of the paths, not an inconsistency.
+Three decrees now sit in STATE and not in REQUIREMENTS - D-1 (S3 oscillator),
+D-4 (S12 criterion), D-5 (S7.3 order). Worth one editing pass rather than three.
 
-Bus 003 sent to the firmware agent - the message promised in 001. Concurs with
-FW-002 and FW-003, accepts FW-004 substance while correcting a claim they read
-into my S4.3 that I had not made, confirms FW-005 independently, and hands over
-the seven boot-register items that had no owner until now.
-
-On their 03H question I declined to promote their T2 by agreeing with it - I do
-not have that page read either, and said so rather than nodding.
+Bus 004 sent: firmware is unblocked on the power-down handler. Told them to
+derive the 85 ms ramp from fs rather than hard-code it, and that step 2 must
+COMPLETE before step 3 starts - releasing the hard mute mid-ramp re-creates the
+defect the swap removed, just smaller.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
