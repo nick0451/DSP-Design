@@ -1988,6 +1988,93 @@ consecutive stereo pairs from the sixteen-channel frame. **Only `000` keeps all 
 **Joins the matched-filter-modes invariant (§5 contract item 5) as a firmware-owned property that no
 schematic can enforce and no ERC can see.** **Bit positions are T2 on their side pending a
 register-definition read.**
+### ✅ ADAU1466 ADDRESS BLOCK VERIFIED — the §5 contract's prose was right — 2026-08-22
+
+**Firmware agent bus 010, T1, `adau1462-1466.pdf` Rev. C Table 58 pp.92–96 rendered and read.**
+**Every address in the §5 firmware contract confirmed, including both stated bit positions:**
+`0xF000`–`0xF003` PLL config · **`0xF004` `PLL_LOCK` bit 0** · `0xF180`–`0xF197` `SOUT_SOURCEx`
+(exact range) · `0xF580` `ASRC_LOCK` · `0xF600` `SPDIF_LOCK_DET` bit 0 · `0xF604` `SPDIF_RESTART` ·
+`0xF605` `SPDIF_LOSS_OF_LOCK` · `0xF610`–**`0xF68B`** channel status (the range ends exactly there).
+
+**That block was T2 on both sides since the contract was written — its numbers came from
+requirements PROSE, not a datasheet. They were accurate.** **Recording the verdict rather than only
+the doubt: a verification that confirms is what distinguishes *we checked* from *we assumed*.**
+
+**Two additions the contract omits, both consequences nobody followed through:**
+- **`0xF690` `SPDIF_TX_EN`, reset `0x0000` — the on-die S/PDIF TRANSMITTER IS DISABLED AT RESET.**
+  **F26 moved S/PDIF TX on-die, so nothing leaves `SPDIFOUT` until firmware writes this.**
+- **`0xF402` `START_CORE` · `0xF403` `KILL_CORE` · `0xF404` `START_ADDRESS` · `0xF405` `CORE_STATUS`
+  (R) · `0xF400` `HIBERNATE`** — the program-execution block the loader needs.
+
+**Safeload addresses remain unlocated (T2, theirs)** — the contract names
+`num_SafeLoad_Lower`/`Upper` **without addresses**, so there was nothing numeric to falsify.
+
+### FW-012 ✅ DRAWN — `LDOE`=H SETS THE BOOT BUS-QUIET WINDOW, AND IT WAS CHOSEN FOR A POWER REASON
+
+**AK5574 p.53 note (2) gives THREE cases, not one** (firmware agent, T1 — **this is the page number
+I owed them and could not supply; they read it and gave me mine**):
+
+    LDOE=H, PSN=L  (our board, confirmed from the netlist)  -> 16384 INTERNAL-OSC cycles, max 10 ms
+    LDOE=L         (external 1.8 V rail)                    -> 1 ms max
+
+**Our 10 ms figure is correct and now has a page and a mechanism — but it is a 10× property of a
+strap chosen to use the internal LDO.** **§8.11 exactly: a power decision silently owning a timing
+guarantee.** **Back-reference DRAWN at the `LDOE` disposition on `06_analog_in`.**
+
+**Also from p.53, a boot-ORDER constraint:** *"In slave mode, internal power down signal is released
+by inputting MCLK, BICK and LRCK after setting the PDN pin to 'H'."* **The ADC will not leave
+power-down until it is being clocked** — the DSP's serial port must already be running before the
+ADC's `PDN` is released.
+
+### FW-013 ✅ DRAWN — EDGE RATE ON THE 12.288 MHz NETS IS A FIRMWARE REGISTER, NOT A RESISTOR
+
+**`0xF784`–`0xF787` `BCLK_OUTx_PIN` (`BCLK_OUT_SLEW`/`BCLK_OUT_DRIVE`, reset `0x0018`, RW).** With
+**no series termination anywhere on those nets**, that register is the *only* edge-rate control on
+the board's two fastest digital nets. **`CLKNOTE4` drawn on `02_dsp`** carrying this and FW-010's
+two-net-class fact; **page 520×440 → 520×480 mm, derived and asserted, overlap guard's negative
+test fired.**
+
+### F62 ✅ ANSWERED — no common sync trigger needed; and our `SYNCE` claim is DEMOTED to T2
+
+**`RSTN` = 0 is itself a sync trigger and is the power-on default on both DACs** — so **both parts
+synchronize while still held in reset, before either is released.** The milliseconds between the two
+I2C release writes are irrelevant: **the alignment reference is the shared MCLK/LRCK, not the
+transaction.** **§5 contract item 5's "aligned by construction" HOLDS; the whole-sample hole I
+suspected does not exist.**
+
+**Bound sourced at last: `3/256fs` = 244.1 ns at 48 kHz** (AK4458 p.67) — **1.17 % of a sample.**
+That figure sat in our register for weeks as a bare number.
+
+**⚠ A DEMOTION OF OUR OWN: `SYNCE` defaults ENABLED is NOT a datasheet read by us.** It descends
+from **T1-130**, whose provenance note says *"Table 16 … verified independently here, **the
+remaining rows not yet re-derived**."* **`SYNCE` is one of the un-re-derived rows. T2 with a chain,
+and the firmware agent has been told not to cite us for it.**
+
+### F65 ✅ ANSWERED AS FAR AS THE SILICON PERMITS — it cannot be detected, and `OVF` is the wrong pin
+
+**The AK5574's entire register space is `00H`–`07H` — no status register, no flag bit anywhere**
+(firmware agent, T1, p.62). **Nothing reports the autonomous phase-detect resynchronization.**
+**`OVF` (pin 30 → ESP32-S3 GPIO12) reports OVERFLOW, not resync.**
+
+**Disposition: no polling loop, because a guard that cannot observe its target is FW-004's shape.**
+**Also recorded: firmware owns all three converter `PDN` lines independently (GPIO9/10/11)**, which
+is what makes the clock-before-PDN ordering implementable.
+
+### FW-014 ⚠ S/PDIF CAN DELIVER NON-PCM, AND LOCK IS NOT THE SAME AS SAFE-TO-UNMUTE
+
+**`0xF602` `SPDIF_RX_DECODE` (R) carries `AUDIO_TYPE` and `COMPR_TYPE`** — whether the incoming
+stream is linear PCM or a compressed bitstream (Dolby Digital / DTS, which any set-top box emits).
+**The §5 contract requires a runtime consumer for `SPDIF_LOSS_OF_LOCK` and says nothing about
+this.**
+
+> **A compressed bitstream routed to twelve DACs as PCM is full-scale wideband noise into every
+> channel at once, into an amplifier sized for 4.5 Vrms drive — and `SPDIF_LOCK_DET` = 1 reports it
+> as perfectly healthy.** *A speaker-damage and hearing-safety event that every lock check passes.*
+
+**Disposition: firmware behaviour, no hardware cost, inside their authority to design and log.**
+**Carried to the operator as INFORMATION, not as a gate** — it changes what the control API
+promises (*"S/PDIF available"* becomes *"available AND linear PCM"*).
+
 ### F114 ⛔ OUR OWN LEDGER CARRIES AN ARITHMETICALLY IMPOSSIBLE BICK, AND `CLAUDE.md` CONTRADICTED IT ALL ALONG — 2026-08-22
 
 **Caught by the firmware agent (FW-006), from our transmitted summary alone — they had read neither

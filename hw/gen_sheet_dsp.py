@@ -455,6 +455,24 @@ CLKNOTE2 = (
     "    the four orders of magnitude against the buffer. THE GAP SURVIVES THE CAVEAT.\n"
 )
 
+CLKNOTE4 = (
+    "BCLK IS TWO NET CLASSES, NOT ONE. FW-010, F70.\n"
+    "  TDM_IN0_BCLK   (AK5574)      128 fs =  6.144 MHz   TDM128, Table 9 row 26\n"
+    "  TDM_OUT0_BCLK  (AK4458 #1)   256 fs = 12.288 MHz   TDM256, Table 13 Mode 18\n"
+    "  TDM_OUT1_BCLK  (AK4458 #2)   256 fs = 12.288 MHz   TDM256, Table 13 Mode 18\n"
+    "Same MCLK, same LRCK, same format -- DIFFERENT BICK, by a factor of two. Our register\n"
+    "carried 'both 128 fs' until 2026-08-22; it was wrong for the DAC half and no termination\n"
+    "or routing decision had yet been taken against it. Do not treat these three as one class.\n"
+    "\n"
+    "AND THE EDGE RATE ON THE TWO FAST NETS IS A FIRMWARE REGISTER, NOT A RESISTOR. FW-013.\n"
+    "There is NO series termination anywhere on these nets. The only edge-rate control is\n"
+    "ADAU1466 0xF784-0xF787 BCLK_OUTx_PIN (BCLK_OUT_SLEW / BCLK_OUT_DRIVE, reset 0x0018, RW).\n"
+    "So if layout gives these long runs, slew is a knob firmware can turn -- and if firmware\n"
+    "leaves the reset defaults and nobody records that this was a choice, it is a SILENT one.\n"
+    "A signal-integrity parameter owned by software is unusual; it is written here so the\n"
+    "layout engineer meets it at the net rather than in a boot log.\n"
+)
+
 CLKNOTE3 = (
     "NO SPREAD SPECTRUM ON THIS SHEET. EVER. S3 [HARD], RESTATED IN COPPER BECAUSE THIS IS\n"
     "WHERE THE FIX WOULD BE PROPOSED.\n"
@@ -504,6 +522,7 @@ NOTES = [
     (150.0, 70.0, CLKNOTE2),
     (150.0, 78.0, CLKNOTE3),
     (150.0, 86.0, PLLNOTE),
+    (150.0, 94.0, CLKNOTE4),
 ]
 
 # C2: OVERFLOW AND OVERLAP ARE DIFFERENT FAILURES OF THE SAME FAMILY, AND A CHECK FOR ONE IS

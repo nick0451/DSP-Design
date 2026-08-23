@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "bfdeeef1-5fb5-5362-83e3-8a8a685afa7a")
-	(paper "User" 520.0 440.0)
+	(paper "User" 520.0 480.0)
 	(title_block
 		(title "ODSP-12 :: DSP and Clock Tree")
 		(date "2026-08-16")
@@ -1938,6 +1938,12 @@
 		(at 149.86 325.12 0)
 		(effects (font (size 1.27 1.27)) (justify left top))
 		(uuid "5a0ccb67-baae-5a2d-b580-62b98f47fff5")
+	)
+	(text "BCLK IS TWO NET CLASSES, NOT ONE. FW-010, F70.\n  TDM_IN0_BCLK   (AK5574)      128 fs =  6.144 MHz   TDM128, Table 9 row 26\n  TDM_OUT0_BCLK  (AK4458 #1)   256 fs = 12.288 MHz   TDM256, Table 13 Mode 18\n  TDM_OUT1_BCLK  (AK4458 #2)   256 fs = 12.288 MHz   TDM256, Table 13 Mode 18\nSame MCLK, same LRCK, same format -- DIFFERENT BICK, by a factor of two. Our register\ncarried 'both 128 fs' until 2026-08-22; it was wrong for the DAC half and no termination\nor routing decision had yet been taken against it. Do not treat these three as one class.\n\nAND THE EDGE RATE ON THE TWO FAST NETS IS A FIRMWARE REGISTER, NOT A RESISTOR. FW-013.\nThere is NO series termination anywhere on these nets. The only edge-rate control is\nADAU1466 0xF784-0xF787 BCLK_OUTx_PIN (BCLK_OUT_SLEW / BCLK_OUT_DRIVE, reset 0x0018, RW).\nSo if layout gives these long runs, slew is a knob firmware can turn -- and if firmware\nleaves the reset defaults and nobody records that this was a choice, it is a SILENT one.\nA signal-integrity parameter owned by software is unusual; it is written here so the\nlayout engineer meets it at the net rather than in a boot log.\n"
+		(exclude_from_sim no)
+		(at 149.86 416.56 0)
+		(effects (font (size 1.27 1.27)) (justify left top))
+		(uuid "158aa27c-c542-5f51-a3be-ce871a0b8d1e")
 	)
 	(embedded_fonts no)
 )

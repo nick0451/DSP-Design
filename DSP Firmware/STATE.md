@@ -11,23 +11,21 @@ directly, never from a summary — including never from a bus message.
 
 ## 0. LIVE STATUS — rewritten every step, never appended to
 
-**Position:** four bus legs complete. **§7.3 power-down order DECREED. F70 RESOLVED — both audio
-format tables now read at T1, and the ADC/DAC boot register writes are fully determined.** Eleven
-findings raised (`FW-001`…`FW-011`). **No firmware code exists yet — the toolchain is not
-installed.**
+**Position:** six bus legs complete. **Every ADAU1466 address verified T1; F62, F65 and F68 all
+answered; `SYNCE` closed.** Q6, Q7 and Q9 closed this leg — **the only open datasheet item left is
+the safeload mechanism (Q8).** F70 resolved, §7.3 decreed. Fourteen findings (`FW-001`…`FW-014`).
+**No firmware code exists yet — the toolchain is not installed.**
 
-**Single next action:** **verify the ADAU1466 register addresses against
-`../datasheets/adau1462-1466.pdf` (Rev. C)** — safeload `num_SafeLoad_Lower`/`_Upper`,
-`SOUT_SOURCEx` `0xF180`–`0xF197`, PLL `0xF000`–`0xF004`, S/PDIF `0xF580`/`0xF600`/`0xF604`/`0xF605`.
-**All T2; hw has confirmed they never verified them either — they came from requirements prose, not
-a datasheet.** Then §7.2 turn-on ordering, then the power-down handler.
+**Single next action:** **write the §7.2 turn-on ordering spec.** Every input it needs is now T1:
+the three timing windows (§3a), the ADC's clock-before-`PDN` constraint (T1-F27), firmware's
+ownership of all three `PDN` lines (T1-F28), and the full boot register write list (§3d). **Then
+locate the safeload mechanism (Q8).**
 
 **Sits with the operator:** ESP-IDF version pin (Q2a). Not blocking.
 
-**Sits with hw:** correct F70's DAC row to Mode 18 · FW-010 (were any layout decisions taken
-against 6.144 MHz for the DAC BCLK nets, which are actually 12.288 MHz) · FW-011 logged as a
-firmware invariant · FW-005 open both sides. **hw owes: F62, F65, §4.4 citation — all in their
-007.**
+**Sits with hw:** concurrence on F68's "forbid summation and channel power-down" · **amend their
+FW-011 entry from "must be set to `000`" to "defaults to `000`, never disturb"** · FW-005 open both
+sides. **FW-012 and FW-013 are DRAWN in the schematic, not merely promised.**
 
 **Armed:** persistent monitor polling `agent comms/inbox/` every 15 s. **Session-scoped — re-arm
 after any session end.**
@@ -41,25 +39,27 @@ findings `FW-###` vs hw's `F###` · `CLAUDE.md` §5 tiers · four conduct rules 
 crosses — **facts may, by fact and with method** · state the method · unanswered items stay named ·
 one message per leg). **Both sides' claims are T2 on arrival.**
 
-**NUMBERING — amended by hw seq 005 after FW-009: `hw` takes ODD, `fw` takes EVEN.** The shared
-`max(seen)+1` counter had no allocator and collided on leg 3. hw's parity assignment fits the
-existing history with no discontinuity (hw 001/003/005, fw 002/006). **hw also withdrew their
-original 001 justification for the shared counter as wrong** — per-folder numbering does *not* hide
-a drop, because the *receiver* sees the gap, and they had reasoned about the sender's view.
-
-**Bus ledger:**
+**NUMBERING (amended by hw seq 005 after FW-009): `hw` takes ODD, `fw` takes EVEN.** The shared
+`max(seen)+1` counter had no allocator and collided on leg 3. **hw also withdrew their original 001
+justification as wrong** — per-folder numbering does not hide a drop, because the *receiver* sees
+the gap; they had reasoned about the sender's view.
 
 | seq | dir | topic | status |
 |---|---|---|---|
-| 001 | hw → fw | protocol; I2C map; six forces shaping firmware | answered by 002 |
+| 001 | hw → fw | protocol; I2C map; six forces | answered by 002 |
 | 002 | fw → hw | protocol confirmed; Q2/Q3 decrees; I2C table verified; FW-001…005 | answered by 003 |
-| 003 | hw → fw | F97 closed (§12 two limits); F99 answered; concurs FW-002/3/4; 7 items handed over | answered by 006 |
-| ~~004~~ | hw → fw | **§7.3 steps 2/3 SWAPPED by decree.** §7.4 untouched | answered by 006 |
-| ~~004~~ | fw → hw | **COLLIDED** (mine 20:52:00.000 vs theirs 20:51:38.814 — theirs stands). Renamed to 006, content unchanged, disclosed in 006 §0 | superseded |
-| 005 | hw → fw | FW-009 adopted, parity swapped; **F70 REOPENED**; FW-007/008 logged | answered by 008 |
-| 006 | fw → hw | FW-009; §7.3 ack + no ramp-status-bit; corrects 002; closes `03H`; FW-006/7/8 | answered by 005 |
-| 007 | hw → fw | *pending* — owes F62, F65, §4.4 citation | awaited |
-| 008 | fw → hw | **F70 resolved**, FW-006 reasoning retracted, Mode 18 identified; FW-010, FW-011 | **sent** |
+| 003 | hw → fw | F97 closed; F99 answered; concurs FW-002/3/4; 7 items handed over | answered by 006 |
+| ~~004~~ | hw → fw | **§7.3 steps 2/3 SWAPPED by decree** | answered by 006 |
+| ~~004~~ | fw → hw | **COLLIDED** — renamed to 006, disclosed in 006 §0 | superseded |
+| 005 | hw → fw | FW-009 adopted, parity swapped; F70 reopened; FW-007/008 logged | answered by 008 |
+| 006 | fw → hw | FW-009; §7.3 ack; corrects 002; closes `03H`; FW-006/7/8 | answered by 005 |
+| 007 | hw → fw | F70 corrected to Mode 18; FW-010 answered; FW-011 logged; **M35**; F62/F65/§4.4 delivered | answered by 010 |
+| 008 | fw → hw | **F70 resolved**, FW-006 reasoning retracted, Mode 18 identified; FW-010, FW-011 | answered by 007 |
+| 009 | hw → fw | **FW-012/FW-013 DRAWN in the schematic**; `SYNCE` demoted to T2; FW-014 is mine to build | answered by 012 |
+| 010 | fw → hw | **ADAU1466 addresses verified**; §4.4 page = p.53; FW-012/013/014; F62/F65 answered | answered by 009 |
+| 012 | fw → hw | **F68 answered**; `SYNCE` closed T1; hw's `07H` item explained; Q6/Q7 closed; FW-011 amended down | **sent** |
+
+**My next: 014.**
 
 ---
 
@@ -67,29 +67,42 @@ a drop, because the *receiver* sees the gap, and they had reasoned about the sen
 
 | # | Fact | Method |
 |---|---|---|
-| **T1-F02** | `../REQUIREMENTS.md` is **v1.8**; §3 oscillator + §4 audio-format [HARD] amendments | read doc-status + revision history |
+| **T1-F02** | `../REQUIREMENTS.md` is **v1.8**; §3 oscillator + §4 audio-format [HARD] amendments | read directly |
 | **T1-F04** | **TOOLCHAIN: ESP-IDF, bare, pinned version** | **operator decree** |
-| **T1-F05** | **No ESP-IDF here**, `IDF_PATH` unset. PlatformIO present but **no Xtensa toolchain — the S3 has never been built for on this machine** | probed directly |
+| **T1-F05** | **No ESP-IDF here**; PlatformIO present but **no Xtensa toolchain — the S3 has never been built for on this machine** | probed directly |
 | **T1-F06** | **No SigmaStudio project exists yet.** Loader interface first, blob later | **operator decree** |
-| **T1-F07** | I2C0 straps, all six devices — §3b | netlist export + awk |
-| **T1-F08** | **AK5574 in I²C control mode by strap** (pin 42 → `+3V3_D`, pin 41 → `GND`) | netlist + p.56 Table 22 |
-| **T1-F09** | **`MSN` → `GND` = SLAVE.** The one mode input **no register overrides** | netlist + p.31/p.56 |
-| **T1-F11** | AK4458 registers `00H`–`14H`; Note 35 bars `15H`–`1FH` | AK4458 p.74 |
-| **T1-F12** | AK5574 `03H` default all zeros → `TDM1-0` = `00` = Normal | AK5574 p.63 |
-| **T1-F13** | AK5574 `04H` default `00H` → Sharp roll-off, Normal delay, PCM. **No boot write needed** | AK5574 p.63 |
-| **T1-F14** | Table 5: `CKS3-0`=`0000` = 128 fs/Quad/108–216 kHz; **`0110` = 512 fs/Normal**, = 24.576 MHz at 48 kHz | AK5574 p.33 + Table 2 p.32 |
-| **T1-F15** | §4 port map: `SDATA_IN0` = TDM4; `SDATA_OUT0/1` = TDM8, 32-bit slots | read §4 table |
-| **T1-F16** | **No ramp-complete status bit on the AK4458.** `DZF` is input-zero detect over 8192 LRCK = 170.7 ms | AK4458 p.61 note (4) |
-| **T1-F17** | **§7.3 steps 2/3 SWAPPED**; §7.4 unchanged and not firmware's | **operator decree via hw 004** |
-| **T1-F18** | **AK5574 Table 9 row 26** — TDM128 (`TDM1-0`=`01`), MSN=L, `DIF1-0`=`10` → **32-bit MSB, LRCK ↑, BICK 128 fs**, MCLK 128–1024 fs, all inputs | AK5574 p.36 |
-| **T1-F19** | **AK4458 Table 13** — Mode 12 = TDM128/`DIF2-0`=`110` → 32-bit MSB, ↑, **128 fs**. **Mode 18 = TDM256/`110` → 32-bit MSB, ↑, 256 fs** | AK4458 p.35 |
-| **T1-F20** | **AK4458 pin/mode requirements** (p.34): Normal = 8 ch via SDTI1-4 · **TDM128 = 8 ch via SDTI1-2, BICK 128 fs** · **TDM256 = 16 ch via SDTI1-2, BICK 256 fs** · TDM512 = 16 ch via SDTI1, 512 fs | AK4458 p.34 |
-| **T1-F21** | **Both DACs wire `SDTI1` only — `SDTI2`, `SDTI3`, `SDTI4` are tied to `GND`** on U51 and U52 | netlist |
-| **T1-F22** | **Table 14 Data Select**: in TDM256, `SDS2-0` picks 4 consecutive stereo pairs of 8; **only `000` = pairs 1–4, entirely on `SDTI1`** | AK4458 p.42 |
-| **T1-F23** | `DCHAIN` = 0 (default) → `TDMO1/2` are inputs `SDTI3/4`. **Not daisy-chained; the copper agrees** | AK4458 p.43 Table 15 + netlist |
+| **T1-F07** | I2C0 straps, all six devices — §3b | netlist + awk |
+| **T1-F08** | **AK5574 in I²C control mode by strap** (`I2C`=H, `PSN`=L) | netlist + p.56 Table 22 |
+| **T1-F09** | **`MSN` → `GND` = SLAVE**; the one mode input no register overrides | netlist + p.31/p.56 |
+| **T1-F12** | AK5574 `03H` default `00` → `TDM1-0` = Normal | AK5574 p.63 |
+| **T1-F13** | AK5574 `04H` default `00H` — Sharp/Normal/PCM, **no boot write needed** | AK5574 p.63 |
+| **T1-F14** | Table 5: `CKS3-0` default `0000` = 128 fs/Quad; **`0110` = 512 fs/Normal** = 24.576 MHz @48 kHz | AK5574 p.33 + p.32 |
+| **T1-F15** | §4 port map: `SDATA_IN0` = TDM4; `SDATA_OUT0/1` = TDM8 | read §4 table |
+| **T1-F16** | **No ramp-complete status bit on the AK4458**; `DZF` = input-zero over 8192 LRCK = 170.7 ms | AK4458 p.61 |
+| **T1-F17** | **§7.3 steps 2/3 SWAPPED**; §7.4 unchanged, not firmware's | **operator decree** |
+| **T1-F18** | **AK5574 Table 9 row 26** — TDM128, `DIF1-0`=`10` → 32-bit MSB, LRCK ↑, **128 fs** | AK5574 p.36 |
+| **T1-F19** | **AK4458 Table 13** — Mode 12 = TDM128/128 fs; **Mode 18 = TDM256/256 fs**, both 32-bit MSB ↑ | AK4458 p.35 |
+| **T1-F20** | AK4458 mode/pin needs: TDM128 = 8 ch via SDTI1-2; **TDM256 = 16 ch via SDTI1-2**; TDM512 = 16 ch via SDTI1 | AK4458 p.34 |
+| **T1-F21** | **Both DACs wire `SDTI1` only — `SDTI2/3/4` tied to `GND`** | netlist (**hw confirmed independently from `gen_sheet_dac.py:206`**) |
+| **T1-F22** | **Table 14**: in TDM256 `SDS2-0` picks 4 consecutive pairs of 8; **only `000` stays on `SDTI1`** | AK4458 p.42 |
+| **T1-F23** | `DCHAIN`=0 default → `TDMO1/2` are inputs `SDTI3/4`. **Not daisy-chained; copper agrees** | AK4458 p.43 |
+| **T1-F24** | **ADAU1466 Rev. C: every §5-contract address confirmed** — §3g | `adau1462-1466.pdf` pp. 92–96, 98 |
+| **T1-F25** | **AK5574 wake-up citation is p.53.** 583/fs = **12.15 ms**; instantaneous pulse bound **max 1 µs** | AK5574 p.53 |
+| **T1-F26** | **The 16384-cycle / 10 ms window is case (b), selected by `LDOE`=H + `PSN`=L. `LDOE`=L would give 1 ms max.** Board straps `LDOE` (45) → `+3V3_D` | AK5574 p.53 note (2) + netlist |
+| **T1-F27** | **Slave mode: internal PDN is released by inputting MCLK, BICK and LRCK** after `PDN`→H. **The DSP's serial port must clock before the ADC leaves power-down** | AK5574 p.53 |
+| **T1-F28** | **Firmware owns all three converter `PDN` lines and reads `OVF`**: `ADC_PDN_N`→GPIO9, `DAC1_PDN_N`→GPIO10, `DAC2_PDN_N`→GPIO11, `ADC_OVF`→GPIO12, all on U20 (ESP32-S3) | netlist |
+| **T1-F29** | **AK4458 sync: bound is 3/256fs = 244.1 ns @48 kHz**, triggered by `RSTN`=0 **or** 8192 all-zero samples with `SYNCE`=1 | AK4458 p.67 |
+| **T1-F30** | **The AK5574 has no status register** — space is `00H`–`07H`, all control. **No flag reports a phase resynchronization** | AK5574 p.62 |
 
-**Datasheet revisions:** AK5574 `015016764-E-03` · AK4458 `014011794-E-02`. **Every register value
-was read from the page named, rendered as a page image, never recalled.**
+| **T1-F31** | **AK4458 `07H` D0 `SYNCE` default = `1`** — *"SYNC Mode Enable (default)"*. Closes hw's demoted T2 | AK4458 p.79 |
+| **T1-F32** | **AK4458 `07H` D1 is a fixed `1`; the register's power-on value is `0x03`, not `0x01`.** A naive `write(07H,0x01)` clears it — **this is why hw's parked "`07H` read-modify-write" item exists** | AK4458 p.79 + p.74 |
+| **T1-F33** | **"In serial control mode, the data output is Optimal Data Placement mode regardless of the ODP pin setting."** Fixed placement holds the slot map **regardless of summation**; **Optimal removes the redundancy, so the occupied-slot count MOVES with summation** | AK5574 p.46 |
+| **T1-F34** | **Figure 57: in TDM128, `SDTO1` carries Slots 1–4 and `SDTO2` emits all "0"** — matches the copper (`SDTO2` unconnected) and §4's 4 channels. **A picture of the slot map, not a calculation about it** | AK5574 p.50 |
+| **T1-F35** | **AK4458 `0AH`: `TDM1-0` default `00` (Q6 closed); `SDS2-0` default `000` (Q7 closed)** — `SDS` already holds the FW-011 value | AK4458 p.80 |
+| **T1-F36** | **`DZF/SMUTE` (pin 11) is UNCONNECTED on both DACs**, and its enable bits default disabled. **Neither converter offers any usable status output except the ADC's `OVF` on GPIO12** | netlist + AK4458 p.79 |
+
+**Datasheet revisions:** AK5574 `015016764-E-03` · AK4458 `014011794-E-02` · ADAU1462/1466 **Rev. C**.
+**Every register value was read from the page named, rendered as a page image, never recalled.**
 
 ---
 
@@ -99,16 +112,15 @@ was read from the page named, rendered as a page image, never recalled.**
 
 | # | Window | Bus | Tier |
 |---|---|---|---|
-| **W1** | **PLL lock ≤ 15 ms** — poll `PLL_LOCK`; **timeout = distinct fault code, not a retry loop** | SPI0 | requirement T1; addresses **T2** |
-| **W2** | **ADC wake-up ~12.5 ms** after `PDN` release — **do not transact with ANY device on I2C0** | I2C0 | **T2**, citation owed in hw 007 |
+| **W1** | **PLL lock ≤ 15 ms** — poll `0xF004` bit 0; **timeout = distinct fault code, not a retry loop** | SPI0 | **T1** (addresses now verified) |
+| **W2** | **ADC wake-up** — 16384 internal-osc cycles, **max 10 ms**; SDTO valid at 583/fs = 12.15 ms. **Do not transact with ANY device on I2C0.** **Duration is set by the `LDOE` strap (FW-012)** | I2C0 | **T1** |
 | **W3** | **Reset-around-format-change** — ADC must be in reset to change CKS/TDM/DIF; stable clock after release | I2C0 | **T1** |
 
 ### 3b. I2C0 map — verified against the netlist
 
 `U40` AK5574 **0x10** · `U51` AK4458#1 **0x11** · `U52` AK4458#2 **0x12** · `U43` PCF8574T **0x20** ·
 `U11` ADS1015 **0x48** · `U12` TMP461 **0x49**. All on `I2C0_SDA`/`I2C0_SCL`.
-**Strap wiring T1; strap→address decode for ADS1015/TMP461 is T2 from hw.** hw's F26
-two-DACs-at-0x11 defect **is fixed in the copper**.
+**Strap wiring T1; strap→address decode for ADS1015/TMP461 is T2 from hw.**
 
 ### 3c. The serial links — RESOLVED (F70)
 
@@ -120,8 +132,9 @@ mode in hw's ledger.**
 | `SDATA_IN0` → AK5574 | TDM4 | **TDM128** (`01`) | Table 9 row 26 | **128 fs = 6.144 MHz** |
 | `SDATA_OUT0/1` → AK4458 | TDM8 | **TDM256** (`10`) | Table 13 **Mode 18** | **256 fs = 12.288 MHz** |
 
-**The two converter links do NOT share a BICK rate (FW-010).** Same MCLK, same LRCK, same format —
-BICK differs by 2×. `CLAUDE.md` §6's derived line (TDM8 = 12.288, TDM4 = 6.144) is correct for both.
+**The two converter links do NOT share a BICK rate (FW-010).** hw confirms **no series termination
+exists on any BCLK net** and layout has not started — nothing was sized against the wrong figure.
+**Edge rate on those nets is a firmware register (FW-013).**
 
 ### 3d. Boot register writes — fully determined, all read
 
@@ -130,17 +143,33 @@ BICK differs by 2×. `CLAUDE.md` §6's derived line (TDM8 = 12.288, TDM4 = 6.144
     02H:  CKS3-0 = 0110    512 fs / Normal Speed      was 0000 = 128 fs / Quad Speed
           DIF1-0 = 10      32-bit MSB                  was 00   = 24-bit MSB
     03H:  TDM1-0 = 01      TDM128 = 4 slots on wire    was 00   = Normal / non-TDM
-    04H:  no write needed  Sharp / Normal delay / PCM  already correct (T1-F13)
+    04H:  no write needed                              already correct (T1-F13)
     RSTN (01H D0) defaults to 1 = RUNNING -- opposite of the DAC (FW-003)
 
 **AK4458** (both parts):
 
     00H:  RSTN   = 1       release reset               was 0 = HELD IN RESET
           DIF2-0 = 110     32-bit MSB                  already 110 -- re-verify AFTER the TDM write
-    0AH:  TDM1-0 = 10      TDM256 = 8 slots on wire    was 00 = Normal  (default row T2, Q6)
-    0A/0BH: SDS2-0 = 000   pairs 1-4, all on SDTI1     FW-011 -- exact bit positions T2
-    0BH:  DCHAIN = 0       not daisy-chained           already 0, matches copper
+    0AH:  TDM1-0 = 10      TDM256 = 8 slots on wire    was 00 = Normal  (T1, p.80)
     ATT7-0 boots FFH = 0 dB (full volume); SMUTE boots 0 (unmuted)
+
+**NEVER-CHANGE invariants — correct by default, no boot write, no hardware backstop, no error bit.
+Three of them now, each protecting a [HARD] clause. The threat is a later well-meaning change, not
+the boot path:**
+
+    AK4458  0AH  SDS2-0  = 000    FW-011. Any other value reaches the GROUNDED SDTI2 -> silent
+                                  channels, PARTIALLY (001 mutes one pair; 100 mutes all eight)
+    AK5574  01H  MONO2-1 = 00     F68. Summation re-packs slots under Optimal placement
+    AK5574  00H  PW4-1   = 1111   F68. Channel power-down re-packs slots likewise
+    AK4458  07H          = 0x03   SYNCE=1 and D1=1. DO NOT WRITE; if ever written, read-modify-write
+    AK4458  DIF2-0 must MATCH across both parts (S5 contract item 5)
+
+**Registers needing NO boot write** (all T1): AK5574 `04H` · AK4458 `05H`, `06H`, `07H`, `08H`,
+`09H`, `0BH`(`DCHAIN`). **Recorded as negatives deliberately — an unnecessary write is a change
+nobody can later justify.**
+
+**ADAU1466:** `0xF690` `SPDIF_TX_EN` must be written — **the on-die S/PDIF transmitter is disabled
+at reset**, and F26 made S/PDIF TX on-die.
 
 ### 3e. Power-down handler — DECREED (T1-F17)
 
@@ -149,8 +178,8 @@ BICK differs by 2×. `CLAUDE.md` §6's derived line (TDM8 = 12.288, TDM4 = 6.144
     3. hard mute engaged, into digital silence   <- must NOT start until 2 COMPLETES
     4. rails allowed to fall
 
-**No status bit exists (T1-F16) → elapsed-time wait forced**, which makes the ramp figure
-load-bearing on a [HARD] step — and the datasheet gives two (FW-007).
+**No status bit exists (T1-F16) → elapsed-time wait forced**, making the ramp figure load-bearing on
+a [HARD] step — and the datasheet gives two (FW-007).
 
     ramp_ms = ATT_STEPS[ATS] / fs      ATT_STEPS = {4080, 2040, 510, 255}
     wait    = ramp_ms x margin         unconditional, before releasing MUTE_EN
@@ -158,10 +187,36 @@ load-bearing on a [HARD] step — and the datasheet gives two (FW-007).
 **No hard-coded `85`.** Default `ATS`=`00` → 85.0 ms (FD-06). **§7.4 is hardware's; firmware must
 not be in the rail-collapse path at all.**
 
-### 3f. Power-up facts held for §7.2 ordering (next design work)
+### 3f. Power-up facts held for the §7.2 spec — NEXT ACTION
 
+- **`PDN` must be held L >150 ns after AVDD and TVDD are up** (p.53 note 1).
+- **The ADC will not leave power-down until MCLK/BICK/LRCK are present (T1-F27)** — the DSP's serial
+  port clocks first, then `ADC_PDN_N` releases.
+- **Firmware owns `ADC_PDN_N`/`DAC1_PDN_N`/`DAC2_PDN_N` on GPIO9/10/11 (T1-F28)** — the ordering is
+  implementable.
 - **DAC boots full volume, unmuted** — nothing digital backstops a boot-path bug.
 - **~104 µs window (5/fs) after reset release where volume writes are INSTANT, no ramp.**
+- **Both DACs sync on `RSTN`=0, which is their power-on default** — no common trigger needed (F62).
+
+### 3g. ADAU1466 control registers — VERIFIED against Rev. C (T1-F24)
+
+    0xF000 PLL_CTRL0      RW   PLL_FBDIVIDER, reset 0x0060
+    0xF001 PLL_CTRL1      RW   PLL_DIV
+    0xF002 PLL_CLK_SRC    RW   CLKSRC
+    0xF003 PLL_ENABLE     RW   PLL_ENABLE
+    0xF004 PLL_LOCK       R    PLL_LOCK at BIT 0            <- W1's poll target
+    0xF180-0xF197 SOUT_SOURCEx  RW  SOUT_ASRC_SELECT / SOUT_SOURCE
+    0xF580 ASRC_LOCK      R    ASRC0L..ASRC7L
+    0xF600 SPDIF_LOCK_DET R    LOCK at bit 0
+    0xF604 SPDIF_RESTART  RW   RESTART_AUDIO
+    0xF605 SPDIF_LOSS_OF_LOCK R  LOSS_OF_LOCK               <- needs a RUNTIME consumer
+    0xF610-0xF68B  SPDIF_RX CS/UD/VB/PB blocks  R           <- range ends exactly at 0xF68B
+
+**Not in the contract but needed:** `0xF690` `SPDIF_TX_EN` (TX disabled at reset) · `0xF402`
+`START_CORE` / `0xF403` `KILL_CORE` / `0xF404` `START_ADDRESS` / `0xF405` `CORE_STATUS` (R) ·
+`0xF602` `SPDIF_RX_DECODE` (`AUDIO_TYPE`/`COMPR_TYPE` — FW-014) · `0xF784`/`0xF794` pin drive and
+slew (FW-013) · `0xF200`–`0xF21D` `SERIAL_BYTE_x_0/1` (`WORD_LEN`, `DATA_FMT`, `LRCLK_POL`,
+`TDM_MODE` — the DSP side of §4's format decree).
 
 ---
 
@@ -172,11 +227,12 @@ not be in the rail-collapse path at all.**
 | FD-01 | Firmware state in **this** file; hardware `STATE.md` never opened | Operator decree; lost-update race | Operator |
 | FD-02 | `agent comms/` under `DSP Firmware/` | Operator instruction | Operator |
 | FD-03 | Inbox watch = polling monitor (15 s) | Windows, no `inotifywait` | Native watcher |
-| FD-04 | **Verify hw's claims against the artefact before agreeing**, not only before dismissing | hw decreed the symmetry; it has now paid in both directions | Never |
-| FD-05 | Netlist exported to **scratchpad**, never into `../hw/` | Read-only posture toward the hardware artefact | Never |
-| FD-06 | `ATS1-0` = `00` (85.0 ms), waited in full, parameterised | FW-007 safe direction | Operator ruling on shutdown latency |
-| FD-07 | Leave `005` unused rather than reuse it | hw's owed message; disclosed reservation beats reuse | — resolved by hw's parity rule |
-| FD-08 | **fw takes EVEN sequence numbers** | hw decree seq 005; fits history with no discontinuity | hw |
+| FD-04 | **Verify hw's claims against the artefact before agreeing**, not only before dismissing | Has now paid in both directions | Never |
+| FD-05 | Netlist exported to **scratchpad**, never into `../hw/` | Read-only posture | Never |
+| FD-06 | `ATS1-0` = `00` (85.0 ms), waited in full, parameterised | FW-007 safe direction | Operator ruling |
+| FD-08 | **fw takes EVEN sequence numbers** | hw decree seq 005 | hw |
+| FD-09 | **No polling loop for a condition that has no observable** (F65) | A guard that cannot see its target is FW-004's shape — a check that cannot fail | A status bit appearing, which it will not |
+| FD-10 | **Conservative reading where the AK5574 datasheet gates one event two ways** — require clocks running **AND** ≥10 ms before I2C0 traffic | Satisfies both sentences; vendor ambiguity is not resolved by picking | A vendor clarification |
 
 ---
 
@@ -185,34 +241,53 @@ not be in the rail-collapse path at all.**
 | # | Question | State |
 |---|---|---|
 | Q2a | **Exact ESP-IDF version pin** | **OPEN, ⬜ UNSET.** Do not infer 5.x |
-| **Q5** | **ADAU1466 register addresses** | **OPEN, all T2.** hw confirms they never verified them — they came from requirements prose. **Next action** |
-| **Q6** | **AK4458 `0AH` TDM default row** | **OPEN, T2.** Does not change any conclusion — `10` must be written regardless |
-| **Q7** | **`SDS2-0` exact bit positions** in `0AH`/`0BH` | **OPEN, T2** — read from the register map table, not yet from the definition pages |
+| **Q8** | **Safeload mechanism** — `num_SafeLoad_Lower`/`_Upper` have **no addresses in the contract**, so nothing was falsifiable. Not in the `0xF000`–`0xF7FF` block; lives in parameter RAM (datasheet p.89) | **OPEN, mine to close. The only open datasheet item left** |
 
-Closed: Q1 (I2C map, verified) · Q2 (ESP-IDF, decreed) · Q3 (no SigmaStudio project) · Q4 (protocol).
+**Closed:** Q1 (I2C map) · Q2 (ESP-IDF) · Q3 (no SigmaStudio project) · Q4 (protocol) ·
+**Q5 (ADAU1466 addresses, §3g)** · **Q6 (AK4458 `0AH` `TDM1-0` default `00`, p.80)** ·
+**Q7 (`SDS2-0` default `000`; `SDS1`/`SDS2` bits T1 at `0AH` D5/D4, `SDS0` at `0BH` D4 from the map
+table)** · **Q9 (`SYNCE` default `1`, p.79)**.
 
 ---
 
 ## 6. Findings register
 
-| # | Finding | Verdict | Tier |
-|---|---|---|---|
-| **FW-001** | AK5574 ignores mode straps in serial control mode; the [HARD] format exists **only** as a firmware register write | **CONFIRMED and strengthened** — supplied the missing second leg; structural corroboration (CKS3-0 multiplexed onto the I²C pins, so the strap is physically impossible) | **T1** |
-| **FW-002** | **AK5574 boots wrong on THREE counts** (`CKS3-0`, `DIF1-0`, `TDM1-0`), every PDN cycle | **CONCURRED by hw**, folds in hw's F66. Target values now all read (§3d) | **T1** |
-| **FW-003** | **`RSTN` defaults OPPOSITE** and required motions opposed; establishes **W3** | **CONCURRED**; hw adopted the three-window framing | **T1** |
-| **FW-004** | AK4458 format default is **right before the TDM write and may not be after it**; a readback seeing `110` passes in both correct and incorrect cases | **CONCURRED.** Now sharper: `110` **does** survive here (Mode 6 → Mode 18, both 32-bit MSB, verified against Table 13) — **a fact about this value, not a property of the field** | **T1** |
-| **FW-005** | `kicad-cli` "annotation errors" warning; cause not reproduced by either side | **INDEPENDENTLY CONFIRMED by hw** (562/562 unique refdes/unit, 0 path mismatches). **Open both sides** | T1 (emission only) |
-| **FW-006** | *"hw's F70 BICK figures cannot both be 128 fs"* | **REASONING RETRACTED — my arithmetic assumed one data pin; AKM spreads channels across SDTI1-2, so TDM128 really is 8 ch at 128 fs. hw's Mode 12 and row 26 citations are both EXACTLY right.** **Conclusion survives for a different reason** — see FW-010 | reasoning **withdrawn** |
-| **FW-010** | **The two converter links do NOT share a BICK rate.** ADC = 128 fs (6.144 MHz); **DAC = 256 fs (12.288 MHz), because `SDTI2` is grounded (T1-F21) so only TDM256/Mode 18 delivers 8 channels on one wire.** F70's DAC row should read Mode 18, not Mode 12 | **RAISED.** Resolves F70. **No schematic change needed — one wire per DAC is correct for Mode 18** | **T1** |
-| **FW-011** | **`SDS2-0` must be `000` on both DACs.** In TDM256 it selects 4 consecutive pairs of 8; every value but `000` reaches into `SDTI2` = GND → silent channels. **Firmware register write, no hardware backstop, no error bit, and the failure is PARTIAL** (`001` mutes one pair; `100` mutes all eight) | **RAISED** | **T1** (bit positions T2 — Q7) |
-| **FW-007** | **Ramp stated two ways in one datasheet** — p.49 `4080/fs` (85.0 ms, self-checking) vs p.61 *"4080 LRCK cycles (1020/fs)"* (21.25 ms). **Taking 85.0 ms** | **LOGGED by hw.** hw notes the safe-direction argument is the one that survives the contradiction being resolved either way | **T1** |
-| **FW-008** | **The 85 ms is not a property of the part** — `ATS1-0` selects 16:1, and time scales with `ATT_DATA`. Faster ramp trades against §12(ii) | **ENDORSED by hw**, going to the operator as a correction of their framing, **not** a reopening of the §7.3 decree | **T1** |
-| **FW-009** | **The shared sequence counter had no allocation authority** — both sides took `004`. **A gap is loud; a collision is SILENT** | **ADOPTED** with parity inverted (hw odd / fw even). **hw withdrew their original justification as wrong** | **T1** |
+| # | Finding | Verdict |
+|---|---|---|
+| **FW-001** | AK5574 ignores mode straps in serial control mode; the [HARD] format exists **only** as a firmware register write | **CONFIRMED, strengthened** — supplied the missing second leg; CKS3-0 are multiplexed onto the I²C pins, so the strap is physically impossible |
+| **FW-002** | **AK5574 boots wrong on THREE counts** (`CKS3-0`, `DIF1-0`, `TDM1-0`), every PDN cycle | **CONCURRED**; folds in hw's F66; all target values now read |
+| **FW-003** | **`RSTN` defaults OPPOSITE** and required motions opposed; establishes **W3** | **CONCURRED**; hw adopted the three-window framing |
+| **FW-004** | AK4458 format default is right **before** the TDM write and may not be after; a `110` readback passes in both cases | **CONCURRED.** `110` does survive here (Mode 6 → Mode 18) — a fact about this value, **not a property of the field** |
+| **FW-005** | `kicad-cli` "annotation errors" warning; cause not reproduced by either side | **CONFIRMED independently by hw.** Open both sides |
+| **FW-006** | *"hw's F70 BICK figures cannot both be 128 fs"* | **REASONING RETRACTED** (assumed one data pin). **hw validated the retraction against their own generator before accepting it.** Conclusion survives via FW-010 |
+| **FW-007** | **Ramp stated two ways in one datasheet** — 85.0 ms (p.49, self-checking) vs 21.25 ms (p.61). **Taking 85.0** | **LOGGED by hw**, who note the safe-direction argument survives either resolution |
+| **FW-008** | **The 85 ms is not a property of the part** — `ATS1-0` selects 16:1; time scales with `ATT_DATA` | **ENDORSED**; going to the operator as a correction of hw's framing, not a reopening |
+| **FW-009** | **The shared sequence counter had no allocation authority.** A gap is loud; **a collision is silent** | **ADOPTED**, parity inverted. **hw withdrew their original justification as wrong** |
+| **FW-010** | **The two converter links do NOT share a BICK rate** — ADC 128 fs, **DAC 256 fs**, because `SDTI2` is grounded so only Mode 18 works | **ANSWERED: nothing was ever sized against 6.144 MHz; no series termination exists; layout not started.** F70 corrected |
+| **FW-011** | **`SDS2-0` must be `000` on both DACs** — any other value reaches the grounded `SDTI2`. **No hardware backstop, no error bit, and the failure is PARTIAL** | **LOGGED by hw.** ⚠ **AMENDED DOWN BY ME (seq 012): `SDS2-0` already DEFAULTS to `000` (T1-F35), so this is a never-disturb invariant, not a boot write.** My original wording overstated the action; the invariant and consequence are unchanged, the probability is lower. hw asked to amend their entry |
+| **FW-012** | **W2's 10 ms is set by the `LDOE` STRAP, not the part** — `LDOE`=H+`PSN`=L is case (b), 16384 cycles/10 ms; **`LDOE`=L would be 1 ms.** A strap chosen for a *power* reason silently owns a *boot-timing* property | **RAISED** — back-reference requested at sheet 06 |
+| **FW-013** | **Edge rate on the two 12.288 MHz DAC BCLK nets is a FIRMWARE register** (`0xF784`/`0xF794`), because no series termination exists. **Leaving the defaults is a silent decision** | **RAISED** |
+| **FW-014** | **`0xF602` `SPDIF_RX_DECODE` reports `AUDIO_TYPE`/`COMPR_TYPE`.** S/PDIF can carry a compressed bitstream; **routed to the DACs as PCM that is full-scale noise into twelve channels, while `SPDIF_LOCK_DET` reads perfectly healthy.** Lock ≠ safe to unmute | **RAISED** — proposed gating input-switching on `AUDIO_TYPE`; asked hw whether it needs the operator |
 
-**Not verified, named per rule 3:** BM83 `SDATA_IN1` exclusion (decreed, not corroborated) ·
-**all ADAU1466 register addresses (T2 — Q5)** · AK4458 `0AH` default (T2 — Q6) · `SDS2-0` bit
-positions (T2 — Q7) · §4.4's 583/fs derivation (T2, owed in hw 007) · hw's F62/F65/F68/F71/F75 and
-the `07H` read-modify-write item (**not started**; F68 neighbours FW-011 but is not answered by it).
+**Answered questions handed over by hw:** **F62** — no common sync trigger needed; `RSTN`=0 is
+itself a trigger and is the power-on default, alignment referenced to the shared clocks, bound
+3/256fs = **244.1 ns** (sources hw's figure); §5 item 5's "by construction" claim **holds**.
+**F65** — cannot be observed: no status register on the AK5574, and `OVF`/GPIO12 reports overflow,
+not resynchronization. **F66** folded into FW-002.
+**F68** *(named by hw three times before either side addressed it)* — **ANSWERED: the firmware
+contract must FORBID channel summation and channel power-down on the AK5574.** In serial control
+mode the part is permanently in Optimal Data Placement (T1-F33), which removes summation redundancy
+and therefore **moves the occupied-slot count**; §4's TDM map and §10's channel↔slot naming are both
+[HARD] and cannot follow. **Defaults already comply**, so it is a never-change invariant.
+**hw's `07H` read-modify-write item** — explained by T1-F32.
+
+**On F68 nearly fading:** it survived only because bus rule 3 forced it to be named each leg.
+**Silence and omission are indistinguishable to the reader** — the rule is what kept a real
+invariant from being lost. Same now applies to F71/F75, which I have named without starting.
+
+**Not verified, per rule 3:** BM83 `SDATA_IN1` exclusion (decreed) · safeload addresses (Q8) ·
+`SYNCE` default (Q9, T2 from hw) · AK4458 `0AH` default (Q6) · `SDS2-0` bit positions (Q7) ·
+**F68 — still unaddressed by either side** · F71, F75, `07H` read-modify-write (not started).
 
 ---
 
@@ -220,29 +295,28 @@ the `07H` read-modify-write item (**not started**; F68 neighbours FW-011 but is 
 
 | # | Wrong belief | Correction | The tell |
 |---|---|---|---|
-| **FM-01** | Cited `REQUIREMENTS.md` as v0.6/v0.9 | It is **v1.8**; two [HARD] amendments, one a firmware register setting | **Version was on line 7 and line 21. Read the body, never the header.** Caught by hw |
-| **FM-02** | Attributed to hw a claim they did not make (*"the format half"* for their `TDM1-0` item) | Their two items were `RSTN` and `TDM1-0` | **Quote the other side's list verbatim before characterising it.** Caught by hw |
-| **FM-03** | Wrote that §4 requires **TDM8** on the ADC link | §4 says `SDATA_IN0` = **TDM4** | **Read the amendment paragraph, skipped the port table three lines below.** Same prose-over-table failure as FM-01 |
-| **FM-04** | Wrote an outbox file into `DSP Design/agent comms/` — **outside my scope** | Removed; nothing of hw's touched | **Absolute paths outside the immediate working file.** Caught same turn |
-| **FM-05** | **FW-006: asserted hw's 128 fs "cannot be right" from arithmetic that assumed all channels ride ONE data pin.** Sent it as a finding; **hw reopened F70 and logged a ledger entry against themselves on the strength of it** | **AKM spreads channels across SDTI1-2 — TDM128 is genuinely 8 ch at 128 fs. Both hw citations were exactly right.** The conclusion happened to survive via `SDTI2` being grounded, **but the reasoning I sent was wrong** | **I did an arithmetic check on a claim without reading the table the claim came from — the exact thing I had told hw I would always do first (002 §6: *"I will read both tables before writing either format"*). I raised the finding before doing what I had promised. A conclusion that survives for a reason other than the one given is not a validated finding — it is a coincidence.** Caught by me, on finally reading both tables |
+| **FM-01** | Cited `REQUIREMENTS.md` as v0.6/v0.9 | It is **v1.8** | **Version was on line 7 and line 21; I read the body, never the header.** Caught by hw |
+| **FM-02** | Attributed to hw a claim they did not make | Their items were `RSTN` and `TDM1-0`, not format | **Quote the other side's list verbatim before characterising it.** Caught by hw |
+| **FM-03** | Wrote that §4 requires **TDM8** on the ADC link | §4 says `SDATA_IN0` = **TDM4** | **Read the amendment paragraph, skipped the port table three lines below** — same prose-over-table failure as FM-01 |
+| **FM-04** | Wrote an outbox file **outside my scope**, into `DSP Design/agent comms/` | Removed; nothing of hw's touched | **Absolute paths outside the immediate working file** |
+| **FM-05** | **FW-006: asserted hw's 128 fs "cannot be right" from arithmetic assuming ONE data pin.** hw reopened F70 and logged against themselves on it | AKM spreads channels across SDTI1-2; **both hw citations were exactly right** | **I ran an arithmetic check on a claim without reading the table it came from — after telling hw I would read both tables first. A conclusion that survives for a reason other than the one given is not validated, it is lucky.** Caught by me |
 
 ---
 
 ## 8. Method notes carried forward
 
-- **A check that cannot fail is not a check that passed.** Three instances now: hw's F109
-  (footprints), **FW-004** (a `110` readback passes in both cases), and **F70 itself** — hw's
-  self-consistency check compared two datasheets *to each other* with no third input, so it
-  **confirmed the parts CAN agree rather than that they agree at this board's settings.** It never
-  consulted the copper.
-- **Two numbering systems for one thing is where distinctions die.** The project counts *slots on
-  the wire* (TDM4/TDM8); AKM counts *BICK ratio* (TDM128/TDM256). **`TDM128` looks like a match for
-  `TDM4` and is in fact the ADC's mode.** hw's own tell — *"the word **both**"* — generalises: a
-  single figure asserted across two different links is a compression.
-- **Two correct facts never brought into contact** (`../CLAUDE.md` §0b) — **FW-003**, **FW-007**,
-  and F70, where `CLAUDE.md`'s digest was right and the ledger wrong for days.
-- **A convenience number can be promoted into a load-bearing one by a decision elsewhere.** The
-  85 ms was a costing figure until the §7.3 swap made it decide whether the hard mute opens into
-  silence. **Record shared margins at both ends.**
-- **Rule 2 binds on the other agent's numbers too** — and on mine. **FM-05 is the cost of forgetting
-  that in the other direction: I checked hw's arithmetic without reading hw's source.**
+- **A check that cannot fail is not a check that passed.** Four instances now: hw's F109
+  (footprints), **FW-004** (a `110` readback), **FW-009** (message numbering), and F70 — where hw's
+  self-consistency check compared two datasheets *to each other* with no third input. **hw's M35:
+  a compatibility check needs THREE inputs — both datasheets AND the artefact.** FD-09 applies the
+  same rule forward: do not write a guard for a condition with no observable.
+- **Two numbering systems for one thing is where distinctions die.** Slots-on-the-wire vs BICK
+  ratio; hw's tell — *"the word **both**"* — generalises to any single figure asserted across two
+  links.
+- **Two correct facts never brought into contact** (`../CLAUDE.md` §0b) — FW-003, FW-007, F70. On
+  F70 hw found the bad figure had **three** correct copies elsewhere in the repo and one wrong copy
+  in the most-read block. **A majority of correct copies helps nothing if nothing compares them.**
+- **A value owned for one reason can be load-bearing for another.** FW-012 (`LDOE` chosen for power,
+  owns boot timing) and the 85 ms (a costing figure until the §7.3 swap). **Record at both ends.**
+- **Rule 2 binds on the other agent's numbers, and on mine.** The ADAU1466 addresses came from
+  requirements prose and turned out correct — **the verdict is recorded, not just the doubt.**
