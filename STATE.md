@@ -2155,6 +2155,72 @@ output except the ADC's `OVF` on GPIO12.** The AK5574 has no status register at 
 no flag bits); the AK4458's only status pin is `DZF`, which is unconnected and reports input-data
 zero-detect rather than anything about the part's state.
 
+### F115 ⚠ THE STOCK SOT-89 FOOTPRINT CANNOT REPRESENT THE DN2540, AND THE PINOUT PERMUTES BETWEEN ITS OWN PACKAGES — 2026-08-22
+
+**First real footprint work after D-3 decreed the DN2540. Two T1 reads, both at figure level (M2),
+from `DN2540-Vertical-DMOS-FET-Data-Sheet-DS20006717.pdf` (Microchip, 2022), rendered at 220 dpi.**
+
+## T1-137 — SOT-89 / TO-243AA (N8) package outline, p.10, figure read
+
+    A 1.40-1.60 | b 0.44-0.56 | b1 0.36-0.48 | C 0.35-0.44 | D 4.40-4.60
+    D1 1.62-1.83 (TAB WIDTH) | E 2.29-2.60 | E1 2.00-2.29
+    e 1.50 BSC | e1 3.00 BSC | H 3.94-4.25 | L 0.73-1.20
+    JEDEC TO-243, Variation AA, Issue C. Two dimensions marked as DIFFERING from the JEDEC drawing.
+
+**⛔ THE DATASHEET PUBLISHES NO LAND PATTERN — only the package outline**, and refers to the
+Microchip Packaging Specification for current drawings. **So §7's priority-1 route (vendor pattern
+verbatim) is NOT available and this falls to priority 2, IPC-generated.**
+
+## T1-138 — Table 3-2, p.6: the "3-LEAD" SOT-89 table has FOUR rows, and **F90 is confirmed exactly**
+
+    Pin 1  Gate      Pin 2  Drain      Pin 3  Source      Pin 4  Drain   <- THE TAB
+
+**Pin 4 is the mounting tab and it is DRAIN — the same net as pin 2.** Not a thermal pad with no
+function: **a second electrical terminal of the drain.**
+
+## ★ AND THE PINOUT PERMUTES BETWEEN PACKAGES OF THE SAME PART — this is the trap
+
+    TABLE 3-1  TO-92  :  1 = Source   2 = Gate    3 = Drain
+    TABLE 3-2  SOT-89 :  1 = Gate     2 = Drain   3 = Source   4 = Drain
+
+> **All three functions move.** A symbol pinned from the TO-92 table and built into a SOT-89
+> footprint puts **gate where source belongs** — and **ERC cannot see it**, because both are passive
+> pins on a discrete.
+
+**F60 warned that pin ordering *"does not transfer by assumption"* between the Supertex-vintage and
+Microchip documents. It is stronger than that: it does not transfer between two tables on ONE PAGE
+of ONE document.** **`CLAUDE.md` §7's rule — pin maps come from the pin-function table, never the
+package drawing — needs the addition that the table must be the one for the package actually
+ordered.**
+
+## F115 — the stock KiCad footprint is unusable, and our own guard says so
+
+**`Package_TO_SOT_SMD:SOT-89-3` has THREE pads** (T1, `grep -c '(pad '` on the shipped
+`.kicad_mod`): pad 1 at (−1.95, −1.5), pad 2 at (−1.8625, 0) 1.475×0.9, pad 3 at (−1.95, 1.5).
+**No pad 4. Nothing for the tab.**
+
+**Run through `fp_guards.py` — the guards built 2026-08-20 before any footprint existed:**
+
+    G1/DN2540 Q_MUTE_A: pad set != pin set. pins with no pad: ['4'].
+                        A pad with no net is not an error to ERC -- it is silence.
+    G2         Q_MUTE_A: BONDED TAB ON THE WRONG NET -- a short through the die, not an open.
+
+> **★ M9 SATISFIED IN PRODUCTION, NOT IN A TEST.** G1 and G2 were written against F90 as a
+> *hypothetical* and have now **fired on the first real part they were pointed at.** *A guard that
+> has never fired on the real defect is not verified — these are now verified.*
+
+## Consequences
+
+1. **A project-local 4-pad SOT-89 footprint is required.** The stock one is not merely suboptimal;
+   it **cannot express pin 4.**
+2. **`MUTE_DEPFET` needs 8 pins, not 3** — F90's figure confirmed: a back-to-back **pair** of
+   singles is 2 × (G, D, S, tab).
+3. **⚠ EACH PAIR PUTS A 1.62–1.83 mm DRAIN TAB AT THE MUTED OUTPUT NODE**, ×12. **T1 now, not
+   inferred** — the tab is drain, and one drain of each pair is the muted output. **That is added
+   capacitance and a large exposed conductor on the node §12's CCIF criterion is watching.** *Not
+   sized; flagged for F98/layout.*
+4. **The land pattern must come from the Microchip Packaging Specification**, not from this
+   datasheet. **→ Wanted: the SOT-89 (N8) land pattern drawing.**
 ### F114 ⛔ OUR OWN LEDGER CARRIES AN ARITHMETICALLY IMPOSSIBLE BICK, AND `CLAUDE.md` CONTRADICTED IT ALL ALONG — 2026-08-22
 
 **Caught by the firmware agent (FW-006), from our transmitted summary alone — they had read neither

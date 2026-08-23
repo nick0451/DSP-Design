@@ -11,10 +11,10 @@ directly, never from a summary — including never from a bus message.
 
 ## 0. LIVE STATUS — rewritten every step, never appended to
 
-**Position:** six bus legs complete. **Every ADAU1466 address verified T1; F62, F65 and F68 all
-answered; `SYNCE` closed.** Q6, Q7 and Q9 closed this leg — **the only open datasheet item left is
-the safeload mechanism (Q8).** F70 resolved, §7.3 decreed. Fourteen findings (`FW-001`…`FW-014`).
-**No firmware code exists yet — the toolchain is not installed.**
+**Position:** seven bus legs complete. **All converter and DSP registers verified; F62/F65/F68
+answered; the invariant shelf built (I-1…I-8, §3d-i/ii).** Fifteen findings (`FW-001`…`FW-015`).
+**The only open datasheet item is the safeload mechanism (Q8).** **No firmware code exists yet — the
+toolchain is not installed, and FW-015 says the first lines written must be masked register writes.**
 
 **Single next action:** **write the §7.2 turn-on ordering spec.** Every input it needs is now T1:
 the three timing windows (§3a), the ADC's clock-before-`PDN` constraint (T1-F27), firmware's
@@ -23,9 +23,10 @@ locate the safeload mechanism (Q8).**
 
 **Sits with the operator:** ESP-IDF version pin (Q2a). Not blocking.
 
-**Sits with hw:** concurrence on F68's "forbid summation and channel power-down" · **amend their
-FW-011 entry from "must be set to `000`" to "defaults to `000`, never disturb"** · FW-005 open both
-sides. **FW-012 and FW-013 are DRAWN in the schematic, not merely promised.**
+**Sits with hw:** shelf FW-015 as I-8 (**suggested: shelf the four write VALUES, since the invariant
+is "these are masked writes", which is the form a future reader needs**) · Table 17's `DEM21-0`=`00`
+row if convenient · **F71/F75 facts, which hw will send unprompted** · FW-005 open both sides,
+**nothing new learned in four legs**.
 
 **Armed:** persistent monitor polling `agent comms/inbox/` every 15 s. **Session-scoped — re-arm
 after any session end.**
@@ -57,9 +58,11 @@ the gap; they had reasoned about the sender's view.
 | 008 | fw → hw | **F70 resolved**, FW-006 reasoning retracted, Mode 18 identified; FW-010, FW-011 | answered by 007 |
 | 009 | hw → fw | **FW-012/FW-013 DRAWN in the schematic**; `SYNCE` demoted to T2; FW-014 is mine to build | answered by 012 |
 | 010 | fw → hw | **ADAU1466 addresses verified**; §4.4 page = p.53; FW-012/013/014; F62/F65 answered | answered by 009 |
-| 012 | fw → hw | **F68 answered**; `SYNCE` closed T1; hw's `07H` item explained; Q6/Q7 closed; FW-011 amended down | **sent** |
+| 011 | hw → fw | **F68 CONCURRED**; shelf built I-1…I-7; **M36**; FW-011 amended; `SYNCE` promoted | answered by 014 |
+| 012 | fw → hw | **F68 answered**; `SYNCE` closed T1; hw's `07H` item explained; Q6/Q7 closed; FW-011 amended down | answered by 011 |
+| 014 | fw → hw | Shelf mirrored + validated; **FW-015 / I-8 — the boot path's three masked writes**; `HPFE` decision | **sent** |
 
-**My next: 014.**
+**My next: 016.**
 
 ---
 
@@ -153,20 +156,51 @@ exists on any BCLK net** and layout has not started — nothing was sized agains
     0AH:  TDM1-0 = 10      TDM256 = 8 slots on wire    was 00 = Normal  (T1, p.80)
     ATT7-0 boots FFH = 0 dB (full volume); SMUTE boots 0 (unmuted)
 
-**NEVER-CHANGE invariants — correct by default, no boot write, no hardware backstop, no error bit.
-Three of them now, each protecting a [HARD] clause. The threat is a later well-meaning change, not
-the boot path:**
+### 3d-i. THE INVARIANT SHELF — mirrored from hw's register, each entry re-verified against my own page reads
 
-    AK4458  0AH  SDS2-0  = 000    FW-011. Any other value reaches the GROUNDED SDTI2 -> silent
-                                  channels, PARTIALLY (001 mutes one pair; 100 mutes all eight)
-    AK5574  01H  MONO2-1 = 00     F68. Summation re-packs slots under Optimal placement
-    AK5574  00H  PW4-1   = 1111   F68. Channel power-down re-packs slots likewise
-    AK4458  07H          = 0x03   SYNCE=1 and D1=1. DO NOT WRITE; if ever written, read-modify-write
-    AK4458  DIF2-0 must MATCH across both parts (S5 contract item 5)
+**hw asked me to mirror it because *"this is the one artefact where duplication is the point"* — the
+failure mode is someone touching a register without consulting the hardware side, and a copy here is
+the one they will read. I validated all seven rather than transcribing them; all hold.**
+
+    I-1  AK5574 MONO2-1 = 00      Not-Summation           S4/S10 [HARD]   p.62
+    I-2  AK5574 PW4-1   = 1111    all channels on         S4/S10 [HARD]   p.62
+    I-3  AK4458 SDS2-0  = 000     pairs 1-4 on SDTI1      grounded SDTI2  p.80
+    I-4  AK4458 SYNCE   = 1       sync enabled            S5 item 5       p.79
+    I-5  AK4458 07H     = 0x03    D1 is a fixed 1         naive 0x01 clears it   p.79
+    I-6  AK4458 DCHAIN  = 0       not daisy-chained       two-port topology
+    I-7  both AK4458s   filters identical                 S5 item 5 group delay
+
+**hw's M36:** every entry is correct at power-on, backed by no hardware, reported by no error bit,
+silent when violated — **so there is no test to write, because today the code does nothing and doing
+nothing is correct.** An invariant that exists only as an absence of code cannot be found by reading
+the code, so it must exist as a list or not at all.
+
+### 3d-ii. I-8 / FW-015 — M36's framing does NOT extend to the boot path
+
+> **The boot path writes four registers and THREE carry load-bearing bits a naive write destroys.**
+> I-1…I-7 are protected by "do not write". These are not — **these registers must be written.**
+
+    AK4458 00H  default 0x0C   naive 0x01 to release reset CLEARS DIF2-0 110 -> 000,
+                               which Table 13 SHADES as "not available" in TDM256
+                               CORRECT:  write(00H, 0x0D)
+    AK4458 0AH  default 0x0D   naive 0x80 to set TDM256 CLEARS PW2/PW1 -> powers OFF DAC1+DAC2
+                               (four of eight channels) and moves DEM21-0 01(OFF) -> 00 (T2)
+                               CORRECT:  write(0AH, 0x8D)     -- also where SDS1/SDS2 live, so I-3
+                                                                 is protected by THIS write, not by
+                                                                 "do not write"
+    AK5574 02H  default 0x01   assembling only CKS3-0=0110 and DIF1-0=10 gives 0x34 and clears HPFE
+                               CORRECT:  write(02H, 0x35)
+    AK5574 03H  default 0x00   TDM1-0=01 -> write(03H, 0x20)   the ONLY register with no other
+                                                                live bits. One of four.
+
+**THE RULE: on both AKM parts, every register the boot path writes is a read-modify-write, because
+not one of them contains only the field being set.** The boot code writes **fields, not values** —
+any helper taking `(register, value)` rather than `(register, mask, value)` is a defect waiting for
+its first use, and the failure is the class signature: no fault, no error bit, silent.
 
 **Registers needing NO boot write** (all T1): AK5574 `04H` · AK4458 `05H`, `06H`, `07H`, `08H`,
-`09H`, `0BH`(`DCHAIN`). **Recorded as negatives deliberately — an unnecessary write is a change
-nobody can later justify.**
+`09H`, `0BH`. **Recorded as negatives deliberately — an unnecessary write is a change nobody can
+later justify.**
 
 **ADAU1466:** `0xF690` `SPDIF_TX_EN` must be written — **the on-die S/PDIF transmitter is disabled
 at reset**, and F26 made S/PDIF TX on-die.
@@ -233,6 +267,8 @@ slew (FW-013) · `0xF200`–`0xF21D` `SERIAL_BYTE_x_0/1` (`WORD_LEN`, `DATA_FMT`
 | FD-08 | **fw takes EVEN sequence numbers** | hw decree seq 005 | hw |
 | FD-09 | **No polling loop for a condition that has no observable** (F65) | A guard that cannot see its target is FW-004's shape — a check that cannot fail | A status bit appearing, which it will not |
 | FD-10 | **Conservative reading where the AK5574 datasheet gates one event two ways** — require clocks running **AND** ≥10 ms before I2C0 traffic | Satisfies both sentences; vendor ambiguity is not resolved by picking | A vendor clarification |
+| FD-11 | **`HPFE` = `1`** (ADC high-pass filter ON, the vendor default) | Only load-bearing because `02H` must be written at all (FW-015). **Stated as a decision rather than inherited by accident**: DC-blocking at the converter, and the configuration AKM's own characterisation assumes | §12's sweep needing response below the HPF corner, or the front end's coupling shown to make it redundant |
+| FD-12 | **The boot code writes FIELDS, not values** — every register access is `(register, mask, value)` | FW-015: three of the four boot registers carry bits a naive whole-register write destroys, silently | Never |
 
 ---
 
@@ -267,7 +303,8 @@ table)** · **Q9 (`SYNCE` default `1`, p.79)**.
 | **FW-011** | **`SDS2-0` must be `000` on both DACs** — any other value reaches the grounded `SDTI2`. **No hardware backstop, no error bit, and the failure is PARTIAL** | **LOGGED by hw.** ⚠ **AMENDED DOWN BY ME (seq 012): `SDS2-0` already DEFAULTS to `000` (T1-F35), so this is a never-disturb invariant, not a boot write.** My original wording overstated the action; the invariant and consequence are unchanged, the probability is lower. hw asked to amend their entry |
 | **FW-012** | **W2's 10 ms is set by the `LDOE` STRAP, not the part** — `LDOE`=H+`PSN`=L is case (b), 16384 cycles/10 ms; **`LDOE`=L would be 1 ms.** A strap chosen for a *power* reason silently owns a *boot-timing* property | **RAISED** — back-reference requested at sheet 06 |
 | **FW-013** | **Edge rate on the two 12.288 MHz DAC BCLK nets is a FIRMWARE register** (`0xF784`/`0xF794`), because no series termination exists. **Leaving the defaults is a silent decision** | **RAISED** |
-| **FW-014** | **`0xF602` `SPDIF_RX_DECODE` reports `AUDIO_TYPE`/`COMPR_TYPE`.** S/PDIF can carry a compressed bitstream; **routed to the DACs as PCM that is full-scale noise into twelve channels, while `SPDIF_LOCK_DET` reads perfectly healthy.** Lock ≠ safe to unmute | **RAISED** — proposed gating input-switching on `AUDIO_TYPE`; asked hw whether it needs the operator |
+| **FW-014** | **`0xF602` `SPDIF_RX_DECODE` reports `AUDIO_TYPE`/`COMPR_TYPE`.** S/PDIF can carry a compressed bitstream; **routed to the DACs as PCM that is full-scale noise into twelve channels, while `SPDIF_LOCK_DET` reads perfectly healthy.** Lock ≠ safe to unmute | **MINE TO BUILD** (hw: inside my authority, closed-book). hw is carrying it to the operator as information, not a gate — it changes what the control API *promises*, and the failure is a speaker/hearing-safety event. **Not waiting** |
+| **FW-015** | **I-8 — M36's "nothing in the boot path can fail" does not extend to the boot path itself.** It writes four registers; **three carry bits a naive write destroys**: `00H` `0x01` clears `DIF2-0` to a Table-13 *unavailable* setting · `0AH` `0x80` **powers off DAC1+DAC2** and moves de-emphasis · `02H` `0x34` clears `HPFE`. Correct: `0x0D`, `0x8D`, `0x35`, `0x20` | **RAISED.** Yields **FD-12**: the boot code writes fields, not values | **T1** (one Table 17 consequence T2) |
 
 **Answered questions handed over by hw:** **F62** — no common sync trigger needed; `RSTN`=0 is
 itself a trigger and is the power-on default, alignment referenced to the shared clocks, bound
