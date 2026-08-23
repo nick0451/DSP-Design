@@ -17,9 +17,10 @@ the version pin is still ⬜ UNSET (Q2a).**
 
 | # | Window | Bus | Cause |
 |---|---|---|---|
-| **W1** | **PLL lock, ≤ 15 ms** | SPI0 | The ADAU1466's slave control ports are **inactive until the PLL locks**; every write is silently discarded. Worst case 10.666 ms at 48 kHz, typically ~3.5 ms |
+| **W1** | **PLL lock, ≤ 15 ms** | SPI0 | **Only `0xF000`–`0xF004` are accessible before the PLL locks**; everything else is not, and the RAM is not. Worst case 10.666 ms at 48 kHz, typically ~3.5 ms. ⚠ **`BRINGUP.md` §1.1 and the §5 contract say *"every write fails"* — that is stronger than the datasheet and, taken literally, makes step 3a impossible (FW-019)** |
 | **W2** | **ADC wake-up, ≥ 12.5 ms** | **I2C0, bus-wide** | The AK5574 may emit instantaneous pulses (**max 1 µs**) on its digital pins. AKM directs that traffic with *any* device on the same bus be avoided |
 | **W3** | **Reset around a format change** | I2C0, one device | Changing `CKS`/`TDM`/`DIF` on the AK5574 requires the part be **in** reset; a stable clock must be supplied after release |
+| **W4** | **≥ 20.83 µs between safeload writes** (= 1/fs at 48 kHz) | SPI0 | Safeload *"executes once per audio frame"*. **Not observing the delay corrupts the downloaded data** — no error, no fault. An ESP32 SPI burst outruns it trivially |
 
 **W1 and W2 are on different buses with different causes and different durations. W3 is a motion,
 not a delay.** Merging any two of them produces a boot that works on the bench and fails at
@@ -42,7 +43,15 @@ be.** Verified at bring-up (`BRINGUP.md`), not sequenced here.
 
     1.  Remote-in asserted (or signal-sense) -> protected rails enable
     2.  Digital rails up -> ESP32 boots
-    3.  ESP32 releases DSP reset
+    3.  ESP32 releases DSP reset (GPIO8 -> DSP_RESET_N; R1 10k holds it low meanwhile)
+    3a-pre. *** PUT THE SLAVE PORT INTO SPI MODE -- IT DEFAULTS TO I2C ***      [FW-018]
+        Toggle SS/ADDR0 (GPIO16) high->low THREE times, each low period
+        >= one MCLK period (40.7 ns at 24.576 MHz). Bit-bang before SPI init.
+        AFTER reset release (the part must be out of reset to register it) and
+        BEFORE any SPI write. MCLK is already free-running, so the timing is met.
+        Without this the port stays in I2C mode, EVERY SPI WRITE IS IGNORED,
+        and 3a's PLL writes go nowhere -- presenting as an SPI WIRING FAULT,
+        the identical symptom S7.2 3a already warns about for a DIFFERENT cause.
     3a. PLL: write 0xF000, 0xF001, 0xF002, 0xF003
         then POLL 0xF004 bit 0 (PLL_LOCK) until set, 15 ms timeout        [W1]
         *** TIMEOUT IS A DISTINCT FAULT CODE, NOT A RETRY LOOP ***
@@ -50,7 +59,13 @@ be.** Verified at bring-up (`BRINGUP.md`), not sequenced here.
         Retried writes repair nothing and hide the real fault.
     3b. Power up and configure the clock generators and serial ports so that
         BICK and LRCK are RUNNING before step 5a.  See S1.4.               [FW-016]
-    4.  Slave-boot the program over SPI; verify readback via 0xF405 CORE_STATUS
+    4.  Slave-boot the program over SPI, WITH THE CORE DISABLED:
+          0xF400 HIBERNATE = 1   before the RAM download -- the vendor's own
+                                 no-pop measure, "preventing unpleasant noises
+                                 from appearing at the audio output"
+          ... download program / parameter RAM ...
+          0xF402 START_CORE      to restart; verify via 0xF405 CORE_STATUS
+        (Table 19 also opens with 0xF890 SOFT_RESET enter/exit.)
     5.  Converter configuration phase:
         5a. Release AK5574 PDN (GPIO9)                                     [W2 starts]
         5b. HOLD ALL I2C0 TRAFFIC for >= 12.5 ms -- bus-wide, not just the ADC
@@ -291,5 +306,38 @@ implementable at all.
 | # | Item | State |
 |---|---|---|
 | Q2a | ESP-IDF version pin | ⬜ **UNSET** — operator's. Do not infer |
-| Q8 | Safeload mechanism — the contract names `num_SafeLoad_Lower`/`_Upper` with **no addresses**, so nothing was falsifiable. Not in the `0xF000`–`0xF7FF` block; parameter RAM, datasheet p.89 | **OPEN** — blocks step 4's runtime parameter path, not the boot sequence |
+| Q8 | Safeload mechanism | **CLOSED — see §8** |
 | FW-016 | Whether the ADAU1466's serial ports can be started **before** the core runs (step 3b) | **CLOSED — yes.** The clock generators are PLL-fed hardware configured by `N`/`M` registers (p.31) and the serial ports are register-configured functional blocks (p.57). **Neither requires the core to execute.** §7.2 5c's interleaving argument survives intact. **But `0xF050` resets to `0x0000`, so they must be explicitly powered up — see §1.4** |
+
+---
+
+## 8. The runtime parameter path — software safeload
+
+**T1, `adau1462-1466.pdf` Rev. C p.86, "Software Safeload".** Used for parameter updates **while the
+core is running**; it makes writes atomic and prevents updates straddling an audio-frame boundary,
+which is what produces clicks.
+
+    0x6000-0x6004  data_SafeLoad[0..4]   five data slots (most algorithms have <= 5 parameters)
+    0x6005         address_SafeLoad      target address in parameter RAM; auto-increments
+    0x6006         num_SafeLoad_Lower    count 1..5 + TRIGGER, if target is Page 1 (lower)
+    0x6007         num_SafeLoad_Upper    count 1..5 + TRIGGER, if target is Page 2 (upper)
+
+**Procedure:** confirm no safeload ran in the last audio sample → write the data slots from
+`data_SafeLoad[0]` upward → write `address_SafeLoad` → write the `num_SafeLoad` pair (one 1…5, the
+other **0**) → wait one audio frame.
+
+### ⚠ Three properties the loader must be built around
+
+1. **THE ADDRESSES ARE COMPILER-ASSIGNED, NOT ARCHITECTURAL.** *"The exact parameter addresses are
+   not fixed; therefore, the addresses must be obtained by reading the log file generated by the
+   compiler"* — `compiler_output.log` in the SigmaStudio project folder. **Table 53 is defaults that
+   match "in most cases".**
+   > **Do not hard-code `0x6000`–`0x6007`.** They are inputs to the loader. **There is no SigmaStudio
+   > project yet (operator decree, Q3), so today there is nothing authoritative to read** — which is
+   > exactly why the loader interface has to be defined before the blob exists rather than after.
+2. **W4 — `≥ 20.83 µs` between consecutive safeload writes at 48 kHz.** *"Not observing this delay
+   corrupts the downloaded data."* No error, no fault. **An ESP32 SPI burst violates this without
+   effort**, so the rate limit is a property of the driver, not of the caller.
+3. **The `num_SafeLoad` pair is written every time — one value 1…5, the other 0 — and THE SECOND
+   WRITE IS THE TRIGGER.** Firmware must also **track the last safeload timestamp**, because step 1
+   of the vendor's procedure is a check against the previous audio sample, not merely a delay.

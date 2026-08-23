@@ -164,24 +164,25 @@ for _j in range(_i, len(_s)):
 res_def = _s[_i:_j + 1].replace('(symbol "R"', '(symbol "Device:R"', 1)   # parent only (see ledger)
 
 RPOS = (snap(408.0), snap(120.0))
+SBPOS = (snap(408.0), snap(150.0))   # FW-020 / F117: SELFBOOT needs its own pull-down
 
-def reset_pulldown():
-    px, py = RPOS
+def pulldown(refdes, net, pos, key):
+    px, py = pos
     out = ['\t(symbol', '\t\t(lib_id "Device:R")', f'\t\t(at {px} {py} 0)', '\t\t(unit 1)',
            '\t\t(exclude_from_sim no)', '\t\t(in_bom yes)', '\t\t(on_board yes)', '\t\t(dnp no)',
-           f'\t\t(uuid "{u("rst_r")}")',
-           f'\t\t(property "Reference" "R1" (at {px + 3.5} {py - 1.3} 0) (effects (font (size 1.27 1.27)) (justify left)))',
+           f'\t\t(uuid "{u(key + "_r")}")',
+           f'\t\t(property "Reference" "{refdes}" (at {px + 3.5} {py - 1.3} 0) (effects (font (size 1.27 1.27)) (justify left)))',
            f'\t\t(property "Value" "10k" (at {px + 3.5} {py + 1.3} 0) (effects (font (size 1.27 1.27)) (justify left)))',
            '\t\t(instances', '\t\t\t(project "ODSP12-MB"',
-           f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "R1") (unit 1))',
+           f'\t\t\t\t(path "/{ROOT_UUID}/{SHEET_SYM_UUID}" (reference "{refdes}") (unit 1))',
            '\t\t\t)', '\t\t)', '\t)']
     # Device:R pins sit at (0, +/-3.81) in symbol coords
-    for sy, net, rot, just in ((3.81, "DSP_RESET_N", 90, "left"), (-3.81, GND, 270, "left")):
+    for sy, net, rot, just in ((3.81, net, 90, "left"), (-3.81, GND, 270, "left")):
         x, y = snap(px), snap(py - sy)
         out += [f'\t(global_label "{net}"', '\t\t(shape bidirectional)', f'\t\t(at {x} {y} {rot})',
                 '\t\t(fields_autoplaced yes)',
                 f'\t\t(effects (font (size 1.27 1.27)) (justify {just}))',
-                f'\t\t(uuid "{u("rstlbl" + net)}")', '\t)']
+                f'\t\t(uuid "{u(key + "lbl" + net)}")', '\t)']
     return "\n".join(out)
 
 
@@ -589,7 +590,7 @@ def notes():
     return "\n".join(out)
 
 body = "\n".join([sym_instance(un) for un in (1, 2, 3)] + [labels(un) for un in (1, 2, 3)]
-                 + CPLACE + [reset_pulldown(), notes()])
+                 + CPLACE + [pulldown("R1", "DSP_RESET_N", RPOS, "rst"), pulldown("R2", "DSP_SELFBOOT", SBPOS, "sb"), notes()])
 
 # The page is DERIVED from content and asserted (F53); note boxes are separately checked for
 # intersection above (C2). Overflow and overlap are different failures of the same family.

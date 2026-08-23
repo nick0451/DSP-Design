@@ -1897,6 +1897,37 @@
 		(effects (font (size 1.27 1.27)) (justify left))
 		(uuid "29fc11df-5c50-500d-9a4d-7ce52423d728")
 	)
+	(symbol
+		(lib_id "Device:R")
+		(at 407.67 149.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4b504182-86e4-547f-9553-bd70853d4624")
+		(property "Reference" "R2" (at 411.17 148.56 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Value" "10k" (at 411.17 151.16000000000003 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(instances
+			(project "ODSP12-MB"
+				(path "/0d5f1a00-0000-4000-8000-000000000001/6d78cb6b-a40b-51cb-91d0-d524f0be15d1" (reference "R2") (unit 1))
+			)
+		)
+	)
+	(global_label "DSP_SELFBOOT"
+		(shape bidirectional)
+		(at 407.67 146.05 90)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "5606b987-18ea-502f-98b0-ef8f232634ef")
+	)
+	(global_label "GND"
+		(shape bidirectional)
+		(at 407.67 153.67000000000002 270)
+		(fields_autoplaced yes)
+		(effects (font (size 1.27 1.27)) (justify left))
+		(uuid "8b7a4e48-bd47-54d8-a082-e50caefcaf62")
+	)
 	(text "AVDD (pin 7) and PVDD (pin 15) are REQUIRED even though AUXADC0-5 are unused and\neven if the PLL were unused -- ADAU1466 Rev.C p.33, V-22. Do not drop either rail.\nThe six AUXADC no-connects below make 'drop AVDD' look like a free optimisation. It is not."
 		(exclude_from_sim no)
 		(at 149.86 34.29 0)

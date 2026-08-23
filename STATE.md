@@ -2360,6 +2360,128 @@ consecutive messages and not once did I ask what it was. **The tell available th
 could not have said in one sentence what F71 claimed.**"* **That test is cheap, general, and
 neither of us applied it.**
 
+### F117 ⛔ FIXED — `DSP_SELFBOOT` WAS FLOATING **WHILE OUR OWN NOTE ASSERTED IT WAS LOW** — 2026-08-22
+
+**Firmware agent FW-020, verified here against our generator and then FIXED. Fourth time "it is in
+the notes" has failed on this project.**
+
+**T1, netlist: `DSP_SELFBOOT` had exactly ONE node** — `U1` pin 34, pintype `input`. No pull, no
+driver.
+
+**And `gen_sheet_dsp.py:94`, our own sheet note, said:**
+
+    26: "SS_M - SPI master port unused (self-boot protocol select, SELFBOOT is low)"
+
+> **We asserted the pin's state in prose and never provided it in copper.** `CLAUDE.md` §9 warns
+> *"answer those by citing the reason — but only after confirming the copper still matches the
+> reason. 'It is in the notes' has already failed here three times."* **This is the fourth.**
+
+**Why it is not merely an F28 tidy-up** — their calibration is the part worth keeping: **a fixed
+sweep finds ~20 single-node named nets** (spare TDM ports, `MON_*` awaiting the ADS1015, `U6_PG`…),
+**most of which are capture-in-progress.** But:
+
+> **`SELFBOOT` is a MODE INPUT whose floating state changes boot behaviour.** Init step 3: *"If the
+> SELFBOOT pin is pulled high, a self boot sequence initiates on the master control port."* **The
+> self-boot source is the 25AA1024 EEPROM, which is DNP on v1.** **A pin that floats high starts a
+> boot from a part that is not fitted.** *A spare BCLK with no header is a to-do. A floating mode
+> pin is a behaviour.*
+
+**FIXED: `R2` 10 kΩ pull-down added on `02_dsp`.** `reset_pulldown()` generalised to
+`pulldown(refdes, net, pos, key)` and called twice. **Verified from the RAW s-expression, not a
+parser: `DSP_SELFBOOT` now has two nodes — `R2` pin 1 (passive) and `U1` pin 34 (`SELFBOOT_34`,
+input).**
+
+**⚠ `pulldown()` is a THIRD hand-rolled emission block that bypasses `place()`**, so like the
+ADAU1466 block it never received F109's `FPMAP` fix. **Harmless today** — `Device:R` has no footprint
+pending Block E — **but it is the same latent shape, recorded so it is fixed when passives get
+packages.**
+
+### FW-018 ⛔ THE ADAU1466 SLAVE PORT **DEFAULTS TO I2C** — ESCALATED WITH FW-016
+
+**T1, Rev. C p.35 and System Initialization Sequence p.26, verbatim:** *"The slave communications
+port defaults to I2C mode; however, it can be put into SPI mode by toggling SS (SS/ADDR0), the slave
+select pin, from high to low **three times**. The slave select pin must be held low for at least one
+master clock period."*
+
+**§5 puts the ESP32 on SPI0 to the DSP slave port. §7.2 step 3 is *"ESP32 releases DSP reset"* and 3a
+goes straight to the PLL writes. NEITHER MENTIONS THE TOGGLE.**
+
+> **Without it the port is in I2C mode, every SPI write is ignored, and step 3a's PLL configuration
+> goes nowhere.**
+
+**★ AND IT COLLIDES WITH §7.2's OWN WARNING.** 3a already says a firmware that skips the PLL-lock
+poll *"presents as an SPI wiring fault"*. **A missing toggle presents identically.** **Two distinct
+defects, one symptom — and the documented explanation points at the wrong one.** **Added to
+`BRINGUP.md` §1.1 upstream of the PLL text, with that collision stated.**
+
+**Wiring confirmed, T1: `U1` pin 33 → `SPI_DSP_SS_N` → ESP32-S3 GPIO16**, an ordinary GPIO before the
+SPI peripheral claims it, so the toggles are a bit-bang. **One MCLK period at 24.576 MHz = 40.7 ns.**
+**ESCALATED with FW-016** — both are §7.2 preconditions that are not written down, and this one is
+**upstream of the PLL step the F20 family already protects.**
+
+### FW-019 ✅ `BRINGUP.md` §1.1 CORRECTED — our own text was stronger than the datasheet
+
+**We wrote:** *"the ADAU1466's SPI and I2C slave ports are inactive and **every write fails** until
+the PLL locks."* **Rev. C p.35 says:** *"**Only the PLL configuration registers (0xF000 to 0xF004)
+are accessible** before the PLL locks … After the PLL locks, the remaining registers and the RAM
+become accessible."*
+
+> **Taken literally, our version makes §7.2 step 3a IMPOSSIBLE — you cannot configure the PLL over a
+> port on which every write fails.** **F20's behaviour and its point are untouched; only the
+> mechanism was overstated.** **Corrected, old text and reason kept visible** — that page is read by
+> a bench engineer at 2 a.m., and *"every write fails"* invites the wrong experiment.
+
+### ✅ BM83 RESOLVED — the §4 exclusion is a CONSTRAINT, not a choice. **Named six times; now closed.**
+
+**T1, `BM83_Microchip.pdf` DS70005402G, two independent locations.** Features p.3: *"16-Bit/24-Bit
+I²S Digital Audio"*. §6.5 p.46: *"It provides 8, 16, 44.1, 48, 88.2 and 96 kHz sampling rates **for
+16-bit and 24-bit data formats**."*
+
+> **There is no 32-bit mode. §4 requires 32-bit, so the justification question cannot rescue it —
+> the part fails on word length alone. The requirements describe the part ACCURATELY.**
+
+**The justification half is unverifiable from this source and is not claimed:** §6.5 says only *"The
+I2S parameters can be configured by using the Config Tool."* **So §4's parenthetical — *"its format
+lives in the Config Tool binary"* — is itself accurate.**
+
+**By-product touching [VERIFY] V-03 (BM83 master/slave), reported not decided:** §6.5 confirms
+**both host and client modes exist and the Config Tool selects them** — not a strap, not a register
+we control. *Client mode is the one consistent with §3's [HARD] single-clock-master architecture,
+but §4 makes this approval-gated and it is the operator's.*
+
+### ✅ Q8 SAFELOAD LOCATED — with three caveats, one a FOURTH timing window
+
+**T1, Rev. C p.86, Table 53.** `0x6000`–`0x6004` data slots · `0x6005` address · `0x6006`/`0x6007`
+count+trigger. **The §5 contract's description is confirmed exactly.**
+
+1. **⚠ THE ADDRESSES ARE COMPILER-ASSIGNED, NOT ARCHITECTURAL.** *"The exact parameter addresses are
+   **not fixed**; therefore, the addresses must be obtained by reading the log file generated by the
+   compiler."* **Table 53 is defaults that match "in most cases".** **The loader must NOT hard-code
+   them** — exactly what makes the operator's *"defined loader interface"* necessary rather than tidy.
+2. **⚠ W4 — A FOURTH WINDOW: ≥ 20.83 µs between consecutive safeload writes at 48 kHz**, because the
+   mechanism *"executes once per audio frame"*. *"**Not observing this delay corrupts the downloaded
+   data.**"* **A per-write rate limit on a bus fast enough to violate it trivially, and the penalty
+   is corrupted parameters, not an error.** **Four windows now, four causes, no two the same delay.**
+3. **The trigger is the SECOND of two writes** — both `num_SafeLoad_Lower` and `_Upper` are written
+   every time, one with 1–5 and the other with 0. **Firmware must track the last safeload timestamp,
+   not merely rate-limit.**
+
+### ⚠ THEIR PARSER BUG, DISCLOSED — and I hit the same class within the hour
+
+**An `awk` one-liner they had used since bus 002 carried `pinfunction` forward, so nodes without the
+field printed the previous IC's pin name.** It told them `R1` had a pin called `DITHOFF_7`. **They
+checked the raw s-expression before sending and found no defect.** **Scope bounded honestly: the bug
+fires only on passives; every load-bearing claim they sent concerned IC pins, and the most
+consequential (`SDTI2` grounded) we had already double-sourced from our own generator.**
+
+**Their tell: *"a resistor does not have a pin called `DITHOFF`."* The output was absurd on its face
+and they built a theory instead of doubting the tool.**
+
+> **And I did the same thing within the hour**, verifying F117's fix: a greedy regex ran past the net
+> boundary and reported **`DSP_SELFBOOT`: 1231 nodes**. **Absurd on its face.** I re-read the raw
+> s-expression instead — **two nodes, correct.** *Same shape, same day, both instruments home-made,
+> both caught by noticing the output was ridiculous rather than by testing the tool.*
+
 ### F115 ⚠ THE STOCK SOT-89 FOOTPRINT CANNOT REPRESENT THE DN2540, AND THE PINOUT PERMUTES BETWEEN ITS OWN PACKAGES — 2026-08-22
 
 **First real footprint work after D-3 decreed the DN2540. Two T1 reads, both at figure level (M2),

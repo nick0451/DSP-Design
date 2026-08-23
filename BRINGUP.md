@@ -44,8 +44,32 @@ THD+N line, so acceptance catches an ancient part anyway. The receiving check ex
 
 ### 1.1 The DSP control port is dead while the PLL locks *(F20)*
 
-After releasing `RESET`, **the ADAU1466's SPI and I2C slave ports are inactive and every write
-fails** until the PLL locks — up to **10.666 ms** at 48 kHz, typically ~3.5 ms.
+After releasing `RESET`, **only the PLL configuration registers `0xF000`–`0xF004` are accessible**
+until the PLL locks — up to **10.666 ms** at 48 kHz, typically ~3.5 ms. **Everything else — all other
+registers and all RAM — is not.**
+
+> ⚠ **CORRECTED 2026-08-22 (FW-019).** This previously read *“the SPI and I2C slave ports are
+> inactive and **every write fails**”*. **That is stronger than the datasheet and, taken literally,
+> makes the next bullet impossible** — you cannot configure the PLL over a port on which every write
+> fails. **ADAU1466 Rev. C p.35, verbatim:** *“Only the PLL configuration registers (0xF000 to
+> 0xF004) are accessible before the PLL locks. For this reason, always write to the PLL registers
+> first after the chip powers up. After the PLL locks, the remaining registers and the RAM become
+> accessible.”* **F20's behaviour and its whole point are untouched — only the mechanism was
+> overstated.** *Corrected because this page is read by a bench engineer at 2 a.m., and “every write
+> fails” invites exactly the wrong experiment.*
+
+**⛔ AND BEFORE ANY OF IT: THE SLAVE PORT DEFAULTS TO I2C.** *(FW-018.)* **ADAU1466 Rev. C p.35:**
+*“The slave communications port defaults to I2C mode; however, it can be put into SPI mode by
+toggling SS (SS/ADDR0), the slave select pin, from high to low **three times**. The slave select pin
+must be held low for at least one master clock period.”* **We drive the DSP over SPI0 — `U1` pin 33
+→ `SPI_DSP_SS_N` → ESP32-S3 GPIO16 — so without the three toggles every SPI write is ignored and
+the PLL configuration below goes nowhere.** One MCLK period at 24.576 MHz is **40.7 ns**.
+
+> **★ THIS PRODUCES THE IDENTICAL SYMPTOM TO THE FAULT DESCRIBED BELOW, FROM A DIFFERENT CAUSE.**
+> §7.2 3a already warns that skipping the PLL-lock poll *“presents as an SPI wiring fault”*. **So
+> does a missing SS toggle — and an engineer who reads that warning will chase the PLL explanation
+> for a fault that is actually the toggle.** *Check the toggle first: it is upstream of everything
+> else on this page.*
 
 - Configure the PLL: `PLL_CTRL0` 0xF000, `PLL_CTRL1` 0xF001, `PLL_CLK_SRC` 0xF002,
   `PLL_ENABLE` 0xF003.
