@@ -1,51 +1,47 @@
-F97 proposal + three operator decrees: clock /2 locked, 85C parts, cabin noise
+F97 DERIVED: S12 10 mV read as a broadband peak permits a 65 dB SPL pop
 
-F97 - the precedent search answered it better than a number could. The three
-missing words have a clear industry answer: 20Hz-20kHz AES17 brickwall
-(unanimous), PEAK not RMS (TI and Audio Precision both state it outright),
-silent input (unanimous).
+The operator said plainly they did not have the knowledge to set this, which is
+a delegation, so it is derived here rather than asked for a third time. Every
+input stated; none taken from S12.
 
-But the load-bearing discovery is that BANDWIDTH WAS THE WRONG QUESTION. TI
-own acceptance mask spans 10.715 mV at 100 Hz to 0.407 mV at 2.63 kHz - a 26.3x
-spread, which is my factor-of-25 sitting inside a real vendor specification. TI
-does not resolve it by picking a bandwidth; it uses a frequency-dependent MASK,
-and the modern datasheets collapse that mask into one number with a WEIGHTING
-FILTER. A 10 mV LF thump and a 0.4 mV midband tick are equally audible.
+Audibility at shutdown: click threshold in quiet 36.4 dB SPL for 100 us
+(Stapells JASA 72(1):74, 1982), temporal integration 3 dB per halving (Moore,
+Springer Handbook 13.1) puts a 1 ms event at 26.4 dB, and masking from 42 dBA
+broadband inside a 365 Hz critical band gives 24.6 dB. Masking dominates at ms
+scale, so the audible threshold is about 30 dB SPL.
 
-The weighting is not arbitrary. ITU-R BS.468 quasi-peak meter de-weights a 1 ms
-burst by 13.5 dB and follows ~9 dB/decade, which is the ear 3 dB per halving
-law (Moore, Springer Handbook 13.1). The meter was built to imitate temporal
-integration.
+Calibration against industry: TI 7 mV typ at the speaker is 40.9 dB SPL at 1 m,
+which is ABOVE that threshold. Industry-typical pop is faintly audible in a
+silent car, so no audible pop is stricter in kind than any vendor guarantees.
 
-SECOND FINDING the search did not reach for: we measure in the wrong place.
-Every industry pop number is at the SPEAKER; S12 measures at our RCA output,
-before an amplifier whose gain we do not control. Our 10 mV referred forward is
-4.5x to 28.5x LOOSER than TI typ. S12 10 mV looks conservative and is not.
+Referred back through a 10 dB amp to our RCA output, with 12 channels power
+summing: inaudible is 0.183 mV, industry parity is 0.639 mV.
 
-No value proposed, deliberately. F99 still comes first.
+And S12 as written, through the same chain: 10 mV at RCA becomes 32 mV per
+channel at the speaker, 54 dB SPL per channel, 65 dB SPL total. That is the
+level of quiet speech. S12 permits a pop you could hold a conversation over -
+about 50x in voltage looser than inaudible.
 
-DECREES:
+The reconciliation is why TI uses a MASK: a 10 mV DC step and a 10 mV fast click
+are not the same event. A slow step puts almost no energy in the audio band.
+That is why TI allows 10.7 mV at 100 Hz and 0.407 mV at 2.63 kHz. S12 10 mV is
+defensible as a DC-step limit and indefensible as a broadband peak, and as
+written it does not say which it is.
 
-D-1 clock: the /2 architecture is locked in. 49.152 MHz at ordinary 45/55,
-divided on board. It also solves the temperature half for free - the 48/52
-constraint was what forced SiT7601 (no stock); with a divider the whole 45/55
-catalogue reopens, including SiT1618 at -40/+125. REQUIREMENTS S3 is [HARD] and
-names 24.576 MHz - that edit is the operator act, not ours. Divider part NOT
-chosen and will not be chosen from memory: whether a single-gate flip-flop
-exposes Q-bar is a pin-table question.
+Proposed two-part criterion: (i) DC step <= 10 mV, keeping the number and citing
+SLEA044 p.12; (ii) weighted peak <= 0.2 mV, 20Hz-20kHz AES17 brickwall, ITU-R
+BS.468-4 renormalised to 2 kHz, quasi-peak detector, silent input - both
+referred to a stated 10 dB downstream amp gain. Two parts because one number
+cannot cover both failures, and S12 already learned this once: the CCIF
+criterion exists because 1 kHz and 20 kHz THD are blind to nonlinear
+off-capacitance. A DC-step limit is blind the same way to the same part.
 
-D-2 temperature: not direct sun, cabin under 160F (71.1C), parts rated 85C.
-Supersedes my +85C-ambient recommendation - the operator has better information
-about the actual install than my literature figure. Settles both AKM pads as
-GROUNDED: tab-open on the AK5574 is -40..+70C, below the decreed cabin, so it
-fails on the operator own number. But self-heating is now the binding term:
-71.1C against an 85C rating leaves 13.9C for enclosure rise, and a 12W board in
-a sealed case exceeds it. That is Block E, UNSET, and now load-bearing on a
-parts decision - recorded at both ends per S8.11.
+Warning recorded with it: 0.2 mV is ~50x tighter than the current text and may
+be expensive. That is not a reason to soften it here. If F98 finds it
+infeasible the operator should relax the REQUIREMENT knowingly, not pick a
+number because it is achievable. A criterion chosen to match what passes is the
+failure F97 was opened to prevent.
 
-D-3 cabin noise 60-80 dB, consistent with the measured data. One caveat that
-cuts the other way: power-down happens at ignition-off, engine stopped, fan off,
-which is the quietest moment the car has at 42-49 dB(A). The pop we specify
-against is heard with 20-30 dB less masking than the driving figure implies.
+F99 still comes first.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

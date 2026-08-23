@@ -1907,6 +1907,92 @@ found fifteen.
 
 ## 7. Findings register
 
+### F97 ★ DERIVED FROM AUDIBILITY. **§12's 10 mV, READ AS A BROADBAND PEAK, IS ~65 dB SPL** — 2026-08-22
+
+**Operator: *“I honestly don't have a great answer given my knowledge to that; you're correct in
+pointing out the pop will occur when the car isn't in motion and sound is much lower at 40ish db.”***
+**That is a delegation, so the criterion is derived here rather than asked for again.** Every input
+is stated; none is taken from §12.
+
+## Assumptions — all of them, so the arithmetic can be re-run against better ones
+
+    speaker sensitivity   90 dB SPL @ 1 W / 1 m, 4 ohm      (typical car driver 88-92)
+    listening distance    ~1 m; cabin reverberance roughly offsets it
+    amp gain              10 dB (3.16x): 4.5 Vrms in -> 14.1 Vrms = 50 W into 4 ohm
+    channels              12, popping together -> power sum +10.8 dB
+    ambient at shutdown   ~42 dB(A) -- engine off, stationary, fan off (D-3's caveat)
+
+## Step 1 — what is audible at shutdown
+
+    click threshold in quiet, 100 us       36.4 dB SPL     Stapells, JASA 72(1):74, 1982
+    temporal integration -> 1 ms           26.4 dB SPL     3 dB/halving, Moore S13.1
+    temporal integration -> 10 ms          16.4 dB SPL
+    masked threshold, 42 dBA in a 365 Hz ERB   24.6 dB SPL
+
+**Masking dominates over temporal integration at ms scale, so the audible threshold is
+~30 dB SPL.** *Only noise inside the ~365 Hz critical band masks — which is why 42 dB(A) of
+broadband cabin noise does not buy 42 dB of cover.*
+
+## Step 2 — calibrate against what the industry actually ACHIEVES
+
+**TI's 7 mV typ at the speaker = 40.9 dB SPL at 1 m** — **above the ~30 dB threshold.**
+
+> **Industry-typical pop is faintly audible in a silent car.** *So “no audible pop” is a stricter
+> requirement in kind than any vendor guarantees, and §12 should know that about itself.*
+
+## Step 3 — refer targets back to our RCA output
+
+    inaudible      30.0 dB SPL total ->  2.00 mV at spkr | 0.58 mV/ch | **0.183 mV at RCA**
+    industry parity 40.9 dB SPL total ->  7.00 mV at spkr | 2.02 mV/ch | **0.639 mV at RCA**
+
+## ★ And §12 as written, run through the same chain
+
+    10 mV at RCA -> 32 mV/ch at speaker -> 54 dB SPL/ch -> **65 dB SPL total**
+
+> **65 dB SPL is the level of quiet speech.** **§12's transient limit, read as a broadband peak,
+> permits a pop you could hold a conversation over.** *It is not conservative. It is ~35 dB — about
+> 50× in voltage — looser than "inaudible."*
+
+## The reconciliation, and it is why TI uses a MASK
+
+**A 10 mV DC STEP and a 10 mV fast CLICK are not the same event.** A slow step puts almost no energy
+in the audio band; a fast click puts all of it there. **That is exactly why TI allows 10.7 mV at
+100 Hz and only 0.407 mV at 2.63 kHz.** **§12's 10 mV is defensible as a DC-step limit and
+indefensible as a broadband peak** — and as written it does not say which it is.
+
+## PROPOSED §12 CRITERION — two parts, because one number cannot cover both failures
+
+    (i)  DC STEP at the RCA output, into 10 kOhm, input silent:
+             <= 10 mV.
+         Keeps the existing number. Citable: TI SLEA044 p.12, "the dc step must be
+         less than 10.7 mV to 21.4 mV". Catches the slow thump.
+
+    (ii) WEIGHTED PEAK at the RCA output, into 10 kOhm, input silent (zero data),
+         captured across the power-down transition:
+             20 Hz - 20 kHz, AES17 brickwall LPF + 20 Hz HPF
+             ITU-R BS.468-4 weighting, renormalised to 0 dB at 2 kHz
+             PEAK (quasi-peak) detector, not RMS
+             <= 0.2 mV  for "inaudible"      (0.64 mV would be industry parity)
+         Catches the fast click that (i) is blind to.
+
+    Both referred to a STATED downstream amplifier gain of 10 dB (4.5 Vrms -> 50 W/4 ohm).
+    A limit at our output is meaningless without it.
+
+**Why two parts:** **§12 has already learned this lesson once** — the CCIF twin-tone criterion exists
+because *“both 1 kHz and 20 kHz THD are blind to nonlinear off-capacitance.”* **A DC-step limit is
+blind in the same way to the same part.**
+
+## ⚠ The honest warning that must travel with (ii)
+
+**0.2 mV is ~50× tighter than the current text and may be hard or expensive to meet.** **That is not
+a reason to soften it here.** If F98 finds it infeasible, **the correct response is for the operator
+to relax the REQUIREMENT knowingly — e.g. accept industry parity at 0.64 mV, or accept a faintly
+audible pop — not to choose a number because it is achievable.** *A criterion picked to match what
+passes is the failure F97 was opened to prevent.*
+
+**Order unchanged: F99 still first.** If §7.3's step order changes so the relay opens into silence,
+**the transient may largely vanish and the sizing question with it.**
+
 ### ✅✅ THREE OPERATOR DECREES — 2026-08-22. **T1 by decree.** Consequences below; two need attention.
 
 #### D-1 · CLOCK: the ÷2 architecture is LOCKED IN
