@@ -11,15 +11,16 @@ directly, never from a summary — including never from a bus message.
 
 ## 0. LIVE STATUS — rewritten every step, never appended to
 
-**Position:** seven bus legs complete. **All converter and DSP registers verified; F62/F65/F68
-answered; the invariant shelf built (I-1…I-8, §3d-i/ii).** Fifteen findings (`FW-001`…`FW-015`).
-**The only open datasheet item is the safeload mechanism (Q8).** **No firmware code exists yet — the
-toolchain is not installed, and FW-015 says the first lines written must be masked register writes.**
+**Position:** eight bus legs complete. **[`BOOT.md`](BOOT.md) is written — the §7.2/§7.3
+specification, and the first real artefact on this side.** All converter and DSP registers verified;
+F62/F65/F68 answered; invariant shelf I-1…I-7 plus the boot-write table. Sixteen findings
+(`FW-001`…`FW-016`). **No firmware code exists yet — the toolchain is not installed and the version
+pin is ⬜ UNSET; I am not writing code against an unpinned toolchain.**
 
-**Single next action:** **write the §7.2 turn-on ordering spec.** Every input it needs is now T1:
-the three timing windows (§3a), the ADC's clock-before-`PDN` constraint (T1-F27), firmware's
-ownership of all three `PDN` lines (T1-F28), and the full boot register write list (§3d). **Then
-locate the safeload mechanism (Q8).**
+**Single next action:** **close FW-016's T2** — confirm from the ADAU1466 serial-port and
+clock-generator sections that the serial ports can be started **before** the DSP core runs. If they
+cannot, `BOOT.md` step 3b must move after the program load and §7.2 5c's interleaving argument needs
+re-examining. **Then Q8 (safeload).**
 
 **Sits with the operator:** ESP-IDF version pin (Q2a). Not blocking.
 
@@ -60,9 +61,11 @@ the gap; they had reasoned about the sender's view.
 | 010 | fw → hw | **ADAU1466 addresses verified**; §4.4 page = p.53; FW-012/013/014; F62/F65 answered | answered by 009 |
 | 011 | hw → fw | **F68 CONCURRED**; shelf built I-1…I-7; **M36**; FW-011 amended; `SYNCE` promoted | answered by 014 |
 | 012 | fw → hw | **F68 answered**; `SYNCE` closed T1; hw's `07H` item explained; Q6/Q7 closed; FW-011 amended down | answered by 011 |
-| 014 | fw → hw | Shelf mirrored + validated; **FW-015 / I-8 — the boot path's three masked writes**; `HPFE` decision | **sent** |
+| 013 | hw → fw | **Table 17 closed** (`00` = 44.1 kHz de-emph, ~9.5 dB HF loss on DAC2); **M36 amended by FW-015**; boot-write table shelved as values | answered by 016 |
+| 014 | fw → hw | Shelf mirrored + validated; **FW-015 — the boot path's three masked writes**; `HPFE` decision | answered by 013 |
+| 016 | fw → hw | **`BOOT.md` written**; **FW-016 — a fifth F20 in §7.2 step 5a**; Table 17 label inversion | **sent** |
 
-**My next: 016.**
+**My next: 018.**
 
 ---
 
@@ -304,7 +307,8 @@ table)** · **Q9 (`SYNCE` default `1`, p.79)**.
 | **FW-012** | **W2's 10 ms is set by the `LDOE` STRAP, not the part** — `LDOE`=H+`PSN`=L is case (b), 16384 cycles/10 ms; **`LDOE`=L would be 1 ms.** A strap chosen for a *power* reason silently owns a *boot-timing* property | **RAISED** — back-reference requested at sheet 06 |
 | **FW-013** | **Edge rate on the two 12.288 MHz DAC BCLK nets is a FIRMWARE register** (`0xF784`/`0xF794`), because no series termination exists. **Leaving the defaults is a silent decision** | **RAISED** |
 | **FW-014** | **`0xF602` `SPDIF_RX_DECODE` reports `AUDIO_TYPE`/`COMPR_TYPE`.** S/PDIF can carry a compressed bitstream; **routed to the DACs as PCM that is full-scale noise into twelve channels, while `SPDIF_LOCK_DET` reads perfectly healthy.** Lock ≠ safe to unmute | **MINE TO BUILD** (hw: inside my authority, closed-book). hw is carrying it to the operator as information, not a gate — it changes what the control API *promises*, and the failure is a speaker/hearing-safety event. **Not waiting** |
-| **FW-015** | **I-8 — M36's "nothing in the boot path can fail" does not extend to the boot path itself.** It writes four registers; **three carry bits a naive write destroys**: `00H` `0x01` clears `DIF2-0` to a Table-13 *unavailable* setting · `0AH` `0x80` **powers off DAC1+DAC2** and moves de-emphasis · `02H` `0x34` clears `HPFE`. Correct: `0x0D`, `0x8D`, `0x35`, `0x20` | **RAISED.** Yields **FD-12**: the boot code writes fields, not values | **T1** (one Table 17 consequence T2) |
+| **FW-016** | **§7.2 step 5a has an unwritten precondition — a FIFTH member of the F20/F30 family, inside the step that family was written to protect.** 5b's window is `max(10 ms, 583/fs)`, and **`583/fs` is a count of LRCK periods**: if LRCK is not running when `PDN` is released, the term does not start. **5a-pre covers MCLK only, and MCLK free-runs by construction — `BICK`/`LRCK` come from the ADAU1466 serial port and no strap can make them free-run.** p.53 requires *"MCLK, BICK and LRCK"* | **RAISED, [HARD]-sequence — hw's to escalate, not mine to amend.** `BOOT.md` adds step 3b conservatively. **Suggested §7.2 wording offered, not decided** | **T1** (one T2: whether the DSP serial ports can start before the core) |
+| **FW-015** | **M36's "nothing in the boot path can fail" does not extend to the boot path itself.** It writes four registers; **three carry bits a naive write destroys**: `00H` `0x01` clears `DIF2-0` to a Table-13 *unavailable* setting · `0AH` `0x80` **powers off DAC1+DAC2** and moves de-emphasis · `02H` `0x34` clears `HPFE`. Correct: `0x0D`, `0x8D`, `0x35`, `0x20` | **RAISED.** Yields **FD-12**: the boot code writes fields, not values | **T1** (one Table 17 consequence T2) |
 
 **Answered questions handed over by hw:** **F62** — no common sync trigger needed; `RSTN`=0 is
 itself a trigger and is the power-on default, alignment referenced to the shared clocks, bound
@@ -337,6 +341,7 @@ invariant from being lost. Same now applies to F71/F75, which I have named witho
 | **FM-03** | Wrote that §4 requires **TDM8** on the ADC link | §4 says `SDATA_IN0` = **TDM4** | **Read the amendment paragraph, skipped the port table three lines below** — same prose-over-table failure as FM-01 |
 | **FM-04** | Wrote an outbox file **outside my scope**, into `DSP Design/agent comms/` | Removed; nothing of hw's touched | **Absolute paths outside the immediate working file** |
 | **FM-05** | **FW-006: asserted hw's 128 fs "cannot be right" from arithmetic assuming ONE data pin.** hw reopened F70 and logged against themselves on it | AKM spreads channels across SDTI1-2; **both hw citations were exactly right** | **I ran an arithmetic check on a claim without reading the table it came from — after telling hw I would read both tables first. A conclusion that survives for a reason other than the one given is not validated, it is lucky.** Caught by me |
+| **FM-06** | Worked the boot sequence for six legs from hw's §4.4 summary and the §5 contract, **without reading `REQUIREMENTS.md` §7.2 itself** | §7.2 carries step 5a-pre, the interleaving argument, and the whole F20/F30 family framing — **and reading it immediately produced FW-016** | **Third instance of the same failure: FM-01 (read §5's body, not the header), FM-03 (read §4's prose, not the port table three lines below), now this. Normative text sat unread while I worked from a summary of it — the exact thing `../CLAUDE.md` §3 classes as advisory-only.** **Read the section before specifying against it.** Caught by me, but late |
 
 ---
 

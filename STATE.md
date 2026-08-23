@@ -2181,7 +2181,7 @@ that these four writes are masked writes.**
 > **`00` is 44.1 kHz de-emphasis — on a board that is 48 kHz [HARD] BOARD-WIDE.** *Not merely
 > de-emphasis switched on: de-emphasis switched on AT THE WRONG RATE.*
 
-**Cost, computed here from the 50/15 µs curve (zero 3183 Hz, pole 10610 Hz):**
+**Cost, computed here from the 50/15 µs curve — POLE (rolloff start) at 3183 Hz = 1/(2π·50 µs), ZERO (shelf) at 10610 Hz = 1/(2π·15 µs).** *~~zero 3183 / pole 10610~~ — **labels corrected 2026-08-22 (FW-016): the ARITHMETIC placed them correctly and every number below is exact, but the two WORDS were inverted, and taken literally they build the reciprocal filter — pre-emphasis, +9.49 dB at 20 kHz.** A wrong label on right arithmetic misleads only the person who re-derives from the prose, which is exactly who a ledger is for:
 
     1 kHz  -0.37 dB      3.18 kHz  -2.64 dB      10 kHz  -7.60 dB      20 kHz  -9.49 dB
 
@@ -2194,6 +2194,86 @@ if the sweep is run per channel.*
 becomes load-bearing only because `02H` must be written at all. **Reopen: if §12's sweep needs
 response below the HPF corner, or the front-end coupling makes it redundant.** *Inside their
 authority, reversible by one bit, correctly not escalated.*
+
+### F116 ⛔ **F71 IS A FINDING NUMBER WITH NO FINDING**, AND RULE 3 FAITHFULLY PRESERVED IT FOR FOUR DAYS — 2026-08-22
+
+**Found while trying to send the firmware agent "the F71 facts", which I had promised for three
+legs.** **There are none.**
+
+**Searched, exhaustively:** `STATE.md` · every file in this repo · the entire adversary bus, both
+folders · `git log --all --grep`. **F71 appears in exactly two places, and both are lists of finding
+NUMBERS:**
+
+    bus 021, line 114:  "...accumulating as findings (F66, F71, F73, the CKS/DIF/TDM set, ...)"
+    bus 062, line  95:  "...assembled (F66, F71, F73, F75, the CKS.DIF.TDM set, 07H RMW, ...)"
+
+**No entry. No content. No verdict. No evidence. Nothing it is a finding ABOUT.**
+
+> **It has been carried across three documents and two agents for four days, and both agents have
+> been dutifully naming it as an open item every leg.**
+
+## ★ THE FAILURE IS NOT THE PHANTOM — IT IS THAT OUR BEST DISCIPLINE PROTECTED IT
+
+**Bus rule 3 says an unanswered item stays named, because silence and omission are
+indistinguishable to the reader.** **The rule worked perfectly.** F71 was named in every message by
+both sides, exactly as designed.
+
+> **But rule 3 cannot distinguish an UNANSWERED item from an EMPTY one.** A number with no content
+> is preserved by the same discipline that preserves a real gap — **and it accrues credibility with
+> every leg, because being named repeatedly looks like being tracked carefully.**
+
+**This is `CLAUDE.md` §10.2 failing from the other end.** That rule says *a finding that exists only
+in a chat reply does not exist.* **F71 never had a reply either. It was born as an item in a
+parenthetical list** — and a list of numbers is the one artefact that looks complete no matter what
+is behind the numbers.
+
+**And it is M23's shape:** a citation is the fifth kind of read and fails silently. **F71 was cited
+seven times without once being resolved to a source.**
+
+## Countermeasure, and it is cheap
+
+**Before a finding number enters ANY list — bus message, handover, status block — it must resolve
+to a register entry.** One `grep`. **The check is trivial; the reason it never ran is that a number
+in a list does not look like a claim.** *It is one.*
+
+**Disposition: F71 is VOID.** Not closed — **void**, because closing implies there was something to
+close. **Removed from the handover list; the firmware agent is told to stop carrying it.**
+
+**F75 IS REAL and its facts are sent:** commit `e402526`, *"F75 into copper: the DACs' 115 dB
+depends on `+5V_A` staying linear."* **AK4458 p.50, verbatim:** *"Best performance should be achieved
+by clean linear regulated AVDD/VREF power supplies **AND** the default setting of the FIR2-0 bits.
+These conditions are included in the Analog Characteristics specs."* **The 115 dB we budget against
+is specified under TWO conditions at once, and only one of them is visible on the sheet where it can
+be changed.** `NOTE8` sits beside `U6` (LT3045) on the **power** sheet rather than the DAC sheet,
+because *"replace U6 with a buck"* is where the proposal lands. **Category: correct-but-rail-coupled
+— `FIR2-0` is correct for a reason that lives in the power architecture.**
+
+### FW-016 ⚠ §7.2 STEP 5a HAS AN UNWRITTEN PRECONDITION — **FIFTH MEMBER OF THE F20/F30 FAMILY** — ESCALATED
+
+**Firmware agent, T1, and CONFIRMED HERE against our own copper before escalating.**
+
+**AK5574 p.53:** *"In slave mode, internal power down signal is released by inputting **MCLK, BICK
+and LRCK** after setting the PDN pin to 'H'."* **Three clocks, not one.**
+
+**§7.2's step 5a-pre (v1.7, V-04) covers MCLK only** — and covers it *by construction*, deliberately
+creating no firmware step, because *"a step that can be misordered will be."* **But:**
+
+    MCLK        free-runs from the fanout off +3V3_CLK / +6V2_A, 1G strapped high    SAFE
+    BICK, LRCK  ADAU1466 pins 57/58 -> AK5574 pins 25/26  (confirmed, gen_sheet_dsp.py:76)
+                generated by a PROGRAMMABLE serial port, dead until the PLL locks    NOT COVERED
+
+> **And `583/fs` is a count of LRCK PERIODS.** *"The output data of SDTO will be valid in 583 × 1/fs
+> after exiting power-down mode."* **If LRCK is not running, that term does not run late — IT DOES
+> NOT START.** A firmware that waits 12.5 ms of wall-clock and proceeds finds an ADC that never
+> initialised and an `SDTO` that never becomes valid.
+
+**⛔ Why MCLK's fix cannot be copied: BICK/LRCK come from a programmable port, so NO STRAP can make
+them free-run.** The correction must be an ordering step — **exactly the kind §7.2 was written to
+avoid creating.** *That is the finding: the family's own protective principle is unavailable to its
+fifth member.*
+
+**ESCALATED to the operator — §7.2 is [HARD] and §4 forbids us amending it.** Firmware has written a
+conservative step 3b into `BOOT.md` meanwhile, which is safe either way.
 
 ### F115 ⚠ THE STOCK SOT-89 FOOTPRINT CANNOT REPRESENT THE DN2540, AND THE PINOUT PERMUTES BETWEEN ITS OWN PACKAGES — 2026-08-22
 
