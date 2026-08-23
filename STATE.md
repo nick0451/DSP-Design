@@ -24,7 +24,7 @@ MSB-justified, LRCK rising**, with **`SDATA_IN1` (BM83) explicitly excluded**. *
 selection criterion.**
 
 **F70 CLOSED and the decree VERIFIED SELF-CONSISTENT — no copper moves.** AK5574 Table 9 row 26 and
-AK4458 Table 13 Mode 12 both give **32-bit MSB, LRCK ↑, BICK 128fs**. The strap set in F69 on the
+AK4458 Table 13 Mode 12 both give **32-bit MSB, LRCK ↑** — ~~BICK 128fs~~ **⚠ THE BICK FIGURE IS WRONG, SEE F114. TDM8 at 32-bit slots is 256 fs. F70 IS REOPENED TO T2.** The strap set in F69 on the
 default-matching argument lands on the decreed value, so **019's guard resolved as intended: it
 agreed, nothing moved.** **F56 already closed on SiT1605, which satisfies §3 as amended.**
 
@@ -1251,6 +1251,8 @@ about is normally crossable without leaving the archive.
 
 **Table 31 fails THREE distinct ways, worth separating because only the first is obvious:** *(1)* **it omits fields** — `TDM1-0` and `RSTN`, both defects; *(2)* **its register lists can be incomplete** — the filter group above; *(3)* **its default column collapses multi-bit fields into single-axis labels** — “Sharp roll-off filter” for a state that is actually *Short delay Sharp roll-off*, naming the roll-off axis and dropping the delay axis. **(3) is what produced F74, my own false finding.**
 
+**M34 — A SHARED COUNTER WITH NO ALLOCATOR TRADES A LOUD FAILURE FOR A SILENT ONE, AND I JUSTIFIED IT BY CHECKING THE WRONG END OF THE CHANNEL.** *(Firmware agent FW-009, 2026-08-22, after we both allocated seq 004 within 22 seconds.)* **I decreed one monotonic sequence shared across both bus folders, on the stated ground that** *“per-folder numbering hides a loss, because each side's own count still looks complete.”* **That is FALSE.** With per-folder numbering a lost message leaves the **receiver** seeing a gap — **I reasoned about the SENDER's view, and the sender is not who detects a drop.** **So the shared counter carried an allocation race in exchange for a benefit that did not exist.** > **A gap is loud — a number is missing and any reader notices. A COLLISION IS SILENT: both folders look internally consistent, every number is present, and two distinct messages share one identity.** *“Reply to 004” acquires two referents and nothing complains.* **Fixed by parity — hw odd, fw even — which cannot race, keeps identifiers globally unique (the one thing the shared counter genuinely bought), and preserves per-direction drop detection.** **The reviewer's framing, kept because it generalises: this is F109's shape in a protocol — the numbering check passed because it could not fail.** **The transferable habit: when justifying a scheme by the failure it detects, name WHO detects it. I checked the end that could not.**
+
 **M33 — A FETCH-AND-SUMMARISE READ IS NOT A DOCUMENT READ, AND IT FAILS IN THE DIRECTION THAT LOOKS AUTHORITATIVE.** *(2026-08-22, verifying a subagent's sourcing report.)* I fetched the Nexperia `BAV199-Q` datasheet through a tool that renders a page and answers questions about it with **a small fast model**. **It contradicted the subagent on three of five points — and was wrong on all three:** it reported the diodes as **common-anode** (they are *“connected in series”*), AEC-Q101 as **“not present in the available document excerpt”** (the phrase *“Qualified according to AEC-Q101”* is a bullet on page 1), and `T_amb` as **−40…+125 °C** (it is −65…+150 °C). **`pdftotext -layout` on the same file settled every point in one command.** > **The failure mode is specific: a summariser reports ABSENCE with the same confidence as presence, and “not present in the excerpt” is indistinguishable from “not in the document” to the reader.** **This is M2 at a new layer** — M2 says do not promote a load-bearing number from a text extraction; **M33 says a model’s summary of a document is a WEAKER read than the extraction, not a stronger one, because it silently discards what it did not happen to see.** **Second lesson, and the more surprising one: the subagent’s report was RIGHT on every point I checked.** Per **M19** it arrived T2 and I validated before accepting — **the validation confirmed it and refuted the tool I validated with.** *Checking the checker was the step that mattered.*
 
 **M32 — A STEADY-STATE TEST DOES NOT ANSWER A TRANSIENT QUESTION, AND IT MOST OFTEN GETS THE RIGHT ANSWER ANYWAY — WHICH IS WHY THE SHAPE SURVIVES REVIEW AFTER REVIEW.** *(Adversary 091. **Fourth instance this week**, and the first one where nothing was at stake, which is where they could finally point at it.)* **The instance:** I justified the 47 µF damping cap being fully available with *“0.68 Ω drops 32 mV at our discharge currents.”* **Two errors.** (1) **Wrong current** — 32 mV/0.68 Ω = 47 mA is the *analog rail quiescent*; `VBATT_PROT` carries the whole board's input current, **128 mA–1.02 A, dropping 87–696 mV — 3–20× what I stated.** (2) **Wrong test entirely** — the question is transient, and the answer is **τ = 0.68 Ω × 47 µF = 32 µs against a 0.5–4.1 ms event: the cap TRACKS `VBATT_PROT` and is available regardless of current.** **My conclusion was right and neither number in my reason was.** **Prior instances, same shape:** 067→069 · F94's 20 kHz column · R-66's arrival time. > **The diagnostic: if the reason cites a VOLTAGE or a CURRENT for a question about WHEN or HOW FAST, it is the wrong test — a transient question is answered by a time constant.** **And the reviewer's meta-point is the more valuable half:** *the shape survived into a place where nothing was at stake, which is where you can see it clearly — a number that mattered would have had both of us checking it.* **So low-stakes justifications are where a habitual error is VISIBLE, not where it is harmless.**
@@ -1906,6 +1908,112 @@ found fifteen.
 ---
 
 ## 7. Findings register
+
+### FW-009 ✅ SEQ COLLISION — PARITY ADOPTED, hw = ODD / fw = EVEN — 2026-08-22
+
+**Both sides allocated `004` within 22 s (T1, filesystem mtimes).** Ours landed first and stands; the firmware agent renamed theirs to 006 and **reserved 005**, which is this reply. **Adopted with the parity swapped from their proposal** — they suggested hw-even, but the history is hw 001/003 (odd) and fw 002/006 (even), **and their own 005 reservation is odd**, so hw = ODD costs no discontinuity. **Next: hw 007, fw 008.** **The lone `004` on our side stays as the recorded artefact — append-never-edit applies to our mistakes too.** See **M34**; the justification I gave for the shared counter in bus 001 is **withdrawn as wrong**.
+
+### FW-— ⚠ THERE IS NO RAMP-COMPLETE STATUS BIT ON THE AK4458, SO D-5's WAIT IS ELAPSED-TIME AND FW-007 IS LOAD-BEARING — 2026-08-22
+
+**Firmware agent, T1, p.61 Fig. 65 notes rendered and read.** I told them *“wait on a status bit or on elapsed time, your choice.”* **The choice does not exist.** The only related output is `DZF`, and it is **zero-detection on INPUT DATA over 8192 LRCK = 170.7 ms** — a different event, and the slower one. **Nothing in the register map reports attenuator position.**
+
+> **So D-5's *“step 2 must complete before step 3”* can only be enforced by waiting a duration — and FW-007 says the datasheet states that duration two different ways.** **I costed the F99 amendment at “85.0 ms, free” as a convenience figure; the swap promoted it into the thing that decides whether the hard mute opens into silence or into a descending ramp.** **A promotion I caused and did not notice.** Recorded at both ends per §8.11.
+
+### F114 ⛔ OUR OWN LEDGER CARRIES AN ARITHMETICALLY IMPOSSIBLE BICK, AND `CLAUDE.md` CONTRADICTED IT ALL ALONG — 2026-08-22
+
+**Caught by the firmware agent (FW-006), from our transmitted summary alone — they had read neither
+table and said so. Arithmetic, not authority.**
+
+**Our record claimed:** *"AK5574 Table 9 row 26 and AK4458 Table 13 Mode 12 **both** give 32-bit MSB,
+LRCK ↑, **BICK 128fs**."* **In `STATE.md` §0 LIVE STATUS — the block read at the start of every
+session — and transmitted to the firmware agent as the T1 self-consistency check behind the §4
+decree.**
+
+    TDM4  (SDATA_IN0,   AK5574):  4 x 32 = 128 bit-times  ->  128 fs =  6.144 MHz
+    TDM8  (SDATA_OUT0/1, AK4458):  8 x 32 = 256 bit-times  ->  256 fs = 12.288 MHz
+
+**A TDM8 link carrying 32-bit slots cannot run at 128 fs — there are 256 bit-times in the frame.**
+**128 fs at 32-bit slots IS TDM4.** So the figure is not merely unverified, it is **impossible for
+the link it is attached to.**
+
+## ★ AND THE REFUTATION WAS ALREADY IN THE REPO, IN A FILE WE READ EVERY SESSION
+
+**`CLAUDE.md` §6, "Derived, not decreed":** *"BCLK rates at 48 kHz / 32-bit: **TDM8 = 12.288 MHz**,
+TDM4 = 6.144 MHz."* **12.288 MHz / 48 kHz = 256 fs.**
+
+> **Two documents in this repository disagreed for days. Both were read repeatedly. Neither review
+> brought them into contact.** **This is precisely the failure `CLAUDE.md` §0b names as the one this
+> role is exposed to** — *"two correct facts, both recorded, never brought into contact"* — and it
+> cites F61 as the precedent. **It has now happened a second time, in the opposite direction: the
+> digest was right and the ledger was wrong.**
+
+## Disposition
+
+**F70 is REOPENED to T2.** It was closed on a *self-consistency* check, and **the check does not
+close arithmetically**, so whatever it verified, it did not verify what it claimed.
+
+**What is NOT in doubt:** the §4 decree itself — **32-bit MSB-justified, LRCK rising** — is the
+operator's act and does not depend on this. **Only the supporting claim that both parts' tables
+were confirmed consistent is withdrawn.**
+
+**Three possibilities, and I am not choosing between them from memory:** the mode number is wrong;
+the BICK figure is wrong; or two different rows (the ADC's 128 fs and the DAC's 256 fs) were
+compressed into one when written down. **Resolution requires AK5574 Table 9 and AK4458 Table 13
+read at figure level — M2, and neither is read today.**
+
+**The tell for next time:** *the word "both".* **A single figure asserted to hold across two
+different link formats is a compression, and compression is where distinctions die.** **Any claim
+of the form "X and Y both give Z" should be split before it is written down**, because the sentence
+survives review as one fact while being two.
+
+### FW-007 ▫ THE AK4458 DATASHEET CONTRADICTS ITSELF ON THE SOFT-MUTE RAMP — vendor defect, logged on request
+
+**Firmware agent, T1, both pages rendered and read.** The figure our F99 amendment is costed on:
+
+    p.49, Table 19 + text:  "4080/fs (92.5 ms @fs = 44.1 kHz)"     -> 85.0 ms at 48 kHz
+    p.61, Fig. 65 note (1): "4080 LRCK cycles (1020/fs)"           -> self-contradictory
+
+**“4080 LRCK cycles” IS 4080/fs. The parenthetical three words later says 1020/fs — a factor of 4,
+85.0 ms against 21.25 ms.** **p.49 is self-checking** (4080/44100 = 92.52 ms, the vendor's own worked
+example); p.61 has no independent check. **4080 = 4 × 1020**, consistent with 1020 attenuator steps
+of 4 LRCK each, mis-divided.
+
+**We take 85.0 ms**, and the firmware agent's second reason is the better one: **safe direction.**
+Waiting 85 ms when the truth is 21 ms costs 64 ms nobody perceives; **waiting 21 ms when the truth
+is 85 ms opens the relay mid-ramp and defeats D-5 entirely.**
+
+**Logged because *"the datasheet says 85 ms"* is now a claim with a known counter-page**, and the
+next reader should meet the contradiction from our record rather than from p.61.
+
+### FW-008 ⚠ THE 85 ms IS A FIRMWARE PARAMETER, NOT A PROPERTY OF THE PART — D-5's COST IS ADJUSTABLE
+
+**Firmware agent, T1.** `ATS1-0` at `0BH` D7:D6 selects the ramp across a **16:1** range, and the
+time is **proportional to distance travelled** (`ATT_DATA` × step), so 85 ms is the **worst case of
+the default**, not a fixed cost:
+
+    Mode 0  ATS=00  4080/fs  ->  85.0 ms   (default)      Mode 2  ATS=10  510/fs  -> 10.6 ms
+    Mode 1  ATS=01  2040/fs  ->  42.5 ms                  Mode 3  ATS=11  255/fs  ->  5.3 ms
+
+**D-5 is already decreed and this does not disturb it** — the decree fixed the step *order*; the
+ramp *duration* is a parameter inside step 2. **But the "85 ms, free" I quoted to the operator reads
+like a property of the AK4458 and is not.**
+
+**⚠ The trade is not obviously free in either direction.** A faster ramp shortens shutdown but makes
+each attenuator step larger, **and D-4(ii)'s weighted-peak limit is exactly the criterion that can
+see step size.** **Default `00` / 85 ms stands unless the operator wants a faster shutdown**, and the
+options are costed above if they do.
+
+### Two AK4458 power-UP facts — firmware agent, T1, neither is a defect and both are easy to assume wrong
+
+- **The attenuator boots at FULL VOLUME.** p.49: *"If the PDN pin goes to 'L', ATT7-0 bits are
+  initialized to `FFH`"*, and Table 18 gives `FFH` = **+0 dB**. With `01H` `SMUTE` default = `0`
+  (not muted), **the DAC's own defaults are "full volume, unmuted" on every PDN cycle.** §7.4's
+  de-energised analog mute carries that entire window by construction — **which is what it is for,
+  but it means nothing digital is backstopping a boot-path bug.**
+- **A ~104 µs window exists where volume changes are INSTANT.** p.49: *"If the volume is changed in
+  5/fs after releasing a reset, the volume is changed immediately without soft transition."*
+  **5/fs = 104.2 µs at 48 kHz.** **An opportunity for §7.2's turn-on path and a trap: miss the
+  window and the same write ramps for 85 ms.**
 
 ### ✅✅ D-5 · §7.3 STEP ORDER SWAPPED — 2026-08-22. **F99 CLOSED. THE CASCADE, TRACED HONESTLY.**
 

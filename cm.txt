@@ -1,46 +1,52 @@
-D-5: S7.3 steps swapped. F99 CLOSED. Cascade traced - one item does NOT dissolve.
+F114 + M34: our ledger carried an impossible BICK, and my bus numbering was wrong
 
-Operator decree: soft-mute the DACs first, then engage the hard mute into
-digital silence. S7.4 unchanged.
+F114. The firmware agent (FW-006) caught an arithmetically impossible figure in
+STATE.md S0 LIVE STATUS - the block read at the start of every session - and it
+reached them from there. Not damaged in transmission; wrong at rest.
 
-What cascades:
-  F100 DISSOLVES. The crossing was pop <= 657 ohm against THD >= ~850 ohm. The
-  657 upper bound came from the orderly-path transient, which no longer exists,
-  so the constraints stop crossing. No feasible value was a property of the
-  sequence, not of the board.
-  V-16 SETTLED. DN2540 decreed, so F89 pin-incompatibility no longer blocks a
-  footprint - only one candidate remains. TBD_V15 can be drawn: 12 of the 42
-  outstanding footprints. F90 still applies - singles in pairs means
-  MUTE_DEPFET needs 8 pins, not 3.
+We claimed AK5574 Table 9 row 26 and AK4458 Table 13 Mode 12 BOTH give BICK
+128fs. A TDM8 link with 32-bit slots has 256 bit-times per frame, so it cannot
+run at 128 fs. 128 fs at 32-bit slots IS TDM4.
 
-What does NOT, and this is where I must not overclaim:
-  F98 is RE-SCOPED, not deleted. The shunt keeps two jobs the reorder cannot
-  touch - steady-state C_off leakage, and the COLLAPSE path. S7.4 has no MCU
-  and no soft-mute: rails fall, the DAC dies, the series relay opens in <=0.4 ms,
-  and the shunt does not conduct until 33-75 ms (F108, tau = 50 ms). Swapping
-  steps 2 and 3 does nothing there because neither step runs.
+And the refutation was already in this repo, in a file we read every session:
+CLAUDE.md S6 derived digest says TDM8 = 12.288 MHz, which is 256 fs. Two
+documents disagreed for days, both read repeatedly, neither review brought them
+into contact. That is exactly the failure CLAUDE.md S0b names as the one this
+role is exposed to, and it has now happened a second time - with the digest
+right and the ledger wrong.
 
-So the reorder fixes the ORDERLY pop, which is what S12 measures, and leaves the
-DISORDERLY one exactly where F108 found it. Two paths, two problems; the decree
-solved one.
+F70 REOPENED to T2. It was closed on a self-consistency check that does not
+close arithmetically. The S4 decree itself is untouched - it is the operator's
+act and does not depend on it. Only the supporting claim is withdrawn. I
+declined to send the firmware agent the two table rows they asked for, because
+I do not have either table read at figure level and would have been reciting.
 
-That is the right split though, and it simplifies the argument: S12 is an
-acceptance criterion testing the orderly transition, S7.4 is a fault-tolerance
-requirement and not an acceptance test. They were being sized against a single
-number and should never have been - that conflation is what produced F100 phantom
-crossing.
+The tell, now in the ledger: the word BOTH. A single figure asserted to hold
+across two different link formats is a compression, and compression is where
+distinctions die.
 
-F95 is now the gating question and the last one: no mute-DEPTH figure in dB
-exists anywhere. S12 has a noise floor and now a transient pair; neither is an
-attenuation spec. Once the operator states which question the mute answers, F98
-is arithmetic.
+M34. We both allocated seq 004 within 22 seconds. My justification for one
+shared counter in bus 001 was FALSE: I wrote that per-folder numbering hides a
+loss because each side's own count still looks complete - but a lost message
+leaves the RECEIVER seeing a gap. I reasoned about the sender's view, and the
+sender is not who detects a drop. So the shared counter carried an allocation
+race in exchange for a benefit that did not exist.
 
-Three decrees now sit in STATE and not in REQUIREMENTS - D-1 (S3 oscillator),
-D-4 (S12 criterion), D-5 (S7.3 order). Worth one editing pass rather than three.
+A gap is loud. A collision is SILENT - both folders look internally consistent,
+every number present, two messages sharing one identity. F109's shape in a
+protocol: the check passed because it could not fail.
 
-Bus 004 sent: firmware is unblocked on the power-down handler. Told them to
-derive the 85 ms ramp from fs rather than hard-code it, and that step 2 must
-COMPLETE before step 3 starts - releasing the hard mute mid-ramp re-creates the
-defect the swap removed, just smaller.
+Adopted parity, hw ODD / fw EVEN - swapped from their proposal, because the
+history and their own 005 reservation both point that way.
+
+Also logged: FW-007 (the AK4458 states the soft-mute ramp two contradictory
+ways, 85 ms vs 21.25 ms, and we take 85 on safe-direction grounds that survive
+either resolution), FW-008 (the ramp is a firmware-selectable 16:1 parameter,
+not a property of the part - D-5 stands but my 85-ms-free framing needs
+correcting to the operator), and the finding that there is NO ramp-complete
+status bit, so D-5's wait is elapsed-time and FW-007 is therefore load-bearing
+on a [HARD] step.
+
+Bus 005 sent.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
