@@ -2239,7 +2239,8 @@ in a list does not look like a claim.** *It is one.*
 **Disposition: F71 is VOID.** Not closed — **void**, because closing implies there was something to
 close. **Removed from the handover list; the firmware agent is told to stop carrying it.**
 
-**F75 IS REAL and its facts are sent:** commit `e402526`, *"F75 into copper: the DACs' 115 dB
+**F75 IS REAL and its facts are sent:** commit `e402526` *(now `0ce0ad0` — history rewritten
+2026-11-21 before the first GitHub push; bus msg 015 still cites the old hash and is immutable)*, *"F75 into copper: the DACs' 115 dB
 depends on `+5V_A` staying linear."* **AK4458 p.50, verbatim:** *"Best performance should be achieved
 by clean linear regulated AVDD/VREF power supplies **AND** the default setting of the FIR2-0 bits.
 These conditions are included in the Analog Characteristics specs."* **The 115 dB we budget against
